@@ -1,0 +1,92 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>{{title}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
+        <ng-container *ngIf="offer$ | async as offer; else elseOffer">
+            <ng-container *ngIf="offer.imageUrl; else elseDummy">
+                <img (click)="onPickSource()" [src]="offer.imageUrl" />
+            </ng-container>
+            <ng-template #elseDummy>
+                <ion-img (click)="onPickSource()" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+            </ng-template>
+            <ion-progress-bar [value]="uploadPercent | async" *ngIf="showProgress"></ion-progress-bar>
+            <ion-card-header>
+                <ion-card-subtitle>Posted: {{offer.timestamp.toDate() | date}}</ion-card-subtitle>
+                <ion-card-title>{{offer.title}}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                {{offer.description}}
+            </ion-card-content>
+            <ion-item class="activated">
+                <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+                <ion-label>{{offer.category}}</ion-label>
+                <ion-note slot="end">Category</ion-note>
+            </ion-item>
+            <ion-item>
+                <ion-icon name="time-outline" slot="start"></ion-icon>
+                <ion-label>{{ (offer.durations !== 60) ? offer.durations + ' mins' : offer.durations + ' hour' }}</ion-label>
+                <ion-note slot="end">Duration</ion-note>
+            </ion-item>
+            <ion-item>
+                <ion-icon name="cash-outline" slot="start"></ion-icon>
+                <ion-label>{{offer.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
+                <ion-note slot="end">Charges</ion-note>
+            </ion-item>
+            <ion-item button (click)="onEdit(offer)" color="primary">
+                <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+                Edit
+            </ion-item>
+        </ng-container>
+        <ng-template #elseOffer>
+            <ion-card-header>
+                <ion-card-title>
+                    <ion-card-subtitle>Posted:
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+            </ion-card-content>
+            <ion-item class="activated">
+                <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+                <ion-label>
+                    <ion-skeleton-text animated style="width: 30%"></ion-skeleton-text>
+                </ion-label>
+                <ion-note slot="end">Category</ion-note>
+            </ion-item>
+            <ion-item>
+                <ion-icon name="time-outline" slot="start"></ion-icon>
+                <ion-label>
+                    <ion-skeleton-text animated style="width: 30%"></ion-skeleton-text>
+                </ion-label>
+                <ion-note slot="end">Duration</ion-note>
+            </ion-item>
+            <ion-item>
+                <ion-icon name="cash-outline" slot="start"></ion-icon>
+                <ion-label>
+                    <ion-skeleton-text animated style="width: 30%"></ion-skeleton-text>
+                </ion-label>
+                <ion-note slot="end">Charges</ion-note>
+            </ion-item>
+        </ng-template>
+    </ion-card>
+</ion-content>

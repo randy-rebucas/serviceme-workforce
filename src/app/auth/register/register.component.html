@@ -1,0 +1,110 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>Register an Account</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <p>We are excited to welcome you! Please fill out the form below.</p>
+    <form [formGroup]="form" (submit)="onSignUp()" class="register-form">
+        <ion-grid>
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-input formControlName="firstname" placeholder="Firstname"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.firstname.errors && formCtrls.firstname.touched">
+                        <ion-label *ngIf="formCtrls.firstname.errors.required">
+                            <ion-note color="danger">Firstname is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.firstname.errors.maxlength">
+                            <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-input formControlName="lastname" placeholder="Lastname"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.lastname.errors && formCtrls.lastname.touched">
+                        <ion-label *ngIf="formCtrls.lastname.errors.required">
+                            <ion-note color="danger">Lastname is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.lastname.errors.maxlength">
+                            <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+        <ion-grid>
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-input type="email" formControlName="email" placeholder="Email"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.email.errors && formCtrls.email.touched">
+                        <ion-label *ngIf="formCtrls.email.errors.required">
+                            <ion-note color="danger">Email is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.email.errors.maxlength">
+                            <ion-note color="danger">Only 50 max characters allowed.</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.email.errors.email">
+                            <ion-note color="danger">Invalid email format.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-input type="password" formControlName="password" placeholder="Password"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.password.errors && formCtrls.password.touched">
+                        <ion-label *ngIf="formCtrls.password.errors.required">
+                            <ion-note color="danger">Password is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.password.errors.maxlength">
+                            <ion-note color="danger">Only 12 max characters allowed.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-input type="password" formControlName="confirmPassword" placeholder="Confirm Password"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.confirmPassword.errors && formCtrls.confirmPassword.touched">
+                        <ion-label *ngIf="formCtrls.confirmPassword.errors.required">
+                            <ion-note color="danger">Confirm Password is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.confirmPassword.errors.maxlength">
+                            <ion-note color="danger">Only 12 max characters allowed.</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.confirmPassword.errors.passwordNotMatch">
+                            <ion-note color="danger">Password not match.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+        <ion-item lines="none">
+            <ion-label>Agree the Terms of Service.
+            </ion-label>
+            <ion-checkbox slot="start" (ionChange)="onCheck($event)" [checked]="isChecked"></ion-checkbox>
+        </ion-item>
+        <ion-button expand="block" type="submit">
+            Register
+        </ion-button>
+    </form>
+</ion-content>

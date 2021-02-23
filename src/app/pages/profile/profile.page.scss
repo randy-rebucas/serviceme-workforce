@@ -1,0 +1,27 @@
+ion-header {
+    ion-toolbar {
+        --background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        padding: 0 10px;
+        color: var(--ion-color-primary-contrast);
+    }
+}
+
+ion-content {
+    ion-avatar {
+        width: 130px;
+        height: 130px;
+        border: 2px solid var(--ion-color-secondary);
+        margin: 1em auto;
+    }
+    ion-list {
+        ion-list-header {
+            padding: 0;
+            ion-label {
+                text-align: center;
+                font-size: 20px;
+                color: var(--ion-color-primary);
+            }
+        }
+    }
+}

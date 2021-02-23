@@ -1,0 +1,32 @@
+ion-header {
+    ion-toolbar {
+        --color: var(--ion-color-primary);
+    }
+}
+
+ion-content {
+    display: flex;
+    text-align: center;
+    img {
+        width: 50%;
+        margin: 1em 0 3em;
+    }
+    form {
+        ion-grid {
+            border: 1px solid var(--ion-color-medium);
+            box-shadow: rgb(0 0 0 / 12%) 0px 4px 16px;
+            border-radius: 10px;
+            ion-row {
+                ion-col {
+                    ion-item {
+                        ion-icon {
+                            position: relative !important;
+                            top: 28px !important;
+                            margin: 0 auto !important;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

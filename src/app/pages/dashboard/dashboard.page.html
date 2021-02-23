@@ -1,0 +1,51 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>Dashboard</ion-title>
+    </ion-toolbar>
+    <ng-container *ngIf="user$ | async as user; else elseUserLoading">
+        <ion-item lines="none">
+            <ng-container *ngIf="user.photoURL; then loadAvatar; else loadDefault"></ng-container>
+            <ng-template #loadAvatar>
+                <ion-avatar slot="start">
+                    <img [src]="user.photoURL" alt="">
+                </ion-avatar>
+            </ng-template>
+            <ng-template #loadDefault>
+                <ion-avatar slot="start">
+                    <ion-icon name="person-outline" size="large"></ion-icon>
+                </ion-avatar>
+            </ng-template>
+
+            <ion-label>
+                <p>Welcome Back,</p>
+                <h3>{{user.displayName !== null ? user.displayName : user.email}}</h3>
+            </ion-label>
+            <ion-note slot="end">{{user.emailVerified ? 'Verified' : 'Not Verified'}}</ion-note>
+        </ion-item>
+    </ng-container>
+    <ng-template #elseUserLoading>
+        <ion-item lines="none">
+            <ion-avatar slot="start">
+                <ion-skeleton-text animated></ion-skeleton-text>
+            </ion-avatar>
+            <ion-label>
+                <p>
+                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                </p>
+                <h3>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </h3>
+            </ion-label>
+            <ion-note slot="end">
+                <ion-skeleton-text animated style="width: 10%"></ion-skeleton-text>
+            </ion-note>
+        </ion-item>
+    </ng-template>
+</ion-header>
+
+<ion-content>
+
+</ion-content>
