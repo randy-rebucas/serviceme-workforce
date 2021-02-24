@@ -38,7 +38,7 @@ export class OffersPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = settings.currency;
+      this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
 
     this.offers$ = this.authService.getUserState().pipe(

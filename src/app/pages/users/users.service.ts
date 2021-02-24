@@ -25,6 +25,10 @@ export class UsersService {
     return this.angularFirestore.collection<useClass>(collection, ref => ref.orderBy(orderField, orderBy));
   }
 
+  public byRoleCollection() {
+    return this.angularFirestore.collection(collection, ref => ref.where('role', '==', 'pro').orderBy(orderField, orderBy));
+  }
+
   private fetchData(col: AngularFirestoreCollection): Observable<any> {
     return col.snapshotChanges().pipe(
         map(actions => {
@@ -60,6 +64,10 @@ export class UsersService {
         return data;
       })
     );
+  }
+
+  getAllPro(): Observable<useClass[]> {
+    return this.fetchData(this.byRoleCollection());
   }
 
   insert(userId: string, data: any): Promise<DocumentReference> {

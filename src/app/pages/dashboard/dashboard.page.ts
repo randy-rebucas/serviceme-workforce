@@ -3,6 +3,8 @@ import { from, Observable } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { AlertController } from '@ionic/angular';
 import firebase from 'firebase/app';
+import { UsersService } from '../users/users.service';
+import { Users } from '../users/users';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,19 +13,26 @@ import firebase from 'firebase/app';
 })
 export class DashboardPage implements OnInit, AfterViewInit {
 
-  public user$: Observable<firebase.User>;
+  public currentUser$: Observable<firebase.User>;
+  public users$: Observable<Users[]>;
 
   constructor(
     private alertController: AlertController,
-    private authService: AuthService
+    private authService: AuthService,
+    private usersService: UsersService
   ) {}
 
   ngOnInit() {
-    this.user$ = from(this.authService.getCurrentUser());
+    this.currentUser$ = from(this.authService.getCurrentUser());
+
+    this.users$ = this.usersService.getAllPro();
+    this.users$.subscribe((r) => {
+      console.log(r);
+    });
   }
 
   ngAfterViewInit() {
-    this.user$.subscribe((user) => {
+    this.currentUser$.subscribe((user) => {
       if (!user.emailVerified) {
         console.log('please verify');
         from(this.alertController.create(

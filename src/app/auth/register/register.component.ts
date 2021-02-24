@@ -97,13 +97,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   setUserData(userCredential: firebase.auth.UserCredential) {
     const userData = {
-      uid: userCredential.user.uid,
       firstName: this.form.value.firstname,
       lastName: this.form.value.lastname,
       middleName: null
     };
 
-    this.subs.sink = from(this.authService.setUserData(userData)).subscribe(() => {
+    this.subs.sink = from(this.authService.setUserData(userCredential.user.uid, userData)).subscribe(() => {
       this.sendEmailVerification(userCredential);
     }, (error: any) => {
       this.loadingController.dismiss();

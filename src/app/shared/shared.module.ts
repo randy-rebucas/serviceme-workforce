@@ -4,13 +4,19 @@ import { CommonModule } from '@angular/common';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ListItemComponent } from './components/list-item/list-item.component';
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    ListItemComponent
+  ],
   imports: [
     CommonModule,
     IonicModule,
     ReactiveFormsModule
+  ],
+  exports: [
+    ListItemComponent,
   ],
   providers: [
     AndroidPermissions

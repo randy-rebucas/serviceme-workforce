@@ -49,7 +49,7 @@ export class SettingsService {
     return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
-        data.id = id;
+        // data.id = id;
         return data;
       })
     );

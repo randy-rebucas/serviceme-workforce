@@ -18,7 +18,7 @@ export class Users {
         public name: Name,
         public address: Address,
         public gender: string,
-        public classification?: string,
+        public role: string,
         public id?: string
     ) {}
 }

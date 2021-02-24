@@ -50,7 +50,7 @@ export class DetailComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = settings.currency;
+      this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
 
     this.offer$ = from(this.authService.getCurrentUser()).pipe(

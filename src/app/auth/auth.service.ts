@@ -67,13 +67,14 @@ export class AuthService {
     return this.angularFireAuth.createUserWithEmailAndPassword(email, password);
   }
 
-  setUserData(userData: any) {
-    return this.angularFirestore.collection('users').doc(userData.uid).set({
+  setUserData(userId: string, userData: any) {
+    return this.angularFirestore.collection('users').doc(userId).set({
       name: {
         firstname: userData.firstName,
         middlename: userData.middleName,
         lastname: userData.lastName
-      }
+      },
+      role: 'client'
     });
   }
 

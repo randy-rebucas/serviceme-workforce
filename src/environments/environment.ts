@@ -10,6 +10,7 @@ export const environment = {
     apiKey: 'AIzaSyC1P3bJSJZpzs7cd0QoizMEkkZqCqMCFCs',
     authDomain: 'cutsonwheel-233209.firebaseapp.com',
     databaseURL: 'https://cutsonwheel-233209.firebaseio.com',
+    functions: 'https://us-central1-cutsonwheel-233209.cloudfunctions.net',
     projectId: 'cutsonwheel-233209',
     storageBucket: 'cutsonwheel-233209.appspot.com',
     messagingSenderId: '504496906586',
