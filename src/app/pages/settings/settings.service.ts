@@ -57,7 +57,6 @@ export class SettingsService {
 
   insert(userId: string, data: any) {
     return this.defaultCollection().doc(userId).set({
-      availability: data.availability,
       currency: data.currency
     });
   }

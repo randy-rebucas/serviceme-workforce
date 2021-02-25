@@ -9,24 +9,11 @@
             </ng-template>
         </ion-avatar>
         <ion-label>
-            <h3>{{ user[1]?.name.lastname }} {{ user[1]?.name.firstname }}</h3>
-
-            <!-- <ng-container *ngIf="type === 'mail'">
-              <p [innerHTML]="data.content | stripHtml"></p>
-          </ng-container>
-          <ng-container *ngIf="type === 'contact'">
-              <p>{{ user[0].user.email }}</p>
-          </ng-container>
-          <ng-container *ngIf="type === 'employee'">
-              <p>{{ data.position }}</p>
-          </ng-container>
-          <ng-container *ngIf="type === 'invoice' || type === 'request' || type === 'payslip'">
-              <p>{{ timestamp.toDate() | date }}</p>
-          </ng-container> -->
-
+            <h3>{{ user[1].name.lastname }} {{ user[1].name.firstname }}</h3>
+            <p>{{ user[1].classification }}</p>
         </ion-label>
-        <ng-container *ngIf="status">
-            <ion-note slot="end" [ngClass]="status">{{status | uppercase }}</ion-note>
+        <ng-container>
+            <ion-note slot="end" [ngClass]="status">6 services</ion-note>
         </ng-container>
 
     </ion-item>

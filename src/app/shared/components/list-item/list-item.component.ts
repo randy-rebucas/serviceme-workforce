@@ -22,7 +22,7 @@ export class ListItemComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.user$ = combineLatest([this.adminFunctionService.getById(this.userId), this.userService.getUser(this.userId)]).pipe(
+    this.user$ = combineLatest([this.adminFunctionService.getById(this.userId), this.userService.getOne(this.userId)]).pipe(
       delay(500)
     );
 

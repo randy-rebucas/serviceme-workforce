@@ -15,22 +15,10 @@
     </ion-header>
     <ion-list>
         <ion-item>
-            <ion-label>Calssification</ion-label>
-            <ion-select [value]="classifications" (ionChange)="onSelectClassification($event)">
-                <ion-select-option *ngFor="let classification of classificationList" [value]="classification.name">{{classification.name}}</ion-select-option>
-            </ion-select>
-        </ion-item>
-        <ion-item>
             <ion-label>Currency</ion-label>
             <ion-select [value]="defaultCurrency" (ionChange)="onSelectCurrency($event)">
                 <ion-select-option value="USD">USD</ion-select-option>
                 <ion-select-option value="PHP">PHP</ion-select-option>
-            </ion-select>
-        </ion-item>
-        <ion-item>
-            <ion-label>Availability</ion-label>
-            <ion-select multiple="true" [compareWith]="compareAvailablity" [value]="availablities" (ionChange)="onSelectAvailability($event)">
-                <ion-select-option *ngFor="let availablity of availablityList" [value]="availablity">{{availablity.title}}</ion-select-option>
             </ion-select>
         </ion-item>
     </ion-list>

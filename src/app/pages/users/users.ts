@@ -13,12 +13,20 @@ export interface Address {
     state: string;
 }
 
+export interface Roles {
+    pro?: boolean;
+    client?: boolean;
+    admin?: boolean;
+}
+
 export class Users {
     constructor(
         public name: Name,
         public address: Address,
         public gender: string,
-        public role: string,
+        public roles: Roles,
+        public classification?: string,
+        public availability?: any,
         public id?: string
     ) {}
 }

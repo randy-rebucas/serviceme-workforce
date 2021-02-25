@@ -18,6 +18,7 @@ import { UsersService } from '../users/users.service';
 import { Router } from '@angular/router';
 import { ChangePhoneNumberComponent } from './change-phone-number/change-phone-number.component';
 import { ChangeEmailComponent } from './change-email/change-email.component';
+import { TitleCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-profile',
@@ -31,6 +32,9 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   private username$: BehaviorSubject<string|null>;
   private user: firebase.User;
   private username: string;
+  public isClient: boolean;
+  public isPro: boolean;
+  public isAdmin: boolean;
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
   private subs = new SubSink();
@@ -45,6 +49,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
     private modalController: ModalController,
     private routerOutlet: IonRouterOutlet,
     private firestoreService: FirestoreService,
+    private titlecasePipe: TitleCasePipe,
     private camera: Camera,
   ) {
     this.showProgress = false;
@@ -52,15 +57,76 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      user.getIdTokenResult().then((idTokenResult) => {
+        this.isClient = idTokenResult.claims.client;
+        this.isPro = idTokenResult.claims.pro;
+        this.isAdmin = idTokenResult.claims.admin;
+      });
+    });
+
     this.user$ = from(this.authService.getCurrentUser()).pipe(
         mergeMap((auhtUser) => {
           this.user = auhtUser;
-          return this.userService.getUser(auhtUser.uid);
+          return this.userService.getOne(auhtUser.uid);
         }),
         map(userData => {
-          return {...this.user, ...userData};
+          let completeName = '';
+          let addressLine1 = '';
+          let addressLine2 = '';
+          let addressLine3 = '';
+          const firstname = this.titlecasePipe.transform(userData.name.firstname);
+          const lastname = this.titlecasePipe.transform(userData.name.lastname);
+          const midlename = (userData.name.midlename) ? this.titlecasePipe.transform(userData.name.midlename) : null;
+          if (midlename) {
+            completeName = firstname.concat(' ', midlename);
+          }
+          completeName = completeName.concat(', ', lastname);
+
+          const address1 = (userData.address) ? this.titlecasePipe.transform(userData.address.address1) : null;
+          const address2 = (userData.address) ? this.titlecasePipe.transform(userData.address.address2) : null;
+          const city = (userData.address) ? this.titlecasePipe.transform(userData.address.city) : null;
+          const country = (userData.address) ? this.titlecasePipe.transform(userData.address.country) : null;
+          const postalCode = (userData.address) ? this.titlecasePipe.transform(userData.address.postalCode) : null;
+          const state = (userData.address) ? this.titlecasePipe.transform(userData.address.state) : null;
+          // check address 1 Unit/Floor + House/Building Name
+          if (address1) {
+            addressLine1 = address1;
+          }
+          // check address 2 Street Number/Name
+          if (address2) {
+            addressLine1 = addressLine1.concat(', ', address2);
+          }
+          // check State/Brangay/District
+          if (state) {
+            addressLine2 = state;
+          }
+          // check City
+          if (city) {
+            addressLine2 = addressLine2.concat(', ', city);
+          }
+          // check PostalCode
+          if (postalCode) {
+            addressLine3 = postalCode;
+          }
+          // check Country
+          if (country) {
+            addressLine3 = addressLine3.concat(', ', country);
+          }
+
+          const customData = {
+            fullname: completeName,
+            line1: addressLine1,
+            line2: addressLine2,
+            line3: addressLine3
+          };
+
+          return {...this.user, ...userData, ...customData};
         })
       );
+    this.user$.subscribe((r) => {
+      console.log(r);
+    });
   }
 
   ngAfterViewInit() {

@@ -1,7 +1,12 @@
 import { NgModule } from '@angular/core';
+import { AngularFireAuthGuard, hasCustomClaim } from '@angular/fire/auth-guard';
 import { Routes, RouterModule } from '@angular/router';
 
 import { PagesPage } from './pages.page';
+
+const adminOnly = () => hasCustomClaim('admin');
+const clientOnly = () => hasCustomClaim('client');
+const proOnly = () => hasCustomClaim('pro');
 
 const routes: Routes = [
   {
@@ -16,10 +21,6 @@ const routes: Routes = [
       {
         path: 'profile',
         loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
-      },
-      {
-        path: 'users',
-        loadChildren: () => import('./users/users.module').then( m => m.UsersPageModule)
       },
       {
         path: 'transactions',
@@ -50,9 +51,23 @@ const routes: Routes = [
         loadChildren: () => import('./privacy-policy/privacy-policy.module').then( m => m.PrivacyPolicyPageModule)
       },
       {
+        path: 'users',
+        canActivate: [AngularFireAuthGuard],
+        data: { authGuardPipe: adminOnly },
+        loadChildren: () => import('./users/users.module').then( m => m.UsersPageModule)
+      },
+      {
         path: 'offers',
+        canActivate: [AngularFireAuthGuard],
+        data: { authGuardPipe: proOnly },
         loadChildren: () => import('./offers/offers.module').then( m => m.OffersPageModule)
       },
+      {
+        path: 'bookings',
+        canActivate: [AngularFireAuthGuard],
+        data: { authGuardPipe: clientOnly },
+        loadChildren: () => import('./bookings/bookings.module').then( m => m.BookingsPageModule)
+      }
     ]
   }
 ];

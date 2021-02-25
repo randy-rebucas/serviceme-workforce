@@ -13,6 +13,9 @@ import firebase from 'firebase/app';
 export class PagesPage implements OnInit, OnDestroy {
   public user$: Observable<firebase.User>;
   public subs = new SubSink();
+  public isClient: boolean;
+  public isPro: boolean;
+  public isAdmin: boolean;
 
   constructor(
     private router: Router,
@@ -22,6 +25,14 @@ export class PagesPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.user$ = from(this.authService.getCurrentUser());
+
+    this.user$.subscribe((user) => {
+      user.getIdTokenResult().then((idTokenResult) => {
+        this.isClient = idTokenResult.claims.client;
+        this.isPro = idTokenResult.claims.pro;
+        this.isAdmin = idTokenResult.claims.admin;
+      });
+    });
   }
 
   onLogout() {

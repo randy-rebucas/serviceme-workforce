@@ -1,0 +1,46 @@
+<ng-container *ngIf="lists$ | async; let lists; else loadingUsers">
+    <ion-list>
+        <ion-item-sliding *ngFor="let item of lists" #slidingItem>
+            <ion-item lines="none" detail>
+                <ion-avatar slot="start">
+                    <ng-container *ngIf="item.admin.user.photoURL; else elseDummy">
+                        <img [src]="item.admin.user.photoURL" />
+                    </ng-container>
+                    <ng-template #elseDummy>
+                        <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                    </ng-template>
+                </ion-avatar>
+                <ion-label>
+                    <h2>{{ item.user.name.firstname }}</h2>
+                    <p>{{ item.user.classification }}</p>
+                </ion-label>
+                <ion-note slot="end">6 services</ion-note>
+            </ion-item>
+            <ion-item-options side="end">
+                <ion-item-option color="seconday" (click)="onDeail(item, slidingItem)">
+                    <ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
+                </ion-item-option>
+            </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+    <div id="container" class="ion-text-center" *ngIf="lists.length === 0">
+        <ion-icon name="list-outline"></ion-icon>
+        <p>No users found</p>
+    </div>
+</ng-container>
+<ng-template #loadingUsers>
+
+    <ion-item lines="none">
+        <ion-avatar slot="start">
+            <ion-skeleton-text animated></ion-skeleton-text>
+        </ion-avatar>
+        <ion-label>
+            <h3>
+                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+            </h3>
+            <p>
+                <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+            </p>
+        </ion-label>
+    </ion-item>
+</ng-template>

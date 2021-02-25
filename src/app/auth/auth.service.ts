@@ -1,20 +1,37 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore } from '@angular/fire/firestore';
-
-import { Observable } from 'rxjs';
+import { AngularFireFunctions } from '@angular/fire/functions';
+import { Observable, of } from 'rxjs';
 
 import firebase from 'firebase/app';
+import { Users } from '../pages/users/users';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
+  user$: Observable<Users>;
+
   constructor(
     private angularFireAuth: AngularFireAuth,
-    private angularFirestore: AngularFirestore
-  ) {}
+    private angularFirestore: AngularFirestore,
+    private angularFireFunctions: AngularFireFunctions
+  ) {
+    // this.user$ = this.getUserState().pipe(
+    //   switchMap(
+    //     user => {
+    //       if (user) {
+    //         return this.angularFirestore.doc<Users>(`users/${user.uid}`).valueChanges();
+    //       } else {
+    //         return of(null) as Observable;
+    //       }
+    //     }
+    //   )
+    // );
+  }
 
   getUserState(): Observable<firebase.User> {
     return this.angularFireAuth.authState;
@@ -73,9 +90,14 @@ export class AuthService {
         firstname: userData.firstName,
         middlename: userData.middleName,
         lastname: userData.lastName
-      },
-      role: 'client'
+      }
     });
+  }
+
+  setCustomClaims(userEmail: string, claimRole: string) {
+    const selectedRole = (claimRole === 'client') ? 'addClientRole' : 'addProRole';
+    const setCustomClaim = this.angularFireFunctions.httpsCallable(selectedRole);
+    return setCustomClaim({ email: userEmail});
   }
 
   checkEmailExist(email: string) {

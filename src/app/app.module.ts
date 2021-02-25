@@ -25,7 +25,7 @@ import { HttpClientModule } from '@angular/common/http';
     AngularFireModule.initializeApp(environment.firebase),
     AngularFireAuthModule,
     AngularFireStorageModule,
-    AngularFirestoreModule.enablePersistence(),
+    // AngularFirestoreModule.enablePersistence(),
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }

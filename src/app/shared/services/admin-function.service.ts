@@ -27,6 +27,11 @@ export class AdminFunctionService {
     );
   }
 
+  getAllUsers(page: string = null) {
+    const queryParams = `?nextPageToken=${page}`;
+    return this.http.get<{ user: firebase.User }>(BACKEND_URL + '/getAllUsers' + queryParams);
+  }
+
   createUser(userData: any) {
     return this.http.post<{ userId: string }>(BACKEND_URL + '/createUser', userData);
   }

@@ -8,6 +8,8 @@ import { DashboardPageRoutingModule } from './dashboard-routing.module';
 
 import { DashboardPage } from './dashboard.page';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { ClientComponent } from './client/client.component';
+import { ProComponent } from './pro/pro.component';
 
 @NgModule({
   imports: [
@@ -17,6 +19,10 @@ import { SharedModule } from 'src/app/shared/shared.module';
     DashboardPageRoutingModule,
     SharedModule
   ],
-  declarations: [DashboardPage]
+  declarations: [
+    DashboardPage,
+    ClientComponent,
+    ProComponent
+  ]
 })
 export class DashboardPageModule {}

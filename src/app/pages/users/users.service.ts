@@ -4,7 +4,8 @@ import { map, take } from 'rxjs/operators';
 import {
   AngularFirestore,
   AngularFirestoreCollection,
-  DocumentReference
+  DocumentReference,
+  QuerySnapshot
 } from '@angular/fire/firestore';
 
 import { Users as useClass } from './users';
@@ -22,11 +23,7 @@ export class UsersService {
   ) {}
 
   private defaultCollection(): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection, ref => ref.orderBy(orderField, orderBy));
-  }
-
-  public byRoleCollection() {
-    return this.angularFirestore.collection(collection, ref => ref.where('role', '==', 'pro').orderBy(orderField, orderBy));
+    return this.angularFirestore.collection<useClass>(collection);
   }
 
   private fetchData(col: AngularFirestoreCollection): Observable<any> {
@@ -41,53 +38,26 @@ export class UsersService {
       );
   }
 
-  getSize() {
-    return this.angularFirestore.collection<useClass>(collection).get();
+  getAll(): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection());
   }
 
-  getAll(searchKey: string): Observable<useClass[]> {
-    const datas = this.fetchData(this.defaultCollection());
-    return datas.pipe(
-      map(dataList =>
-        dataList.filter((data: useClass) => {
-          return data.name.firstname.toLowerCase().includes(searchKey.toLowerCase());
-        })
-      )
-    );
+  getSize(): Observable<QuerySnapshot<useClass>> {
+    return this.defaultCollection().get();
   }
 
-  getUser(userId: string): Observable<useClass> {
-    return this.defaultCollection().doc<useClass>(userId).valueChanges().pipe(
+  getOne(id: string): Observable<useClass> {
+    return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
-        // data.id = userId;
+        // data.id = id;
         return data;
       })
     );
   }
 
-  getAllPro(): Observable<useClass[]> {
-    return this.fetchData(this.byRoleCollection());
-  }
-
-  insert(userId: string, data: any): Promise<DocumentReference> {
-    return;
-    // return this.defaultCollection().doc(userId).set({
-    //   name: {
-    //     firstname: data.firstname,
-    //     lastname: data.lastname,
-    //     midlename: data.midlename
-    //   },
-    //   address: {
-    //     address1: data.address1,
-    //     address2: data.address2,
-    //     city: data.city,
-    //     country: data.country,
-    //     postalCode: data.postalCode,
-    //     state: data.state
-    //   },
-    //   gender: data.gender
-    // });
+  insert(data: any): Promise<DocumentReference> {
+    return this.defaultCollection().add(data);
   }
 
   update(id: string, data: any): Promise<void> {

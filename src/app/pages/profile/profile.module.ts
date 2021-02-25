@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
@@ -37,6 +37,7 @@ import { ChangeEmailComponent } from './change-email/change-email.component';
     ChangeEmailComponent
   ],
   providers: [
+    TitleCasePipe,
     Camera,
     File
   ]

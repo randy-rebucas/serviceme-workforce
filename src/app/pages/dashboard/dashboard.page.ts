@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { from, Observable } from 'rxjs';
+import { from, Observable, of } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { AlertController } from '@ionic/angular';
-import firebase from 'firebase/app';
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users';
+import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
+import { map, mergeMap, reduce, toArray } from 'rxjs/operators';
+import firebase from 'firebase/app';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,21 +14,50 @@ import { Users } from '../users/users';
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit, AfterViewInit {
-
+  public isClient: boolean;
+  public isPro: boolean;
+  public isAdmin: boolean;
   public currentUser$: Observable<firebase.User>;
-  public users$: Observable<Users[]>;
+  public lists$: Observable<any>;
+  public user: Users[];
 
   constructor(
     private alertController: AlertController,
     private authService: AuthService,
+    private adminFunctionService: AdminFunctionService,
     private usersService: UsersService
   ) {}
 
   ngOnInit() {
     this.currentUser$ = from(this.authService.getCurrentUser());
 
-    this.users$ = this.usersService.getAllPro();
-    this.users$.subscribe((r) => {
+    this.currentUser$.subscribe((user) => {
+      user.getIdTokenResult().then((idTokenResult) => {
+        this.isClient = idTokenResult.claims.client;
+        this.isPro = idTokenResult.claims.pro;
+        this.isAdmin = idTokenResult.claims.admin;
+      });
+    });
+
+    this.lists$ = this.usersService.getAll().pipe(
+      map((users) => {
+        return users.filter((usersList) => {
+          return usersList.roles.pro === true;
+        });
+      }),
+      mergeMap((usersMerge) => {
+        return from(usersMerge).pipe(
+          mergeMap((user) => {
+            return this.adminFunctionService.getById(user.id).pipe(
+              map(admin => ({ user, admin })),
+            );
+          }),
+          reduce((a, i) => [...a, i], []),
+        );
+      })
+    );
+
+    this.lists$.subscribe((r) => {
       console.log(r);
     });
   }

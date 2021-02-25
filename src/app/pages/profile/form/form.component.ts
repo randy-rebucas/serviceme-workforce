@@ -1,26 +1,49 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
-import { from, Observable } from 'rxjs';
+import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Classification } from 'src/app/shared/classes/classification';
 import { ClassificationsService } from 'src/app/shared/services/classifications.service';
 import { CountriesService } from 'src/app/shared/services/countries.service';
 import { SubSink } from 'subsink';
 import { UsersService } from '../../users/users.service';
+import firebase from 'firebase/app';
+import { map, switchMap } from 'rxjs/operators';
 
+export class Availability {
+  constructor(
+      public id: number,
+      public title: string
+  ) {}
+}
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
 export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
+  public availablityList: Availability[] = [
+    {id: 1, title: 'Monday'},
+    {id: 2, title: 'Tuesday'},
+    {id: 3, title: 'Wednesday'},
+    {id: 4, title: 'Thursday'},
+    {id: 5, title: 'Friday'},
+    {id: 6, title: 'Saturday'},
+    {id: 7, title: 'Sunday'}
+  ];
+
+  public availablities: any[];
   public form: FormGroup;
   public user$: Observable<any>;
   public subs = new SubSink();
   public countries: any[] = [];
   public classifications: Classification[];
-
+  public isClient: boolean;
+  public isPro: boolean;
+  public isAdmin: boolean;
+  public currentClassification: string;
+  public currentCountry: string;
   constructor(
     private navParams: NavParams,
     private alertController: AlertController,
@@ -35,8 +58,24 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.classificationsService.getAll().subscribe((classifications) => {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      user.getIdTokenResult().then((idTokenResult) => {
+        this.isClient = idTokenResult.claims.client;
+        this.isPro = idTokenResult.claims.pro;
+        this.isAdmin = idTokenResult.claims.admin;
+      });
+    });
+
+    this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
       this.classifications = classifications;
+    });
+
+    this.subs.sink = this.country.allCountries().pipe(
+      map((countryList) => {
+        return Object.keys(countryList).map(k => countryList[k]);
+      }),
+    ).subscribe((countryResponse) => {
+      this.countries = countryResponse.filter(countries => countries.name === 'Philippines');
     });
 
     this.form = new FormGroup({
@@ -53,10 +92,6 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
         validators: [Validators.required, Validators.maxLength(50)]
       }),
       gender: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required]
-      }),
-      classification: new FormControl(null, {
         updateOn: 'blur',
         validators: [Validators.required]
       }),
@@ -89,33 +124,25 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
         validators: [Validators.required]
       })
     });
-
-    const newCountries = [];
-    this.subs.sink = this.country.allCountries().subscribe((countries) => {
-      for (const key in countries) {
-        if (Object.prototype.hasOwnProperty.call(countries, key)) {
-          const element = countries[key];
-          newCountries.push({value: element.name, viewValue: element.name});
-        }
-      }
-      this.countries = newCountries;
-    });
   }
 
   ngAfterViewInit() {
     this.user$.subscribe((user) => {
+      this.currentClassification = user.classification;
+      this.availablities = user.availability;
+      this.currentCountry = user.address?.country;
+
       this.form.patchValue({
         firstname: user.name.firstname,
         midlename: user.name.midlename,
         lastname: user.name.lastname,
         gender: user.gender,
-        classification: user.classification,
-        address1: user.address.address1,
-        address2: user.address.address2,
-        city: user.address.city,
-        state: user.address.state,
-        postalCode: user.address.postalCode,
-        country:  user.address.country
+        address1: user.address?.address1,
+        address2: user.address?.address2,
+        city: user.address?.city,
+        state: user.address?.state,
+        postalCode: user.address?.postalCode,
+        country:  user.address?.country
       });
     });
   }
@@ -131,14 +158,13 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   doUpdate(userId: string) {
-    const updatedUser = {
+    const patchdUser = {
       name: {
         firstname: this.form.value.firstname,
         midlename: this.form.value.midlename,
         lastname: this.form.value.lastname
       },
       gender: this.form.value.gender,
-      classification: this.form.value.classification,
       address: {
         address1: this.form.value.address1,
         address2: this.form.value.address2,
@@ -148,7 +174,8 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
         postalCode: this.form.value.postalCode
       }
     };
-    this.subs.sink = from(this.userService.update(userId, updatedUser)).subscribe(() => {
+
+    this.subs.sink = from(this.userService.update(userId, patchdUser)).subscribe(() => {
       this.loadingController.dismiss();
       this.onDismiss(true);
     }, (error: any) => {
@@ -169,6 +196,38 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.getUser();
+    });
+  }
+
+  onSelectClassification(event: CustomEvent) {
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.userService.update(user.uid, { classification: event.detail.value });
+      })
+    ).subscribe(() => {}, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  compareAvailablity(o1: Availability, o2: Availability | Availability[]) {
+    if (!o1 || !o2) {
+      return o1 === o2;
+    }
+
+    if (Array.isArray(o2)) {
+      return o2.some((u: Availability) => u.id === o1.id);
+    }
+
+    return o1.id === o2.id;
+  }
+
+  onSelectAvailability(event: CustomEvent) {
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.userService.update(user.uid, { availability: event.detail.value });
+      })
+    ).subscribe(() => {}, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 

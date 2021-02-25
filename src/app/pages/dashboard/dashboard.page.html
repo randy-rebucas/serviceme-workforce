@@ -52,55 +52,14 @@
             <ion-title size="large">Profesionals</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ng-container *ngIf="users$ | async; let users; else loadingUsers">
-        <ion-list>
-            <ion-item-sliding *ngFor="let user of users" #slidingItem>
-                <app-list-item [itemId]="user.id" [userId]="user.id" [data]="user" (item)="onTriger($event)" [type]='"employee"' slidingItem></app-list-item>
-
-                <!-- <ion-item lines="none">
-                    <ion-thumbnail slot="start">
-                        <ion-img [src]="user.imageUrl"></ion-img>
-                    </ion-thumbnail>
-                    <ion-label>
-                        <h2>{{ offer.title }}</h2>
-                        <ion-chip outline>
-                            <ion-icon name="time-outline"></ion-icon>
-                            <ion-label>{{ (offer.durations !== 60) ? offer.durations + ' mins' : offer.durations + ' hour' }}</ion-label>
-                        </ion-chip>
-                        <ion-chip outline>
-                            <ion-icon name="cash-outline"></ion-icon>
-                            <ion-label>{{ offer.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
-                        </ion-chip>
-                    </ion-label>
-                </ion-item>
-                <ion-item-options side="end">
-                    <ion-item-option color="primary" (click)="onBook(offer, slidingItem)">
-                        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-                    </ion-item-option>
-                    <ion-item-option color="seconday" (click)="onDeail(offer, slidingItem)">
-                        <ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
-                    </ion-item-option>
-                </ion-item-options> -->
-            </ion-item-sliding>
-        </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="users.length === 0">
-            <ion-icon name="list-outline"></ion-icon>
-            <p>No users found</p>
-        </div>
+    <ng-container *ngIf="isClient">
+        <app-client></app-client>
     </ng-container>
-    <ng-template #loadingUsers>
+    <ng-container *ngIf="isPro">
+        <app-pro></app-pro>
+    </ng-container>
 
-        <ion-item lines="none">
-            <ion-avatar slot="start">
-                <ion-skeleton-text animated></ion-skeleton-text>
-            </ion-avatar>
-            <ion-label>
-                <h3>
-                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
-                </h3>
-            </ion-label>
-        </ion-item>
-    </ng-template>
+
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button (click)="onCreate()">
             <ion-icon name="add"></ion-icon>
