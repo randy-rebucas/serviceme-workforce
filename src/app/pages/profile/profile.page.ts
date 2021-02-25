@@ -124,13 +124,10 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
           return {...this.user, ...userData, ...customData};
         })
       );
-    this.user$.subscribe((r) => {
-      console.log(r);
-    });
   }
 
   ngAfterViewInit() {
-    this.username$.subscribe((username) => {
+    this.subs.sink = this.username$.subscribe((username) => {
       this.username = username;
     });
   }
@@ -296,7 +293,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   takePhoto(selectedSourceType: PictureSourceType) {
-    from(this.authService.getCurrentUser()).subscribe((user) => {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       if (user.displayName === null || user.displayName === '') {
         this.prompUsername(selectedSourceType);
       } else {

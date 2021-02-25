@@ -127,7 +127,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.user$.subscribe((user) => {
+    this.subs.sink = this.user$.subscribe((user) => {
       this.currentClassification = user.classification;
       this.availablities = user.availability;
       this.currentCountry = user.address?.country;
@@ -200,7 +200,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSelectClassification(event: CustomEvent) {
-    from(this.authService.getCurrentUser()).pipe(
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.userService.update(user.uid, { classification: event.detail.value });
       })
@@ -222,7 +222,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSelectAvailability(event: CustomEvent) {
-    from(this.authService.getCurrentUser()).pipe(
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.userService.update(user.uid, { availability: event.detail.value });
       })

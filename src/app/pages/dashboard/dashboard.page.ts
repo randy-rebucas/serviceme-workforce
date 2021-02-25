@@ -56,10 +56,6 @@ export class DashboardPage implements OnInit, AfterViewInit {
         );
       })
     );
-
-    this.lists$.subscribe((r) => {
-      console.log(r);
-    });
   }
 
   ngAfterViewInit() {

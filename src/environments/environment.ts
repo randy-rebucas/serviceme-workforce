@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  googleMapsApiKey: 'AIzaSyDYjgsE7jfyoLg9Efc6cMP-bBczakfJeZM',
   payPalClientId: 'ARx_qTcA9R8vB0REORsPveyMuNAfcEMOsP4Z_oYAmdidQgiEuqoswb_8BXjgyKHzsgvFWVMngC6IZ9Lk',
   payPalEnv: 'PayPalEnvironmentProduction',
   firebase: {

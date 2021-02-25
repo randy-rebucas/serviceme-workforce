@@ -8,6 +8,7 @@ import { PagesPageRoutingModule } from './pages-routing.module';
 
 import { PagesPage } from './pages.page';
 
+
 @NgModule({
   imports: [
     CommonModule,

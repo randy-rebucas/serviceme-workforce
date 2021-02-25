@@ -5,12 +5,12 @@ export interface Name {
 }
 
 export interface Address {
-    address1: string;
-    address2: string;
     city: string;
     country: string;
-    postalCode: string;
     state: string;
+    address1?: string;
+    address2?: string;
+    postalCode?: string;
 }
 
 export interface Roles {
