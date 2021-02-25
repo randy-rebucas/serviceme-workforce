@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { from, Observable } from 'rxjs';
+import { BehaviorSubject, from, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
@@ -21,7 +21,8 @@ export class OffersPage implements OnInit, OnDestroy {
   public offers$: Observable<Offers[]>;
 
   public defaultCurrency: string;
-
+  private offerOption$: BehaviorSubject<string|null>;
+  public offerOption: string;
   private subs = new SubSink();
   constructor(
     private modalController: ModalController,
@@ -30,9 +31,16 @@ export class OffersPage implements OnInit, OnDestroy {
     private offersService: OffersService,
     private settingsService: SettingsService,
     private routerOutlet: IonRouterOutlet,
-  ) { }
+  ) {
+    this.offerOption$ = new BehaviorSubject('single');
+  }
 
   ngOnInit() {
+    this.offerOption$.subscribe((offerOption) => {
+      console.log(offerOption);
+      this.offerOption = offerOption;
+    });
+
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
@@ -43,17 +51,26 @@ export class OffersPage implements OnInit, OnDestroy {
 
     this.offers$ = this.authService.getUserState().pipe(
       switchMap((user) =>
-        this.offersService.getAll(user.uid)
+        this.offerOption$.pipe(
+          switchMap((option) =>
+            this.offersService.getAll(user.uid, option)
+          )
+        )
       )
     );
   }
 
-  onCreate() {
+  offerChanged(event: CustomEvent) {
+    this.offerOption$.next(event.detail.value);
+  }
+
+  onCreate(offerOption: string) {
     this.subs.sink = from(this.modalController.create({
       component: FormComponent,
       componentProps: {
         title: 'Create Offer',
         offerData: Offers,
+        option: offerOption,
         state: true
       },
       swipeToClose: true,
@@ -79,7 +96,7 @@ export class OffersPage implements OnInit, OnDestroy {
   }
 
   doDelete(docRef: string, offerId: string, ionItemSliding: IonItemSliding) {
-    this.subs.sink = from(this.offersService.delete(docRef, offerId)).subscribe(() => {
+    this.subs.sink = from(this.offersService.delete(docRef, offerId, this.offerOption)).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
     });
@@ -89,7 +106,7 @@ export class OffersPage implements OnInit, OnDestroy {
     this.subs.sink = from(this.modalController.create({
       component: DetailComponent,
       componentProps: {
-        title: 'Offer details',
+        title: offer.type + ' offer details',
         offerData: offer,
       },
       swipeToClose: true,

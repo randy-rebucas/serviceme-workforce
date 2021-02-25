@@ -1,3 +1,7 @@
+export interface Childs {
+    id: string;
+}
+
 export class Offers {
     constructor(
         public title: string,
@@ -6,6 +10,8 @@ export class Offers {
         public durations: number,
         public charges: number,
         public timestamp: any,
+        public type: string,
+        public childs?: [Childs],
         public imageUrl?: string,
         public id?: string,
     ) {}

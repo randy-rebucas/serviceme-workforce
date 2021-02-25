@@ -3,7 +3,7 @@ import { AngularFireStorageReference, AngularFireUploadTask } from '@angular/fir
 import { Camera, CameraOptions, PictureSourceType } from '@ionic-native/camera/ngx';
 import { ActionSheetController, AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
 import { from, Observable, of } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { finalize, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Base64 } from 'src/app/helper/base64';
 import { FirestoreService } from 'src/app/shared/services/firestore.service';
@@ -19,7 +19,8 @@ import { OffersService } from '../offers.service';
   styleUrls: ['./detail.component.scss'],
 })
 export class DetailComponent implements OnInit, OnDestroy {
-  public offer$: Observable<any>;
+  public offer$: Observable<Offers>;
+  public offerType$: Observable<Offers[]>;
   public uploadPercent: Observable<number>;
   public offer: Offers;
   public title: string;
@@ -55,7 +56,13 @@ export class DetailComponent implements OnInit, OnDestroy {
 
     this.offer$ = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
-        return this.offersService.getOne(user.uid, this.navParams.data.offerData.id);
+        return this.offersService.getOne(user.uid, this.navParams.data.offerData.id, this.navParams.data.offerData.type);
+      })
+    );
+
+    this.offerType$ = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.offersService.getAll(user.uid, this.navParams.data.offerData.type);
       })
     );
 
@@ -168,7 +175,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   setUpdateData(imageLink: any, userId: string) {
-    this.subs.sink = from(this.offersService.update(userId, this.offer.id, {imageUrl: imageLink})).subscribe(() => {
+    this.subs.sink = from(this.offersService.update(userId, this.offer.id, {imageUrl: imageLink}, this.offer.type)).subscribe(() => {
       this.loadingController.dismiss();
       this.onDismiss(true);
     }, (error: any) => {

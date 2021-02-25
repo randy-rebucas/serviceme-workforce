@@ -11,6 +11,7 @@ import { FormComponent } from './form/form.component';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { DetailComponent } from './detail/detail.component';
 
+
 @NgModule({
   imports: [
     CommonModule,

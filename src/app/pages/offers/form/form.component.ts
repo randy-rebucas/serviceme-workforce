@@ -12,6 +12,7 @@ import { CategoriesService } from 'src/app/shared/services/categories.service';
 import { Category } from 'src/app/shared/classes/category';
 import { Offers } from '../offers';
 import { CurrencyPipe } from '@angular/common';
+import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -22,6 +23,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public durations: number;
   public title: string;
   public state: boolean;
+  public offerOption: string;
   public categories$: Observable<any[]>;
   public offer: Offers;
   private durations$: BehaviorSubject<number|null>;
@@ -41,6 +43,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.title = this.navParams.data.title;
     this.state = this.navParams.data.state;
     this.offer = this.navParams.data.offerData;
+    this.offerOption = this.navParams.data.option;
   }
 
   ngOnInit() {
@@ -99,41 +102,38 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  doCreate(userId: string) {
-    const charges = this.form.value.charges;
-    const offerData  = {
-      title: this.form.value.title,
-      description: this.form.value.description,
-      category: this.form.value.category,
-      durations: this.durations,
-      charges: Number(charges.replace(/[^0-9.-]+/g, '')),
-      timestamp: firebase.firestore.Timestamp.fromDate(new Date())
-    };
+  doCreate() {
+    from(this.authService.getCurrentUser()).subscribe((user) => {
+      const charges = this.form.value.charges;
+      const offerData  = {
+        title: this.form.value.title,
+        description: this.form.value.description,
+        category: this.form.value.category,
+        durations: this.durations,
+        charges: Number(charges.replace(/[^0-9.-]+/g, '')),
+        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+        type: this.offerOption
+      };
 
-    if (this.state) {
-      this.subs.sink = from(this.offersService.insert(userId, offerData)).subscribe(() => {
-        this.form.reset();
-        this.loadingController.dismiss();
-        this.onDismiss(true);
-      }, (error: any) => {
-        this.loadingController.dismiss();
-        this.presentAlert(error.code, error.message);
-      });
-    } else {
-      this.subs.sink = from(this.offersService.update(userId, this.offer.id, offerData)).subscribe(() => {
-        this.form.reset();
-        this.loadingController.dismiss();
-        this.onDismiss(true);
-      }, (error: any) => {
-        this.loadingController.dismiss();
-        this.presentAlert(error.code, error.message);
-      });
-    }
-  }
-
-  getCurrentUser() {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      this.doCreate(user.uid);
+      if (this.state) {
+        this.subs.sink = from(this.offersService.insert(user.uid, offerData, this.offerOption)).subscribe(() => {
+          this.form.reset();
+          this.loadingController.dismiss();
+          this.onDismiss(true);
+        }, (error: any) => {
+          this.loadingController.dismiss();
+          this.presentAlert(error.code, error.message);
+        });
+      } else {
+        this.subs.sink = from(this.offersService.update(user.uid, this.offer.id, offerData, this.offerOption)).subscribe(() => {
+          this.form.reset();
+          this.loadingController.dismiss();
+          this.onDismiss(true);
+        }, (error: any) => {
+          this.loadingController.dismiss();
+          this.presentAlert(error.code, error.message);
+        });
+      }
     });
   }
 
@@ -142,7 +142,7 @@ export class FormComponent implements OnInit, OnDestroy {
       message: 'Please wait...'
     })).subscribe(loadingEl => {
       loadingEl.present();
-      this.getCurrentUser();
+      this.doCreate();
     });
   }
 

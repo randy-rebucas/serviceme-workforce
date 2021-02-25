@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
     <ion-toolbar>
-        <ion-title>{{title}}</ion-title>
+        <ion-title>{{title | titlecase}}</ion-title>
         <ion-buttons slot="primary">
             <ion-button color="danger" (click)="onDismiss(false)">
                 <ion-icon name="close"></ion-icon>
@@ -12,11 +12,12 @@
 <ion-content [fullscreen]="true">
     <ion-header collapse="condense">
         <ion-toolbar>
-            <ion-title size="large">{{title}}</ion-title>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
         </ion-toolbar>
     </ion-header>
+
     <form [formGroup]="form" (submit)="onCreate()" class="offer-form">
-        <ion-card>
+        <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
             <ion-card-header>
                 <ion-card-subtitle>All fields are required!</ion-card-subtitle>
             </ion-card-header>
@@ -94,7 +95,6 @@
                 </ion-button>
             </ion-card-content>
         </ion-card>
-
-
     </form>
+
 </ion-content>

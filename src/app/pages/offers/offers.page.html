@@ -5,6 +5,16 @@
         </ion-buttons>
         <ion-title>Offers</ion-title>
     </ion-toolbar>
+    <ion-toolbar color="tertiary">
+        <ion-segment [value]="offerOption" (ionChange)="offerChanged($event)">
+            <ion-segment-button value="single">
+                <ion-label>Single</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="package">
+                <ion-label>Package</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -16,7 +26,7 @@
     <ng-container *ngIf="offers$ | async; let offers; else loadingOffers">
         <ion-list>
             <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
-                <ion-item lines="none">
+                <ion-item lines="none" detail>
                     <ion-thumbnail slot="start">
                         <ion-img [src]="offer.imageUrl"></ion-img>
                     </ion-thumbnail>
@@ -49,7 +59,7 @@
     </ng-container>
     <ng-template #loadingOffers>
 
-        <ion-item lines="none">
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]">
             <ion-thumbnail slot="start">
                 <ion-skeleton-text animated></ion-skeleton-text>
             </ion-thumbnail>
@@ -73,7 +83,7 @@
         </ion-item>
     </ng-template>
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button (click)="onCreate()">
+        <ion-fab-button (click)="onCreate(offerOption)">
             <ion-icon name="add"></ion-icon>
         </ion-fab-button>
     </ion-fab>
