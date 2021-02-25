@@ -11,6 +11,7 @@ import firebase from 'firebase/app';
 import { CategoriesService } from 'src/app/shared/services/categories.service';
 import { Category } from 'src/app/shared/classes/category';
 import { Offers } from '../offers';
+import { CurrencyPipe } from '@angular/common';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -33,7 +34,8 @@ export class FormComponent implements OnInit, OnDestroy {
     private categoriesService: CategoriesService,
     private loadingController: LoadingController,
     private modalController: ModalController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private currencyPipe: CurrencyPipe
   ) {
     this.durations$ = new BehaviorSubject(25);
     this.title = this.navParams.data.title;
@@ -61,7 +63,7 @@ export class FormComponent implements OnInit, OnDestroy {
       }),
       charges: new FormControl(null, {
         updateOn: 'blur',
-        validators: [Validators.required, Validators.min(2), Validators.maxLength(6)]
+        validators: [Validators.required, Validators.maxLength(8)]
       })
     });
 
@@ -79,6 +81,12 @@ export class FormComponent implements OnInit, OnDestroy {
     }
   }
 
+  onInput(value: any) {
+    let input = value.replace(/[\D\s\._\-]+/g, '');
+    input = input ? parseInt( input, 10 ) : 0;
+    this.formCtrls.charges.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
+  }
+
   onDurationSelected(event: CustomEvent) {
     this.durations$.next(event.detail.value);
   }
@@ -92,14 +100,16 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   doCreate(userId: string) {
+    const charges = this.form.value.charges;
     const offerData  = {
       title: this.form.value.title,
       description: this.form.value.description,
       category: this.form.value.category,
       durations: this.durations,
-      charges: Number(this.form.value.charges),
+      charges: Number(charges.replace(/[^0-9.-]+/g, '')),
       timestamp: firebase.firestore.Timestamp.fromDate(new Date())
     };
+
     if (this.state) {
       this.subs.sink = from(this.offersService.insert(userId, offerData)).subscribe(() => {
         this.form.reset();
