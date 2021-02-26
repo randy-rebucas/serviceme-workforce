@@ -15,7 +15,7 @@
             <ion-title size="large">{{title | titlecase}}</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ion-card class="ion-no-padding ion-no-margin no-box-shadow" color="secondary">
+    <ion-card class="ion-no-padding ion-no-margin no-box-shadow detail" color="secondary">
         <ng-container *ngIf="offer$ | async as offer; else elseOffer">
             <ion-card-header>
                 <ion-card-subtitle>Posted: {{offer.timestamp.toDate() | date}}</ion-card-subtitle>
@@ -46,6 +46,38 @@
                     </ion-label>
                     <ion-icon name="create-outline" slot="end" (click)="onEdit(offer)"></ion-icon>
                 </ion-item>
+                <ng-container *ngIf="offerType === 'single'; else elseChilds">
+                    <ng-container *ngIf="offerParents$ | async as offerParents; else elseParentOffer">
+                        <ion-list-header>
+                            <ion-label>Package linked</ion-label>
+                        </ion-list-header>
+                        <ion-item lines="none" color="tertiary">
+                            <ion-thumbnail *ngFor="let offerParent of offerParents">
+                                <ng-container *ngIf="offerParent.imageUrl; else elseParentDummy">
+                                    <img [src]="offerParent.imageUrl" />
+                                </ng-container>
+                                <ng-template #elseParentDummy>
+                                    <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                                </ng-template>
+                            </ion-thumbnail>
+                        </ion-item>
+                    </ng-container>
+                </ng-container>
+                <ng-template #elseChilds>
+                    <ion-list-header>
+                        <ion-label>Services included</ion-label>
+                    </ion-list-header>
+                    <ion-item lines="none" color="tertiary">
+                        <ion-thumbnail *ngFor="let child of offer.childs">
+                            <ng-container *ngIf="child.imageUrl; else elseParentDummy">
+                                <img [src]="child.imageUrl" />
+                            </ng-container>
+                            <ng-template #elseParentDummy>
+                                <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                            </ng-template>
+                        </ion-thumbnail>
+                    </ion-item>
+                </ng-template>
             </ion-card-content>
         </ng-container>
         <ng-template #elseOffer>
@@ -85,43 +117,39 @@
         </ng-template>
     </ion-card>
 
-    <ion-card>
-        <ion-content>
-            <ng-container *ngIf="offerType === 'single'; else elseChilds">
-                show package linked
-            </ng-container>
-            <ng-template #elseChilds>
-                show all offer liked
-            </ng-template>
-        </ion-content>
-    </ion-card>
-
     <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
-        <ng-container *ngIf="offerChilds$ | async as offerChilds; else elseOffer">
-            <ion-list>
-                <ion-list-header>
-                    <ion-label>Select {{offerType === 'single' ? 'Package' : 'Offer'}}</ion-label>
-                </ion-list-header>
-                <ion-item-sliding *ngFor="let type of offerChilds" #slidingItem>
-                    <ion-item lines="none">
-                        <ion-thumbnail slot="start">
-                            <ion-img [src]="type.imageUrl"></ion-img>
-                        </ion-thumbnail>
-                        <ion-label>
-                            <h2>{{ type.title }}</h2>
-                            <ion-chip outline>
-                                <ion-icon name="time-outline"></ion-icon>
-                                <ion-label>{{ type.durations | numberToTime }}</ion-label>
-                            </ion-chip>
-                            <ion-chip outline>
-                                <ion-icon name="cash-outline"></ion-icon>
-                                <ion-label>{{ type.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
-                            </ion-chip>
-                        </ion-label>
-                        <ion-checkbox slot="end" [checked]="checkOffer(type, offerItems)" (ionChange)="onSelect($event, type)" *ngIf="offerType === 'package'"></ion-checkbox>
-                    </ion-item>
-                </ion-item-sliding>
-            </ion-list>
-        </ng-container>
+        <ion-card-content>
+            <ng-container *ngIf="offerChilds$ | async as offerChilds; else elseOffer">
+                <ion-list>
+                    <ion-list-header>
+                        <ion-label>Select {{offerType === 'single' ? 'Package' : 'Offer'}}</ion-label>
+                    </ion-list-header>
+                    <ion-item-sliding *ngFor="let offerChild of offerChilds" #slidingItem>
+                        <ion-item lines="none">
+                            <ion-thumbnail slot="start">
+                                <ng-container *ngIf="offerChild.imageUrl; else elseParentDummy">
+                                    <img [src]="offerChild.imageUrl" />
+                                </ng-container>
+                                <ng-template #elseParentDummy>
+                                    <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                                </ng-template>
+                            </ion-thumbnail>
+                            <ion-label>
+                                <h2>{{ offerChild.title }}</h2>
+                                <ion-chip outline>
+                                    <ion-icon name="time-outline"></ion-icon>
+                                    <ion-label>{{ offerChild.durations | numberToTime }}</ion-label>
+                                </ion-chip>
+                                <ion-chip outline>
+                                    <ion-icon name="cash-outline"></ion-icon>
+                                    <ion-label>{{ offerChild.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
+                                </ion-chip>
+                            </ion-label>
+                            <ion-checkbox slot="end" [checked]="checkOffer(offerChild, offerItems)" (ionChange)="onSelect($event, offerChild, offerType)" *ngIf="offerType === 'package'"></ion-checkbox>
+                        </ion-item>
+                    </ion-item-sliding>
+                </ion-list>
+            </ng-container>
+        </ion-card-content>
     </ion-card>
 </ion-content>

@@ -28,7 +28,12 @@
             <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
                 <ion-item lines="none" detail>
                     <ion-thumbnail slot="start">
-                        <ion-img [src]="offer.imageUrl"></ion-img>
+                        <ng-container *ngIf="offer.imageUrl; else elseDummy">
+                            <img [src]="offer.imageUrl" />
+                        </ng-container>
+                        <ng-template #elseDummy>
+                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                        </ng-template>
                     </ion-thumbnail>
                     <ion-label>
                         <h2>{{ offer.title }}</h2>
@@ -59,7 +64,7 @@
     </ng-container>
     <ng-template #loadingOffers>
 
-        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]">
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7]">
             <ion-thumbnail slot="start">
                 <ion-skeleton-text animated></ion-skeleton-text>
             </ion-thumbnail>

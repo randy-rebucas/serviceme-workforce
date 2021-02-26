@@ -26,6 +26,13 @@ export class OffersService {
     return this.angularFirestore.collection<useClass>('users/' + colRef + '/' + collection, ref => ref.where('type', '==', option));
   }
 
+  private childCollection(colRef: string, offer: Offers): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(
+      'users/' + colRef + '/' + collection,
+      ref => ref.where('childs', 'array-contains', offer)
+    );
+  }
+
   private fetchData(col: AngularFirestoreCollection): Observable<any> {
     return col.snapshotChanges().pipe(
         map(actions => {
@@ -40,6 +47,10 @@ export class OffersService {
 
   getAll(colRef: string, option: string): Observable<useClass[]> {
     return this.fetchData(this.defaultCollection(colRef, option));
+  }
+
+  getChildField(colRef: string, offer: Offers) {
+    return this.fetchData(this.childCollection(colRef, offer));
   }
 
   getSize(colRef: string, option: string): Observable<QuerySnapshot<useClass>> {

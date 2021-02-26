@@ -21,6 +21,7 @@ import { OffersService } from '../offers.service';
 export class DetailComponent implements OnInit, OnDestroy {
   public offer$: Observable<Offers>;
   public offerChilds$: Observable<Offers[]>;
+  public offerParents$: Observable<Offers[]>;
   public offerChilds: string;
   public offer: Offers;
   public offerId: string;
@@ -64,7 +65,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  initializeOffer() {
     this.offer$ = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.offersService.getOne(user.uid, this.offerId, this.offerType);
@@ -76,7 +77,14 @@ export class DetailComponent implements OnInit, OnDestroy {
         this.offerItems = offers.childs;
         this.offerDuration = offers.durations;
       }
+      if (offers.type === 'single') {
+        this.getChildField(offers);
+      }
     });
+  }
+
+  ngOnInit() {
+    this.initializeOffer();
 
     this.offerChilds$ = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -85,13 +93,26 @@ export class DetailComponent implements OnInit, OnDestroy {
     );
   }
 
-  onUpdateOffer(offers: Offers[]) {
+  getChildField(offer: Offers) {
+    this.offerParents$ = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.offersService.getChildField(user.uid, offer);
+      })
+    );
+
+    this.offerParents$.subscribe((r) => {
+      console.log(r);
+    });
+  }
+
+  onUpdateOffer(offers: Offers[], type: string) {
     let totalCharges = 0;
     let totalHour = 0;
     offers.forEach(offerItem => {
       totalCharges += Number(offerItem.charges);
       totalHour += Number(offerItem.durations);
     });
+
     from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.offersService.update(
@@ -104,17 +125,18 @@ export class DetailComponent implements OnInit, OnDestroy {
           this.offerType
         );
       })
-    ).subscribe();
+    ).subscribe(() => {
+      this.initializeOffer();
+    });
   }
 
-  onSelect(event: CustomEvent, selectedOffer: Offers) {
-    console.log(this.offerDuration);
+  onSelect(event: CustomEvent, selectedOffer: Offers, type: string) {
     if (event.detail.checked) {
       this.offerItems.push(selectedOffer);
-      this.onUpdateOffer(this.offerItems);
+      this.onUpdateOffer(this.offerItems, type);
     } else {
       const updatedOffers = this.offerItems.filter(offer => offer.id !== selectedOffer.id);
-      this.onUpdateOffer(updatedOffers);
+      this.onUpdateOffer(updatedOffers, type);
     }
   }
 
