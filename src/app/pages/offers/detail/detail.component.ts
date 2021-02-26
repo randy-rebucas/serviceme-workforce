@@ -25,6 +25,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   public offer: Offers;
   public offerId: string;
   public offerType: string;
+  public offerDuration: number;
   public offerItems: Offers[];
 
   public title: string;
@@ -52,6 +53,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.title = this.navParams.data.title;
     this.offerId = this.navParams.data.offerId;
     this.offerType = this.navParams.data.offerOption;
+    this.offerItems = [];
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -72,6 +74,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.offer$.subscribe((offers) => {
       if (offers.childs) {
         this.offerItems = offers.childs;
+        this.offerDuration = offers.durations;
       }
     });
 
@@ -84,17 +87,28 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   onUpdateOffer(offers: Offers[]) {
     let totalCharges = 0;
+    let totalHour = 0;
     offers.forEach(offerItem => {
       totalCharges += Number(offerItem.charges);
+      totalHour += Number(offerItem.durations);
     });
     from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
-        return this.offersService.update(user.uid, this.offerId, { charges: totalCharges, childs: offers }, this.offerType);
+        return this.offersService.update(
+          user.uid,
+          this.offerId,
+          { durations: totalHour,
+            charges: totalCharges,
+            childs: offers
+          },
+          this.offerType
+        );
       })
     ).subscribe();
   }
 
   onSelect(event: CustomEvent, selectedOffer: Offers) {
+    console.log(this.offerDuration);
     if (event.detail.checked) {
       this.offerItems.push(selectedOffer);
       this.onUpdateOffer(this.offerItems);

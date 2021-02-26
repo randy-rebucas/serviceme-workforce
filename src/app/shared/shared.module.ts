@@ -5,10 +5,12 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ListItemComponent } from './components/list-item/list-item.component';
+import { NumberToTimePipe } from './pipes/number-to-time.pipe';
 
 @NgModule({
   declarations: [
-    ListItemComponent
+    ListItemComponent,
+    NumberToTimePipe
   ],
   imports: [
     CommonModule,
@@ -17,6 +19,7 @@ import { ListItemComponent } from './components/list-item/list-item.component';
   ],
   exports: [
     ListItemComponent,
+    NumberToTimePipe
   ],
   providers: [
     AndroidPermissions

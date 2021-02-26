@@ -22,14 +22,6 @@ export class OffersService {
     private angularFirestore: AngularFirestore
   ) { }
 
-  setOffers(offers: Offers[]) {
-    this.offerItems$.next(offers);
-  }
-
-  getOffers() {
-    return this.offerItems$.asObservable();
-  }
-
   private defaultCollection(colRef: string, option: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>('users/' + colRef + '/' + collection, ref => ref.where('type', '==', option));
   }

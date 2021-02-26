@@ -73,13 +73,14 @@ export class FormComponent implements OnInit, OnDestroy {
     this.categories$ = this.categoriesService.getAll();
 
     if (!this.state) {
+
+      const charge = this.offer.charges;
       this.form.patchValue({
         title: this.offer.title,
         description: this.offer.description,
         category: this.offer.category,
-        charges: this.offer.charges
+        charges: ( charge === 0 ) ? '' : charge.toLocaleString( 'en-US' )
       });
-
       this.durations$.next(this.offer.durations);
     }
   }

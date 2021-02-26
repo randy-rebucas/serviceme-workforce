@@ -37,7 +37,7 @@
                         <h2>{{ offer.title }}</h2>
                         <ion-chip outline>
                             <ion-icon name="time-outline"></ion-icon>
-                            <ion-label>{{ (offer.durations !== 60) ? offer.durations + ' mins' : offer.durations + ' hour' }}</ion-label>
+                            <ion-label>{{ offer.durations | numberToTime }}</ion-label>
                         </ion-chip>
                         <ion-chip outline>
                             <ion-icon name="cash-outline"></ion-icon>
@@ -85,6 +85,17 @@
         </ng-template>
     </ion-card>
 
+    <ion-card>
+        <ion-content>
+            <ng-container *ngIf="offerType === 'single'; else elseChilds">
+                show package linked
+            </ng-container>
+            <ng-template #elseChilds>
+                show all offer liked
+            </ng-template>
+        </ion-content>
+    </ion-card>
+
     <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
         <ng-container *ngIf="offerChilds$ | async as offerChilds; else elseOffer">
             <ion-list>
@@ -100,14 +111,14 @@
                             <h2>{{ type.title }}</h2>
                             <ion-chip outline>
                                 <ion-icon name="time-outline"></ion-icon>
-                                <ion-label>{{ (type.durations !== 60) ? type.durations + ' mins' : type.durations + ' hour' }}</ion-label>
+                                <ion-label>{{ type.durations | numberToTime }}</ion-label>
                             </ion-chip>
                             <ion-chip outline>
                                 <ion-icon name="cash-outline"></ion-icon>
                                 <ion-label>{{ type.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
                             </ion-chip>
                         </ion-label>
-                        <ion-checkbox slot="end" [checked]="checkOffer(type, offerItems)" (ionChange)="onSelect($event, type)"></ion-checkbox>
+                        <ion-checkbox slot="end" [checked]="checkOffer(type, offerItems)" (ionChange)="onSelect($event, type)" *ngIf="offerType === 'package'"></ion-checkbox>
                     </ion-item>
                 </ion-item-sliding>
             </ion-list>

@@ -34,7 +34,7 @@
                         <h2>{{ offer.title }}</h2>
                         <ion-chip outline>
                             <ion-icon name="time-outline"></ion-icon>
-                            <ion-label>{{ (offer.durations !== 60) ? offer.durations + ' mins' : offer.durations + ' hour' }}</ion-label>
+                            <ion-label>{{ offer.durations | numberToTime }}</ion-label>
                         </ion-chip>
                         <ion-chip outline>
                             <ion-icon name="cash-outline"></ion-icon>
