@@ -23,6 +23,17 @@ ion-content {
         }
     }
     ion-list {
+        ion-item-sliding {
+            ion-item {
+                ion-thumbnail {
+                    ion-img {
+                        border: 1px solid #fccd12;
+                        padding: 8px;
+                        filter: contrast(0.5);
+                    }
+                }
+            }
+        }
         ion-item {
             ion-note {
                 font-size: 14px;
