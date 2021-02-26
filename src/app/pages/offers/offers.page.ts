@@ -37,7 +37,6 @@ export class OffersPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.offerOption$.subscribe((offerOption) => {
-      console.log(offerOption);
       this.offerOption = offerOption;
     });
 
@@ -70,8 +69,8 @@ export class OffersPage implements OnInit, OnDestroy {
       componentProps: {
         title: 'Create Offer',
         offerData: Offers,
-        option: offerOption,
-        state: true
+        state: true,
+        option: offerOption
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
@@ -107,7 +106,8 @@ export class OffersPage implements OnInit, OnDestroy {
       component: DetailComponent,
       componentProps: {
         title: offer.type + ' offer details',
-        offerData: offer,
+        offerId: offer.id,
+        offerOption: this.offerOption
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl

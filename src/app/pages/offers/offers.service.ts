@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import {
   AngularFirestore,
@@ -8,7 +8,7 @@ import {
   QuerySnapshot
 } from '@angular/fire/firestore';
 
-import { Offers as useClass } from './offers';
+import { Offers, Offers as useClass } from './offers';
 
 const collection = 'offers';
 
@@ -16,10 +16,19 @@ const collection = 'offers';
   providedIn: 'root'
 })
 export class OffersService {
+  private offerItems$ = new BehaviorSubject<Offers[]>([]);
 
   constructor(
     private angularFirestore: AngularFirestore
   ) { }
+
+  setOffers(offers: Offers[]) {
+    this.offerItems$.next(offers);
+  }
+
+  getOffers() {
+    return this.offerItems$.asObservable();
+  }
 
   private defaultCollection(colRef: string, option: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>('users/' + colRef + '/' + collection, ref => ref.where('type', '==', option));

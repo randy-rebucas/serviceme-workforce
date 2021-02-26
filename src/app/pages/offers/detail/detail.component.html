@@ -15,7 +15,7 @@
             <ion-title size="large">{{title | titlecase}}</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
+    <ion-card class="ion-no-padding ion-no-margin no-box-shadow" color="secondary">
         <ng-container *ngIf="offer$ | async as offer; else elseOffer">
             <ion-card-header>
                 <ion-card-subtitle>Posted: {{offer.timestamp.toDate() | date}}</ion-card-subtitle>
@@ -23,7 +23,7 @@
             </ion-card-header>
             <ion-card-content>
                 {{offer.description}}
-                <ion-item lines="none">
+                <ion-item lines="none" color="tertiary">
                     <ion-thumbnail slot="start">
                         <ng-container *ngIf="offer.imageUrl; else elseDummy">
                             <img (click)="onPickSource()" [src]="offer.imageUrl" />
@@ -85,9 +85,32 @@
         </ng-template>
     </ion-card>
 
-    <!-- <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
-        <ng-container *ngIf="offer$ | async as offer; else elseOffer">
-
+    <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
+        <ng-container *ngIf="offerChilds$ | async as offerChilds; else elseOffer">
+            <ion-list>
+                <ion-list-header>
+                    <ion-label>Select {{offerType === 'single' ? 'Package' : 'Offer'}}</ion-label>
+                </ion-list-header>
+                <ion-item-sliding *ngFor="let type of offerChilds" #slidingItem>
+                    <ion-item lines="none">
+                        <ion-thumbnail slot="start">
+                            <ion-img [src]="type.imageUrl"></ion-img>
+                        </ion-thumbnail>
+                        <ion-label>
+                            <h2>{{ type.title }}</h2>
+                            <ion-chip outline>
+                                <ion-icon name="time-outline"></ion-icon>
+                                <ion-label>{{ (type.durations !== 60) ? type.durations + ' mins' : type.durations + ' hour' }}</ion-label>
+                            </ion-chip>
+                            <ion-chip outline>
+                                <ion-icon name="cash-outline"></ion-icon>
+                                <ion-label>{{ type.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
+                            </ion-chip>
+                        </ion-label>
+                        <ion-checkbox slot="end" [checked]="checkOffer(type, offerItems)" (ionChange)="onSelect($event, type)"></ion-checkbox>
+                    </ion-item>
+                </ion-item-sliding>
+            </ion-list>
         </ng-container>
-    </ion-card> -->
+    </ion-card>
 </ion-content>

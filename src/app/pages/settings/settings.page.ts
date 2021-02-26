@@ -39,7 +39,7 @@ export class SettingsPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency$.next(settings.currency);
+      this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
   }
 

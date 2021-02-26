@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { AngularFireStorageReference, AngularFireUploadTask } from '@angular/fire/storage';
 import { Camera, CameraOptions, PictureSourceType } from '@ionic-native/camera/ngx';
-import { ActionSheetController, AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
-import { from, Observable, of } from 'rxjs';
+import { ActionSheetController, AlertController, IonItemSliding, LoadingController, ModalController, NavParams } from '@ionic/angular';
+import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Base64 } from 'src/app/helper/base64';
@@ -20,14 +20,21 @@ import { OffersService } from '../offers.service';
 })
 export class DetailComponent implements OnInit, OnDestroy {
   public offer$: Observable<Offers>;
-  public offerType$: Observable<Offers[]>;
-  public uploadPercent: Observable<number>;
+  public offerChilds$: Observable<Offers[]>;
+  public offerChilds: string;
   public offer: Offers;
+  public offerId: string;
+  public offerType: string;
+  public offerItems: Offers[];
+
   public title: string;
   public showProgress: boolean;
   public defaultCurrency: string;
+
+  public uploadPercent: Observable<number>;
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
+
   private subs = new SubSink();
 
   constructor(
@@ -41,10 +48,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     private offersService: OffersService,
     private firestoreService: FirestoreService,
     private camera: Camera,
-  ) { }
-
-  ngOnInit() {
+  ) {
     this.title = this.navParams.data.title;
+    this.offerId = this.navParams.data.offerId;
+    this.offerType = this.navParams.data.offerOption;
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -53,22 +60,60 @@ export class DetailComponent implements OnInit, OnDestroy {
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
+  }
 
+  ngOnInit() {
     this.offer$ = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
-        return this.offersService.getOne(user.uid, this.navParams.data.offerData.id, this.navParams.data.offerData.type);
+        return this.offersService.getOne(user.uid, this.offerId, this.offerType);
       })
     );
 
-    this.offerType$ = from(this.authService.getCurrentUser()).pipe(
-      switchMap((user) => {
-        return this.offersService.getAll(user.uid, this.navParams.data.offerData.type);
-      })
-    );
-
-    this.subs.sink =  this.offer$.subscribe((offer) => {
-      this.offer = offer;
+    this.offer$.subscribe((offers) => {
+      if (offers.childs) {
+        this.offerItems = offers.childs;
+      }
     });
+
+    this.offerChilds$ = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.offersService.getAll(user.uid, this.offerType === 'package' ? 'single' : 'package');
+      })
+    );
+  }
+
+  onUpdateOffer(offers: Offers[]) {
+    let totalCharges = 0;
+    offers.forEach(offerItem => {
+      totalCharges += Number(offerItem.charges);
+    });
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.offersService.update(user.uid, this.offerId, { charges: totalCharges, childs: offers }, this.offerType);
+      })
+    ).subscribe();
+  }
+
+  onSelect(event: CustomEvent, selectedOffer: Offers) {
+    if (event.detail.checked) {
+      this.offerItems.push(selectedOffer);
+      this.onUpdateOffer(this.offerItems);
+    } else {
+      const updatedOffers = this.offerItems.filter(offer => offer.id !== selectedOffer.id);
+      this.onUpdateOffer(updatedOffers);
+    }
+  }
+
+  checkOffer(selectedOffer: Offers, currentChilds: Offers | Offers[]) {
+    if (!selectedOffer || !currentChilds) {
+      return selectedOffer === currentChilds;
+    }
+
+    if (Array.isArray(currentChilds)) {
+      return currentChilds.some((u: Offers) => u.id === selectedOffer.id);
+    }
+
+    return selectedOffer.id === currentChilds.id;
   }
 
   onEdit(offer: Offers) {
@@ -78,7 +123,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       componentProps: {
         title: 'Update Offer',
         offerData: offer,
-        state: false
+        state: false,
+        option: this.offerType
       }
     })).subscribe((modalEl) => {
       modalEl.present();
@@ -129,7 +175,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       destinationType: this.camera.DestinationType.DATA_URL,
       encodingType: this.camera.EncodingType.JPEG,
       mediaType: this.camera.MediaType.PICTURE,
-      cameraDirection: this.camera.Direction.FRONT
+      cameraDirection: this.camera.Direction.BACK,
+      correctOrientation: true
     };
 
     this.subs.sink = from(this.camera.getPicture(options)).subscribe((imageData) => {
@@ -149,7 +196,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   doUpload(imageUrl: any) {
     this.showProgress = true;
     const file = new Base64().dataURItoBlob('data:image/jpeg;base64,' + imageUrl);
-    const filePath = `offer/${this.offer.id}.jpg`;
+    const filePath = `offer/${this.offerId}.jpg`;
 
     this.angularFireStorageReference = this.firestoreService.ref(filePath);
     this.angularFireUploadTask = this.firestoreService.put(filePath, file);
@@ -175,7 +222,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   setUpdateData(imageLink: any, userId: string) {
-    this.subs.sink = from(this.offersService.update(userId, this.offer.id, {imageUrl: imageLink}, this.offer.type)).subscribe(() => {
+    this.subs.sink = from(this.offersService.update(userId, this.offerId, {imageUrl: imageLink}, this.offerType)).subscribe(() => {
       this.loadingController.dismiss();
       this.onDismiss(true);
     }, (error: any) => {
