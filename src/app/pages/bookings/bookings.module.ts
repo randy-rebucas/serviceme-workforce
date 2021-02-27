@@ -10,13 +10,15 @@ import { BookingsPage } from './bookings.page';
 import { DetailComponent } from './detail/detail.component';
 import { FormComponent } from './form/form.component';
 import { PreviewComponent } from './preview/preview.component';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    BookingsPageRoutingModule
+    BookingsPageRoutingModule,
+    SharedModule
   ],
   declarations: [
     BookingsPage,

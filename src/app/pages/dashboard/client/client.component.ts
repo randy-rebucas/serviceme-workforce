@@ -1,12 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
+import { IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
+
 import { from, Observable, Subject} from 'rxjs';
 import { map, mergeMap, reduce } from 'rxjs/operators';
-import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
-import { SubSink } from 'subsink';
-import { DetailComponent } from '../../bookings/detail/detail.component';
-import { UsersService } from '../../users/users.service';
 
+import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
+import { UsersService } from '../../users/users.service';
+import { DetailComponent } from '../../bookings/detail/detail.component';
+
+import { SubSink } from 'subsink';
 @Component({
   selector: 'app-client',
   templateUrl: './client.component.html',
@@ -16,9 +18,9 @@ export class ClientComponent implements OnInit, OnDestroy {
   public users$: Observable<any>;
   private userUpdated = new Subject<any[]>();
   private subs = new SubSink();
+
   constructor(
     private modalController: ModalController,
-    private loadingController: LoadingController,
     private routerOutlet: IonRouterOutlet,
     private usersService: UsersService,
     private adminFunctionService: AdminFunctionService,
