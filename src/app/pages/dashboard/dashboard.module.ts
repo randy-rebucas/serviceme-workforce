@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
@@ -26,7 +26,8 @@ import { Camera } from '@ionic-native/camera/ngx';
     ProComponent
   ],
   providers: [
-    Camera
+    Camera,
+    DatePipe
   ]
 })
 export class DashboardPageModule {}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -8,19 +8,21 @@ import { Offers } from '../../offers/offers';
 import { OffersService } from '../../offers/offers.service';
 import { SettingsService } from '../../settings/settings.service';
 import { BookingsService } from '../bookings.service';
+import { FormComponent } from '../form/form.component';
 
 @Component({
   selector: 'app-detail',
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.scss'],
 })
-export class DetailComponent implements OnInit {
+export class DetailComponent implements OnInit, OnDestroy {
   public title: string;
   public user$: Observable<any>;
   public state: boolean;
   public defaultCurrency: string;
   public offerItems: any[];
   public offers$: Observable<Offers[]>;
+  public offerOption: string;
   private offerOption$: BehaviorSubject<string|null>;
   private offersUpdated = new Subject<Offers[]>();
   private subs = new SubSink();
@@ -62,6 +64,10 @@ export class DetailComponent implements OnInit {
       this.offersUpdated.next(offers);
     });
 
+    this.subs.sink = this.offerOption$.subscribe((offerOption) => {
+      this.offerOption = offerOption;
+    });
+
     this.offers$ = this.getOfferListener();
 
     this.bookingsService.getOffers().subscribe((offers) => {
@@ -73,19 +79,53 @@ export class DetailComponent implements OnInit {
     this.offerOption$.next(event.detail.value);
   }
 
-  onPickService(offer: Offers) {
-    this.offerItems.push(offer);
-    this.bookingsService.setOffers(this.offerItems);
+  onUpdateOffer(offers: Offers[]) {
+    let totalCharges = 0;
+    offers.forEach(offerItem => {
+      totalCharges += Number(offerItem.charges);
+    });
+  }
+
+  onPickService(event: CustomEvent, selectedOffer: Offers) {
+    if (event.detail.checked) {
+      this.offerItems.push(selectedOffer);
+      this.bookingsService.setOffers(this.offerItems);
+    } else {
+      const updatedOffers = this.offerItems.filter(offer => offer.id !== selectedOffer.id);
+      this.bookingsService.setOffers(updatedOffers);
+    }
+  }
+
+  checkOffer(selectedOffer: Offers, currentChilds: Offers | Offers[]) {
+    if (!selectedOffer || !currentChilds) {
+      return selectedOffer === currentChilds;
+    }
+
+    if (Array.isArray(currentChilds)) {
+      return currentChilds.some((u: Offers) => u.id === selectedOffer.id);
+    }
+
+    return selectedOffer.id === currentChilds.id;
   }
 
   onBook() {
-    console.log(this.offerItems);
-    this.onDismiss(true);
+    this.subs.sink = from(this.modalController.create({
+      component: FormComponent,
+      componentProps: {
+        title: 'Create booking'
+      }
+    })).subscribe((modalEl) => {
+      modalEl.present();
+    });
   }
 
   onDismiss(state: boolean) {
     this.modalController.dismiss({
       dismissed: state
     });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

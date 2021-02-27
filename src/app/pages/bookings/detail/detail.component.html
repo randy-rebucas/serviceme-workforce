@@ -98,7 +98,7 @@
     <ng-container *ngIf="offers$ | async; let offers; else loadingOffers">
         <ion-list>
             <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
-                <ion-item lines="none" (click)="onPickService(offer)">
+                <ion-item lines="none">
                     <ion-thumbnail slot="start">
                         <ng-container *ngIf="offer.imageUrl; else elseDummy">
                             <img [src]="offer.imageUrl" />
@@ -119,15 +119,17 @@
                             <ion-label>{{ offer.charges | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
                         </ion-chip>
                     </ion-label>
+                    <!-- <ion-icon [name]="checkBook(offer) ? 'male-outline' : 'female-outline'" slot="end"></ion-icon> -->
+                    <ion-checkbox slot="end" [checked]="checkOffer(offer, offerItems)" (ionChange)="onPickService($event, offer)"></ion-checkbox>
                 </ion-item>
-                <ion-item-options side="end">
+                <!-- <ion-item-options side="end">
                     <ion-item-option color="danger" (click)="onDelete(offer, slidingItem)">
                         <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
                     </ion-item-option>
                     <ion-item-option color="primary" (click)="onDeail(offer, slidingItem)">
                         <ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
                     </ion-item-option>
-                </ion-item-options>
+                </ion-item-options> -->
             </ion-item-sliding>
         </ion-list>
         <div id="container" class="ion-text-center" *ngIf="offers.length === 0">
