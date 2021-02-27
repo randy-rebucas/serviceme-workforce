@@ -5,7 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { OffersService } from './offers.service';
 import { Offers } from './offers';
-import { IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
+import { AlertController, IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
 import { FormComponent } from './form/form.component';
 import { SubSink } from 'subsink';
 import { DetailComponent } from './detail/detail.component';
@@ -27,6 +27,7 @@ export class OffersPage implements OnInit, OnDestroy {
   private subs = new SubSink();
   constructor(
     private modalController: ModalController,
+    private alertController: AlertController,
     private loadingController: LoadingController,
     private authService: AuthService,
     private offersService: OffersService,
@@ -49,6 +50,8 @@ export class OffersPage implements OnInit, OnDestroy {
       )
     ).subscribe((offers) => {
       this.offersUpdated.next(offers);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -63,6 +66,8 @@ export class OffersPage implements OnInit, OnDestroy {
       })
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : 'USD';
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
 
     this.initialized();
@@ -95,6 +100,8 @@ export class OffersPage implements OnInit, OnDestroy {
       )
     ).subscribe((offers) => {
       this.offersUpdated.next(offers);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -123,20 +130,21 @@ export class OffersPage implements OnInit, OnDestroy {
       message: 'Deleting...'
     })).subscribe(loadingEl => {
       loadingEl.present();
-      this.getCurrentUser(offer.id, ionItemSliding);
+      this.doDelete(offer.id, ionItemSliding);
     });
   }
 
-  getCurrentUser(offerId: string, ionItemSliding: IonItemSliding) {
-    this.subs.sink = this.authService.getUserState().subscribe((user) => {
-      this.doDelete(user.uid, offerId, ionItemSliding);
-    });
-  }
-
-  doDelete(docRef: string, offerId: string, ionItemSliding: IonItemSliding) {
-    this.subs.sink = from(this.offersService.delete(docRef, offerId, this.offerOption)).subscribe(() => {
+  doDelete(offerId: string, ionItemSliding: IonItemSliding) {
+    this.authService.getUserState().pipe(
+      switchMap((user) => {
+        return from(this.offersService.delete(user.uid, offerId, this.offerOption));
+      })
+    ).subscribe((user) => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -153,6 +161,16 @@ export class OffersPage implements OnInit, OnDestroy {
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();
+    });
+  }
+
+  presentAlert(alertHeader: string, alertMessage: string) {
+    this.subs.sink = from(this.alertController.create({
+      header: alertHeader, // alert.code,
+      message: alertMessage, // alert.message,
+      buttons: ['OK']
+    })).subscribe(alertEl => {
+        alertEl.present();
     });
   }
 

@@ -1,14 +1,22 @@
-import { DatePipe } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
-import { from, Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Plugins, Capacitor } from '@capacitor/core';
+
+import { BehaviorSubject, from, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
 import { AuthService } from 'src/app/auth/auth.service';
-import { SubSink } from 'subsink';
-import { Offers } from '../../offers/offers';
 import { SettingsService } from '../../settings/settings.service';
 import { BookingsService } from '../bookings.service';
+import { UsersService } from '../../users/users.service';
+
+import { environment } from 'src/environments/environment';
+import { Offers } from '../../offers/offers';
+import { SubSink } from 'subsink';
+
 import firebase from 'firebase/app';
 @Component({
   selector: 'app-form',
@@ -19,6 +27,9 @@ export class FormComponent implements OnInit {
   public form: FormGroup;
   public title: string;
   public state: boolean;
+  private proId: string;
+  private currentLocation: any;
+  public locationOption$: BehaviorSubject<boolean>;
   public offerItems$: Observable<Offers[]>;
   public offerItems: Offers[];
 
@@ -35,15 +46,20 @@ export class FormComponent implements OnInit {
     private loadingController: LoadingController,
     private bookingsService: BookingsService,
     private authService: AuthService,
+    private userService: UsersService,
     private settingsService: SettingsService,
-    private datePipe: DatePipe
+    private titlecasePipe: TitleCasePipe,
+    private http: HttpClient,
   ) {
     this.title = this.navParams.data.title;
     this.state = this.navParams.data.state;
+    this.proId = this.navParams.data.prof;
     this.currentDate = new Date();
+    this.currentLocation = null;
     this.maxDate = new Date(new Date().setDate(new Date().getDate() + 7));
 
     this.totalCharges = 0;
+    this.locationOption$ = new BehaviorSubject(false);
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -51,12 +67,14 @@ export class FormComponent implements OnInit {
       })
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : 'USD';
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
   ngOnInit() {
     this.offerItems$ = this.bookingsService.getOffers();
-    this.offerItems$.subscribe((offerItems) => {
+    this.subs.sink = this.offerItems$.subscribe((offerItems) => {
       if (offerItems.length === 0) {
         this.onDismiss(true);
       }
@@ -66,6 +84,16 @@ export class FormComponent implements OnInit {
       });
       this.totalCharges = sum;
       this.offerItems = offerItems;
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+
+    this.subs.sink = this.locationOption$.subscribe((locationOption) => {
+      if (locationOption) {
+        this.useMyLocation();
+      } else {
+        this.locateUser();
+      }
     });
 
     this.form = new FormGroup({
@@ -76,34 +104,120 @@ export class FormComponent implements OnInit {
       scheduleTime: new FormControl(null, {
         updateOn: 'blur',
         validators: [Validators.required]
-      })
+      }),
+      notes: new FormControl(null)
     });
   }
 
   get formCtrls() { return this.form.controls; }
 
+  onPickAddress(event: CustomEvent) {
+    this.locationOption$.next(event.detail.checked);
+  }
+
+  private useMyLocation() {
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      switchMap((auhtUser) => {
+        return this.userService.getOne(auhtUser.uid);
+      })
+    ).subscribe((user) => {
+      let addressLine1 = '';
+      let addressLine2 = '';
+      let addressLine3 = '';
+      const address1 = (user.address) ? this.titlecasePipe.transform(user.address.address1) : null;
+      const address2 = (user.address) ? this.titlecasePipe.transform(user.address.address2) : null;
+      const city = (user.address) ? this.titlecasePipe.transform(user.address.city) : null;
+      const country = (user.address) ? this.titlecasePipe.transform(user.address.country) : null;
+      const postalCode = (user.address) ? this.titlecasePipe.transform(user.address.postalCode) : null;
+      const state = (user.address) ? this.titlecasePipe.transform(user.address.state) : null;
+      // check address 1 Unit/Floor + House/Building Name
+      if (address1) {
+        addressLine1 = address1;
+      }
+      // check address 2 Street Number/Name
+      if (address2) {
+        addressLine1 = addressLine1.concat(', ', address2);
+      }
+      // check State/Brangay/District
+      if (state) {
+        addressLine2 = state;
+      }
+      // check City
+      if (city) {
+        addressLine2 = addressLine2.concat(', ', city);
+      }
+      // check PostalCode
+      if (postalCode) {
+        addressLine3 = postalCode;
+      }
+      // check Country
+      if (country) {
+        addressLine3 = addressLine3.concat(', ', country);
+      }
+      this.currentLocation = addressLine1.concat(', ', addressLine2.concat(', ', addressLine3));
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  private locateUser() {
+    if (!Capacitor.isPluginAvailable('Geolocation')) {
+      return;
+    }
+    this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).subscribe((geoPosition) => {
+      this.pointLocation(geoPosition.coords);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  private pointLocation(coordinates: any) {
+    this.subs.sink = this.getAddress(coordinates.latitude, coordinates.longitude).subscribe(address => {
+      this.currentLocation = address.formatted_address;
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  private getAddress(lat: number, lng: number) {
+    return this.http.get<any>(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${
+          environment.googleMapsApiKey
+        }`
+      ).pipe(
+        map(geoData => {
+          if (!geoData || !geoData.results || geoData.results.length === 0) {
+            return null;
+          }
+          return geoData.results[0];
+        })
+      );
+  }
+
   onSubmit(event: string, form: FormGroupDirective) {
-    from(this.authService.getCurrentUser()).subscribe((user) => {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const bookingData  = {
+        offers: this.offerItems,
+        prof: this.proId,
+        location: this.currentLocation,
         charges: Number(this.totalCharges),
         scheduleDate: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleDate)),
         scheduleTime: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleTime)),
+        notes: this.form.value.notes,
         status: 'pending',
-        offers: this.offerItems
       };
 
       this.subs.sink = from(this.bookingsService.insert(user.uid, bookingData)).subscribe(() => {
         this.form.reset();
         this.loadingController.dismiss();
+        this.bookingsService.setOffers([]);
         this.onDismiss(true);
       }, (error: any) => {
         this.loadingController.dismiss();
         this.presentAlert(error.code, error.message);
       });
     });
-
-    // console.log(this.datePipe.transform(this.form.value.scheduleDate, 'shortDate'));
-    // console.log(this.datePipe.transform(this.form.value.scheduleTime, 'shortTime'));
   }
 
   onRemove(selectedItem: Offers) {
@@ -126,4 +240,6 @@ export class FormComponent implements OnInit {
       dismissed: state
     });
   }
+
+
 }

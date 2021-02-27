@@ -7,12 +7,13 @@ import { OffersService } from '../offers.service';
 
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { SubSink } from 'subsink';
-import firebase from 'firebase/app';
 import { CategoriesService } from 'src/app/shared/services/categories.service';
 import { Category } from 'src/app/shared/classes/category';
 import { Offers } from '../offers';
 import { CurrencyPipe } from '@angular/common';
 import { switchMap } from 'rxjs/operators';
+import firebase from 'firebase/app';
+
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -47,8 +48,10 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.durations$.subscribe((durations) => {
+    this.subs.sink = this.durations$.subscribe((durations) => {
       this.durations = durations;
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
 
     this.form = new FormGroup({
@@ -104,7 +107,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   doCreate() {
-    from(this.authService.getCurrentUser()).subscribe((user) => {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const charges = this.form.value.charges;
       const offerData  = {
         title: this.form.value.title,
@@ -135,6 +138,8 @@ export class FormComponent implements OnInit, OnDestroy {
           this.presentAlert(error.code, error.message);
         });
       }
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 

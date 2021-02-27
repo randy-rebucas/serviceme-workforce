@@ -62,6 +62,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       })
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : 'USD';
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -80,6 +82,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       if (offers.type === 'single') {
         this.getChildField(offers);
       }
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -123,6 +127,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       })
     ).subscribe(() => {
       this.initializeOffer();
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -213,6 +219,8 @@ export class DetailComponent implements OnInit, OnDestroy {
 
     this.subs.sink = from(this.camera.getPicture(options)).subscribe((imageData) => {
       this.onUpload(imageData);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 

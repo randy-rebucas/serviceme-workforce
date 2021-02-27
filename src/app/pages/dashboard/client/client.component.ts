@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
+import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 
 import { from, Observable, Subject} from 'rxjs';
 import { map, mergeMap, reduce } from 'rxjs/operators';
@@ -21,6 +21,7 @@ export class ClientComponent implements OnInit, OnDestroy {
 
   constructor(
     private modalController: ModalController,
+    private alertController: AlertController,
     private routerOutlet: IonRouterOutlet,
     private usersService: UsersService,
     private adminFunctionService: AdminFunctionService,
@@ -49,6 +50,8 @@ export class ClientComponent implements OnInit, OnDestroy {
       })
     ).subscribe((users) => {
       this.userUpdated.next(users);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -89,6 +92,8 @@ export class ClientComponent implements OnInit, OnDestroy {
       })
     ).subscribe((users) => {
       this.userUpdated.next(users);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -105,6 +110,16 @@ export class ClientComponent implements OnInit, OnDestroy {
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();
+    });
+  }
+
+  presentAlert(alertHeader: string, alertMessage: string) {
+    this.subs.sink = from(this.alertController.create({
+      header: alertHeader, // alert.code,
+      message: alertMessage, // alert.message,
+      buttons: ['OK']
+    })).subscribe(alertEl => {
+        alertEl.present();
     });
   }
 

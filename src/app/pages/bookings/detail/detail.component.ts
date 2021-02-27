@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ModalController, NavParams } from '@ionic/angular';
+import { AlertController, ModalController, NavParams } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
 import { Offers } from '../../offers/offers';
@@ -25,10 +25,12 @@ export class DetailComponent implements OnInit, OnDestroy {
   public offerOption: string;
   private offerOption$: BehaviorSubject<string|null>;
   private offersUpdated = new Subject<Offers[]>();
+  private userId: string;
   private subs = new SubSink();
   constructor(
     private navParams: NavParams,
     private modalController: ModalController,
+    private alertController: AlertController,
     private authService: AuthService,
     private settingsService: SettingsService,
     private offersService: OffersService,
@@ -54,7 +56,11 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.user$.pipe(
+    this.subs.sink = this.user$.pipe(
+      map((res) => {
+        this.userId = res.user.id;
+        return res;
+      }),
       switchMap((r) =>
         this.offerOption$.pipe(
           switchMap((option) => this.offersService.getAll(r.user.id, option))
@@ -62,6 +68,8 @@ export class DetailComponent implements OnInit, OnDestroy {
       )
     ).subscribe((offers) => {
       this.offersUpdated.next(offers);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
 
     this.subs.sink = this.offerOption$.subscribe((offerOption) => {
@@ -70,8 +78,10 @@ export class DetailComponent implements OnInit, OnDestroy {
 
     this.offers$ = this.getOfferListener();
 
-    this.bookingsService.getOffers().subscribe((offers) => {
+    this.subs.sink = this.bookingsService.getOffers().subscribe((offers) => {
       this.offerItems = offers;
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
@@ -112,9 +122,15 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.subs.sink = from(this.modalController.create({
       component: FormComponent,
       componentProps: {
-        title: 'Create booking'
+        title: 'Create booking',
+        prof: this.userId
       }
     })).subscribe((modalEl) => {
+      modalEl.onDidDismiss().then((modalDismissRes) => {
+        if (modalDismissRes.data.dismissed) {
+          this.onDismiss(true);
+        }
+      });
       modalEl.present();
     });
   }
@@ -122,6 +138,16 @@ export class DetailComponent implements OnInit, OnDestroy {
   onDismiss(state: boolean) {
     this.modalController.dismiss({
       dismissed: state
+    });
+  }
+
+  presentAlert(alertHeader: string, alertMessage: string) {
+    this.subs.sink = from(this.alertController.create({
+      header: alertHeader, // alert.code,
+      message: alertMessage, // alert.message,
+      buttons: ['OK']
+    })).subscribe(alertEl => {
+        alertEl.present();
     });
   }
 
