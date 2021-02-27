@@ -17,9 +17,11 @@ ion-content {
                     ion-thumbnail {
                         display: inline-flex;
                         ion-img {
-                            border: 1px solid #fccd12;
-                            padding: 8px;
-                            filter: contrast(0.5);
+                            img {
+                                border: 1px solid #fccd12;
+                                padding: 8px;
+                                filter: contrast(0.5);
+                            }
                         }
                     }
                 }

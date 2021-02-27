@@ -26,7 +26,7 @@
                 <ion-item lines="none" color="tertiary">
                     <ion-thumbnail slot="start">
                         <ng-container *ngIf="offer.imageUrl; else elseDummy">
-                            <img (click)="onPickSource()" [src]="offer.imageUrl" />
+                            <img [src]="offer.imageUrl" (click)="onPickSource()" />
                         </ng-container>
                         <ng-template #elseDummy>
                             <ion-img (click)="onPickSource()" src="/assets/images/icon-logo.png"></ion-img>
@@ -47,22 +47,25 @@
                     <ion-icon name="create-outline" slot="end" (click)="onEdit(offer)"></ion-icon>
                 </ion-item>
                 <ng-container *ngIf="offerType === 'single'; else elseChilds">
-                    <ng-container *ngIf="offerParents$ | async as offerParents; else elseParentOffer">
-                        <ion-list-header>
-                            <ion-label>Package linked</ion-label>
-                        </ion-list-header>
-                        <ion-item lines="none" color="tertiary">
-                            <ion-thumbnail *ngFor="let offerParent of offerParents">
-                                <ng-container *ngIf="offerParent.imageUrl; else elseParentDummy">
-                                    <img [src]="offerParent.imageUrl" />
-                                </ng-container>
-                                <ng-template #elseParentDummy>
-                                    <ion-img src="/assets/images/icon-logo.png"></ion-img>
-                                </ng-template>
-                            </ion-thumbnail>
-                        </ion-item>
+                    <ng-container *ngIf="offerParents$ | async as offerParents;">
+                        <ng-container *ngIf="offerParents.length">
+                            <ion-list-header>
+                                <ion-label>Package linked</ion-label>
+                            </ion-list-header>
+                            <ion-item lines="none" color="tertiary">
+                                <ion-thumbnail *ngFor="let offerParent of offerParents">
+                                    <ng-container *ngIf="offerParent.imageUrl; else elseParentDummy">
+                                        <img [src]="offerParent.imageUrl" />
+                                    </ng-container>
+                                    <ng-template #elseParentDummy>
+                                        <ion-img src="/assets/images/icon-logo.png"></ion-img>
+                                    </ng-template>
+                                </ion-thumbnail>
+                            </ion-item>
+                        </ng-container>
                     </ng-container>
                 </ng-container>
+
                 <ng-template #elseChilds>
                     <ion-list-header>
                         <ion-label>Services included</ion-label>
@@ -119,9 +122,9 @@
 
     <ion-card class="ion-no-padding ion-no-margin no-box-shadow">
         <ion-card-content>
-            <ng-container *ngIf="offerChilds$ | async as offerChilds; else elseOffer">
+            <ng-container *ngIf="offerChilds$ | async as offerChilds; else elsePackage">
                 <ion-list>
-                    <ion-list-header>
+                    <ion-list-header *ngIf="offerChilds.length">
                         <ion-label>Select {{offerType === 'single' ? 'Package' : 'Offer'}}</ion-label>
                     </ion-list-header>
                     <ion-item-sliding *ngFor="let offerChild of offerChilds" #slidingItem>
@@ -148,8 +151,33 @@
                             <ion-checkbox slot="end" [checked]="checkOffer(offerChild, offerItems)" (ionChange)="onSelect($event, offerChild, offerType)" *ngIf="offerType === 'package'"></ion-checkbox>
                         </ion-item>
                     </ion-item-sliding>
+                    <ion-item lines="none" class="ion-text-center" *ngIf="offerChilds.length === 0">
+                        <ion-label>No service package found</ion-label>
+                    </ion-item>
                 </ion-list>
             </ng-container>
+            <ng-template #elsePackage>
+                <ion-item lines="none">
+                    <ion-thumbnail slot="start">
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-thumbnail>
+                    <ion-label>
+                        <h2>
+                            <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                        </h2>
+                        <ion-chip outline>
+                            <ion-label>
+                                <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-label>
+                                <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                    </ion-label>
+                </ion-item>
+            </ng-template>
         </ion-card-content>
     </ion-card>
 </ion-content>

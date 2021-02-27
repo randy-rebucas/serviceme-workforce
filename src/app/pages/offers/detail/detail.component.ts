@@ -99,10 +99,6 @@ export class DetailComponent implements OnInit, OnDestroy {
         return this.offersService.getChildField(user.uid, offer);
       })
     );
-
-    this.offerParents$.subscribe((r) => {
-      console.log(r);
-    });
   }
 
   onUpdateOffer(offers: Offers[], type: string) {
@@ -113,7 +109,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       totalHour += Number(offerItem.durations);
     });
 
-    from(this.authService.getCurrentUser()).pipe(
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.offersService.update(
           user.uid,

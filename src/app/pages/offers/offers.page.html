@@ -23,6 +23,10 @@
             <ion-title size="large">Offers</ion-title>
         </ion-toolbar>
     </ion-header>
+    <ion-item lines="none">
+        <ion-label>Search</ion-label>
+        <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()"></ion-searchbar>
+    </ion-item>
     <ng-container *ngIf="offers$ | async; let offers; else loadingOffers">
         <ion-list>
             <ion-item-sliding *ngFor="let offer of offers" #slidingItem>

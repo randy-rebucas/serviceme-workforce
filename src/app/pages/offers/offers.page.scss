@@ -22,6 +22,12 @@ ion-content {
             }
         }
     }
+    ion-item {
+        ion-searchbar {
+            padding-inline-start: 1px;
+            padding-inline-end: 1px;
+        }
+    }
     ion-list {
         ion-item-sliding {
             ion-item {

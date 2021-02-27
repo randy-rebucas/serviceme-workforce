@@ -74,7 +74,9 @@ export class DashboardPage implements OnInit, AfterViewInit {
                 handler: () => {}
               }, {
                 text: 'Ok',
-                handler: () => {}
+                handler: () => {
+                  this.authService.signOut();
+                }
               }
             ]
           }

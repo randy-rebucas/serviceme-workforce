@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, from, Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { OffersService } from './offers.service';
@@ -19,6 +19,7 @@ import { SettingsService } from '../settings/settings.service';
 export class OffersPage implements OnInit, OnDestroy {
   // observables
   public offers$: Observable<Offers[]>;
+  private offersUpdated = new Subject<Offers[]>();
 
   public defaultCurrency: string;
   private offerOption$: BehaviorSubject<string|null>;
@@ -35,8 +36,24 @@ export class OffersPage implements OnInit, OnDestroy {
     this.offerOption$ = new BehaviorSubject('single');
   }
 
+  getOfferListener() {
+    return this.offersUpdated.asObservable();
+  }
+
+  initialized() {
+    this.subs.sink = this.authService.getUserState().pipe(
+      switchMap((user) =>
+        this.offerOption$.pipe(
+          switchMap((option) => this.offersService.getAll(user.uid, option))
+        )
+      )
+    ).subscribe((offers) => {
+      this.offersUpdated.next(offers);
+    });
+  }
+
   ngOnInit() {
-    this.offerOption$.subscribe((offerOption) => {
+    this.subs.sink = this.offerOption$.subscribe((offerOption) => {
       this.offerOption = offerOption;
     });
 
@@ -48,15 +65,37 @@ export class OffersPage implements OnInit, OnDestroy {
       this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
 
-    this.offers$ = this.authService.getUserState().pipe(
+    this.initialized();
+    this.offers$ = this.getOfferListener();
+  }
+
+  onClear() {
+    this.initialized();
+  }
+
+  onChange(event: CustomEvent) {
+    const searchKey = event.detail.value;
+
+    this.authService.getUserState().pipe(
       switchMap((user) =>
         this.offerOption$.pipe(
           switchMap((option) =>
-            this.offersService.getAll(user.uid, option)
+            this.offersService.getAll(user.uid, option).pipe(
+              map((offers) => {
+                if (!searchKey) {
+                  return offers;
+                }
+                return offers.filter((offer) => {
+                  return offer.title.toLowerCase().includes(searchKey);
+                });
+              })
+            )
           )
         )
       )
-    );
+    ).subscribe((offers) => {
+      this.offersUpdated.next(offers);
+    });
   }
 
   offerChanged(event: CustomEvent) {

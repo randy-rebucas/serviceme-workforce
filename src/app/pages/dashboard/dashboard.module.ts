@@ -10,6 +10,7 @@ import { DashboardPage } from './dashboard.page';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { ClientComponent } from './client/client.component';
 import { ProComponent } from './pro/pro.component';
+import { Camera } from '@ionic-native/camera/ngx';
 
 @NgModule({
   imports: [
@@ -23,6 +24,9 @@ import { ProComponent } from './pro/pro.component';
     DashboardPage,
     ClientComponent,
     ProComponent
+  ],
+  providers: [
+    Camera
   ]
 })
 export class DashboardPageModule {}

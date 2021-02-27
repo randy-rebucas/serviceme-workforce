@@ -6,11 +6,13 @@ import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ListItemComponent } from './components/list-item/list-item.component';
 import { NumberToTimePipe } from './pipes/number-to-time.pipe';
+import { CounterPipe } from './pipes/counter.pipe';
 
 @NgModule({
   declarations: [
     ListItemComponent,
-    NumberToTimePipe
+    NumberToTimePipe,
+    CounterPipe
   ],
   imports: [
     CommonModule,
@@ -19,7 +21,8 @@ import { NumberToTimePipe } from './pipes/number-to-time.pipe';
   ],
   exports: [
     ListItemComponent,
-    NumberToTimePipe
+    NumberToTimePipe,
+    CounterPipe
   ],
   providers: [
     AndroidPermissions

@@ -105,6 +105,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       this.presentAlert('Verify your email', 'One last step to continue your registration. Check ou email and click on the link to verify.');
       this.form.reset();
       this.onDismiss(true);
+      this.authService.signOut();
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
@@ -123,9 +124,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
   setUserData(userCredential: firebase.auth.UserCredential) {
     const userData = {
       name: {
-        firstName: this.form.value.firstname,
-        lastName: this.form.value.lastname,
-        middleName: null
+        firstname: this.form.value.firstname,
+        lastname: this.form.value.lastname,
+        middlename: null
       },
       roles: {
         pro: (this.selectedType === 'pro') ? true : false,

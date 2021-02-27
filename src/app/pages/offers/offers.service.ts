@@ -16,7 +16,6 @@ const collection = 'offers';
   providedIn: 'root'
 })
 export class OffersService {
-  private offerItems$ = new BehaviorSubject<Offers[]>([]);
 
   constructor(
     private angularFirestore: AngularFirestore

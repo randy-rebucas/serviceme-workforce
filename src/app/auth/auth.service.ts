@@ -85,13 +85,7 @@ export class AuthService {
   }
 
   setUserData(userId: string, userData: any) {
-    return this.angularFirestore.collection('users').doc(userId).set({
-      name: {
-        firstname: userData.firstName,
-        middlename: userData.middleName,
-        lastname: userData.lastName
-      }
-    });
+    return this.angularFirestore.collection('users').doc(userId).set(userData);
   }
 
   setCustomClaims(userEmail: string, claimRole: string) {
