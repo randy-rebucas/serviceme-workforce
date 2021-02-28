@@ -20,18 +20,18 @@
     <ng-container *ngIf="booking$ | async as booking; else elseBooking">
         <ion-card class="ion-no-padding ion-no-margin no-box-shadow details" color="secondary">
             <ion-card-header>
-                <ion-card-subtitle>Scheduled: {{booking.bookingInfo.scheduleDate.toDate() | date:'mediumDate'}} - {{booking.bookingInfo.scheduleTime.toDate() | date:'shortTime'}} : ({{booking.bookingInfo.status}})
+                <ion-card-subtitle>Scheduled: {{booking.booking.scheduleDate.toDate() | date:'mediumDate'}} - {{booking.booking.scheduleTime.toDate() | date:'shortTime'}} : ({{booking.booking.status}})
                 </ion-card-subtitle>
-                <ion-card-title>{{ (booking.proInfo.name.firstname + ' ' + booking.proInfo.name.lastname) | titlecase }} - <small>{{ booking.proInfo.classification }}</small></ion-card-title>
+                <ion-card-title>{{ (booking.profissional.name.firstname + ' ' + booking.profissional.name.lastname) | titlecase }} - <small>{{ booking.profissional.classification }}</small></ion-card-title>
             </ion-card-header>
             <ion-card-content>
-                {{ booking.bookingInfo.location }}
+                {{ booking.booking.location }}
                 <ion-list-header>
                     <ion-label>Notes</ion-label>
                 </ion-list-header>
                 <ion-item class="ion-text-wrap" lines="none" color="tertiary">
                     <ion-label class="ion-text-wrap">
-                        {{ booking.bookingInfo.notes }}
+                        {{ booking.booking.notes }}
                     </ion-label>
                 </ion-item>
 
@@ -40,7 +40,7 @@
                 </ion-list-header>
                 <ion-item lines="none" color="tertiary">
                     <ion-label>
-                        {{ booking.bookingInfo.charges | currency:defaultCurrency:'symbol-narrow' }}
+                        {{ booking.booking.charges | currency:defaultCurrency:'symbol-narrow' }}
                     </ion-label>
                 </ion-item>
 
@@ -48,7 +48,7 @@
                     <ion-label>Service selected</ion-label>
                 </ion-list-header>
                 <ion-item lines="none" color="tertiary">
-                    <ion-thumbnail *ngFor="let offer of booking.bookingInfo.offers">
+                    <ion-thumbnail *ngFor="let offer of booking.booking.offers">
                         <ng-container *ngIf="offer.imageUrl; else elseParentDummy">
                             <img [src]="offer.imageUrl" />
                         </ng-container>
@@ -60,7 +60,7 @@
             </ion-card-content>
         </ion-card>
 
-        <ng-container *ngIf="booking.bookingInfo.status === 'completed'">
+        <ng-container *ngIf="booking.booking.status === 'completed'">
             <ng-container *ngIf="feedbacks$ | async; let feedbacks; else loadingFeedbacks">
                 <ion-list-header>
                     <ion-label>Feedbacks</ion-label>
@@ -85,7 +85,7 @@
                     </ion-label>
                 </ion-item>
             </ng-template>
-            <form [formGroup]="form" (submit)="onCreate(booking.bookingInfo.id)" class="ion-padding">
+            <form [formGroup]="form" (submit)="onCreate(booking.booking.id)" class="ion-padding">
                 <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
                     <ion-card-header>
                         <ion-card-subtitle>Please be honest to leave a feedback.</ion-card-subtitle>

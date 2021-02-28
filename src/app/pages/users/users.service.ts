@@ -9,8 +9,11 @@ import {
 } from '@angular/fire/firestore';
 
 import { Users as useClass } from './users';
+import { Offers } from '../offers/offers';
+import { Feedbacks } from '../bookings/feedbacks';
 
 const collection = 'users';
+const bookingsSubCollection = 'bookings';
 const orderField = 'id';
 const orderBy = 'asc';
 @Injectable({
@@ -67,4 +70,27 @@ export class UsersService {
   delete(id: string): Promise<void> {
     return this.defaultCollection().doc(id).delete();
   }
+
+  /**
+   * set child collections
+   * users/{userId}/booking
+   */
+
+  private childCollections(colRef: string, subCollection: string): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(
+      collection +
+       '/' +
+        colRef +
+         '/' +
+         subCollection);
+  }
+
+  setSubCollection(colRef: string, collectionName: string, data: any) {
+    return this.childCollections(colRef, collectionName).doc().set(data);
+  }
+
+  getSubCollection(colRef: string, collectionName: string) {
+    return this.fetchData(this.childCollections(colRef, collectionName));
+  }
+
 }

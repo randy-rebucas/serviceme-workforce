@@ -18,6 +18,7 @@ import { Offers } from '../../offers/offers';
 import { SubSink } from 'subsink';
 
 import firebase from 'firebase/app';
+import { DocumentReference } from '@angular/fire/firestore';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -195,6 +196,23 @@ export class FormComponent implements OnInit, OnDestroy {
       );
   }
 
+  setMyBooking(user: firebase.User, booking: DocumentReference<firebase.firestore.DocumentData>) {
+    const bookingData = {
+      bookingId: booking.id
+    };
+    from(this.userService.setSubCollection(user.uid, 'bookings', bookingData)).subscribe(() => {
+      this.form.reset();
+      this.loadingController.dismiss();
+      this.bookingsService.setOffers([]);
+      this.onDismiss(true);
+    });
+  }
+  /**
+   *
+   * @Todo
+   * Create bookings collections
+   * Set to my booking collections
+   */
   onSubmit(event: string, form: FormGroupDirective) {
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const bookingData  = {
@@ -208,11 +226,8 @@ export class FormComponent implements OnInit, OnDestroy {
         status: 'pending',
       };
 
-      this.subs.sink = from(this.bookingsService.insert(user.uid, bookingData)).subscribe(() => {
-        this.form.reset();
-        this.loadingController.dismiss();
-        this.bookingsService.setOffers([]);
-        this.onDismiss(true);
+      this.subs.sink = from(this.bookingsService.insert(bookingData)).subscribe((booking) => {
+        this.setMyBooking(user, booking);
       }, (error: any) => {
         this.loadingController.dismiss();
         this.presentAlert(error.code, error.message);

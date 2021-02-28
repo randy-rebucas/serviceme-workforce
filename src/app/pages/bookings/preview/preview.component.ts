@@ -59,6 +59,9 @@ export class PreviewComponent implements OnInit, OnDestroy {
       })
     });
 
+    this.booking$.subscribe((r) => {
+      console.log(r);
+    });
     this.feedbacks$ = this.booking$.pipe(
       switchMap((booking) => {
         return this.feedbacksService.getAll(booking.bookingInfo.id).pipe();

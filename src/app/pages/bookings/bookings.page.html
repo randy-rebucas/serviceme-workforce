@@ -5,12 +5,12 @@
         </ion-buttons>
         <ion-title>My Bookings</ion-title>
     </ion-toolbar>
-    <ion-toolbar>
+    <!-- <ion-toolbar>
         <ion-list>
             <ion-item lines="none">
                 <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Filter booking Id"></ion-searchbar>
             </ion-item>
-            <!-- <ion-item lines="none">
+            <ion-item lines="none">
                 <ion-label>By date</ion-label>
                 <ion-datetime displayFormat="MM/DD/YYYY" placeholder="MM/DD/YYYY"></ion-datetime>
             </ion-item>
@@ -20,9 +20,9 @@
                     <ion-select-option value="completed">Completed</ion-select-option>
                     <ion-select-option value="pending">Pending</ion-select-option>
                 </ion-select>
-            </ion-item> -->
+            </ion-item>
         </ion-list>
-    </ion-toolbar>
+    </ion-toolbar> -->
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -36,28 +36,28 @@
             <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
                 <ion-item lines="none">
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ (booking.proInfo.name.firstname + ' ' + booking.proInfo.name.lastname) | titlecase }} - <small>{{ booking.proInfo.classification }}</small></h2>
-                        <p>{{ booking.bookingInfo.charges | currency:defaultCurrency:'symbol-narrow' }}</p>
+                        <h2>{{ (booking.profissional.name.firstname + ' ' + booking.profissional.name.lastname) | titlecase }} - <small>{{ booking.profissional.classification }}</small></h2>
+                        <p>{{ booking.booking.charges | currency:defaultCurrency:'symbol-narrow' }}</p>
                         <ion-chip outline>
                             <ion-icon name="calendar-outline"></ion-icon>
-                            <ion-label>{{ booking.bookingInfo.scheduleDate.toDate() | date:'mediumDate' }}</ion-label>
+                            <ion-label>{{ booking.booking.scheduleDate.toDate() | date:'mediumDate' }}</ion-label>
                         </ion-chip>
                         <ion-chip outline>
                             <ion-icon name="time-outline"></ion-icon>
-                            <ion-label>{{ booking.bookingInfo.scheduleTime.toDate() | date:'shortTime' }}</ion-label>
+                            <ion-label>{{ booking.booking.scheduleTime.toDate() | date:'shortTime' }}</ion-label>
                         </ion-chip>
                     </ion-label>
-                    <ion-note slot="end">{{ booking.bookingInfo.status | titlecase }}</ion-note>
+                    <ion-note slot="end">{{ booking.booking.status | titlecase }}</ion-note>
                 </ion-item>
                 <ion-item-options side="end">
-                    <ng-container *ngIf="booking.bookingInfo.status != 'completed'">
-                        <ng-container *ngIf="booking.bookingInfo.status === 'canceled'">
-                            <ion-item-option color="danger" (click)="onDelete(booking.bookingInfo, slidingItem)">
+                    <ng-container *ngIf="booking.booking.status != 'completed'">
+                        <ng-container *ngIf="booking.booking.status === 'canceled'">
+                            <ion-item-option color="danger" (click)="onDelete(booking.booking, slidingItem)">
                                 <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
                             </ion-item-option>
                         </ng-container>
-                        <ng-container *ngIf="booking.bookingInfo.status === 'pending'">
-                            <ion-item-option color="danger" (click)="onCancel(booking.bookingInfo, slidingItem)">
+                        <ng-container *ngIf="booking.booking.status === 'pending'">
+                            <ion-item-option color="danger" (click)="onCancel(booking.booking, slidingItem)">
                                 <ion-icon name="close-outline" slot="icon-only"></ion-icon>
                             </ion-item-option>
                         </ng-container>

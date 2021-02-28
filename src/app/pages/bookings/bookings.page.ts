@@ -48,16 +48,22 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
   initialized() {
     from(this.authService.getCurrentUser()).pipe(
       // get all bookings
-      switchMap((user) => this.bookingsService.getAll(user.uid).pipe(
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
         // bookings response
-        mergeMap((bookingMap: Bookings[]) => {
+        mergeMap((bookingMap: any[]) => {
           return from(bookingMap).pipe(
+            // merge join collections bookings
             mergeMap((bookingInfo) => {
-              return this.usersService.getOne(bookingInfo.prof).pipe(
-                map(proInfo => ({ bookingInfo, proInfo })),
+              return this.bookingsService.getOne(bookingInfo.bookingId).pipe(
+                // merge profissional user collections
+                mergeMap((booking) => {
+                  return this.usersService.getOne(booking.prof).pipe(
+                    map(profissional => ({ booking, profissional })),
+                  );
+                }),
+                reduce((a, i) => [...a, i], [])
               );
             }),
-            reduce((a, i) => [...a, i], [])
           );
         })
       ))
@@ -84,11 +90,7 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   doDelete(bookingId: string, ionItemSliding: IonItemSliding) {
-    this.authService.getUserState().pipe(
-      switchMap((user) => {
-        return from(this.bookingsService.delete(user.uid, bookingId));
-      })
-    ).subscribe(() => {
+    from(this.bookingsService.delete(bookingId)).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
     }, (error: any) => {
@@ -107,11 +109,7 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   doCancel(bookingId: string, ionItemSliding: IonItemSliding) {
-    this.authService.getUserState().pipe(
-      switchMap((user) => {
-        return from(this.bookingsService.update(user.uid, bookingId, { status: 'canceled' }));
-      })
-    ).subscribe(() => {
+    from(this.bookingsService.update(bookingId, { status: 'canceled' })).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
     }, (error: any) => {
@@ -139,25 +137,32 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
     const searchKey = event.detail.value;
 
     this.authService.getUserState().pipe(
-      switchMap((user) =>
-        this.bookingsService.getAll(user.uid).pipe(
+      switchMap(
+        (user) =>
+        this.usersService.getSubCollection(user.uid, 'bookings').pipe(
           map((bookings) => {
             if (!searchKey) {
               return bookings;
             }
-            return bookings.filter((booking) => {
-              return booking.id.toLowerCase().includes(searchKey);
+            return bookings.filter((booking: any) => {
+              return booking.bookingId.toLowerCase().includes(searchKey);
             });
           }),
           // bookings response
-          mergeMap((bookingMap: Bookings[]) => {
+          mergeMap((bookingMap: any[]) => {
             return from(bookingMap).pipe(
+              // merge join collections bookings
               mergeMap((bookingInfo) => {
-                return this.usersService.getOne(bookingInfo.prof).pipe(
-                  map(proInfo => ({ bookingInfo, proInfo })),
+                return this.bookingsService.getOne(bookingInfo.bookingId).pipe(
+                  // merge profissional user collections
+                  mergeMap((booking) => {
+                    return this.usersService.getOne(booking.prof).pipe(
+                      map(profissional => ({ booking, profissional })),
+                    );
+                  }),
+                  reduce((a, i) => [...a, i], [])
                 );
               }),
-              reduce((a, i) => [...a, i], [])
             );
           })
         )

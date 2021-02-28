@@ -32,14 +32,14 @@ export class BookingsService {
     return this.offerItems$.asObservable();
   }
 
-  private defaultCollection(colRef: string): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>('users/' + colRef + '/' + collection);
+  private defaultCollection(): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(collection);
   }
 
-  private childCollection(colRef: string, offer: Offers): AngularFirestoreCollection<useClass> {
+  private byProfessionalCollection(userId: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(
-      'users/' + colRef + '/' + collection,
-      ref => ref.where('childs', 'array-contains', offer)
+      collection,
+      ref => ref.where('prof', '==', userId)
     );
   }
 
@@ -55,37 +55,37 @@ export class BookingsService {
       );
   }
 
-  getAll(colRef: string): Observable<useClass[]> {
-    return this.fetchData(this.defaultCollection(colRef));
+  getAll(): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection());
   }
 
-  getChildField(colRef: string, offer: Offers) {
-    return this.fetchData(this.childCollection(colRef, offer));
+  getByProfessional(userId: string): Observable<useClass[]> {
+    return this.fetchData(this.byProfessionalCollection(userId));
   }
 
-  getSize(colRef: string): Observable<QuerySnapshot<useClass>> {
-    return this.defaultCollection(colRef).get();
+  getSize(): Observable<QuerySnapshot<useClass>> {
+    return this.defaultCollection().get();
   }
 
-  getOne(colRef: string, id: string): Observable<useClass> {
-    return this.defaultCollection(colRef).doc<useClass>(id).valueChanges().pipe(
+  getOne(id: string): Observable<useClass> {
+    return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
-        data.id = id;
+        // data.id = id;
         return data;
       })
     );
   }
 
-  insert(colRef: string, data: any): Promise<DocumentReference> {
-    return this.defaultCollection(colRef).add(data);
+  insert(data: any): Promise<DocumentReference> {
+    return this.defaultCollection().add(data);
   }
 
-  update(colRef: string, id: string, data: any): Promise<void> {
-    return this.defaultCollection(colRef).doc(id).update(data);
+  update(id: string, data: any): Promise<void> {
+    return this.defaultCollection().doc(id).update(data);
   }
 
-  delete(colRef: string, id: string): Promise<void> {
-    return this.defaultCollection(colRef).doc(id).delete();
+  delete(id: string): Promise<void> {
+    return this.defaultCollection().doc(id).delete();
   }
 }
