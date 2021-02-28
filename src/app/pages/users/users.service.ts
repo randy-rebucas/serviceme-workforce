@@ -73,16 +73,17 @@ export class UsersService {
 
   /**
    * set child collections
-   * users/{userId}/booking
+   * users/{userId}/{subCollection}
    */
 
   private childCollections(colRef: string, subCollection: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(
-      collection +
-       '/' +
+        collection +
+        '/' +
         colRef +
-         '/' +
-         subCollection);
+        '/' +
+        subCollection
+      );
   }
 
   setSubCollection(colRef: string, collectionName: string, data: any) {

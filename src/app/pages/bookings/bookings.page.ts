@@ -57,7 +57,7 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
               return this.bookingsService.getOne(bookingInfo.bookingId).pipe(
                 // merge profissional user collections
                 mergeMap((booking) => {
-                  return this.usersService.getOne(booking.prof).pipe(
+                  return this.usersService.getOne(booking.professionalId).pipe(
                     map(profissional => ({ booking, profissional })),
                   );
                 }),
@@ -156,7 +156,7 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
                 return this.bookingsService.getOne(bookingInfo.bookingId).pipe(
                   // merge profissional user collections
                   mergeMap((booking) => {
-                    return this.usersService.getOne(booking.prof).pipe(
+                    return this.usersService.getOne(booking.professionalId).pipe(
                       map(profissional => ({ booking, profissional })),
                     );
                   }),

@@ -19,14 +19,21 @@ export class ProComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // from(this.authService.getCurrentUser()).pipe(
-    //   switchMap((user) => {
-    //     console.log(user);
-    //     return this.bookingsService.getByProfessional(user.uid);
-    //   })
-    // ).subscribe((r) => {
-    //   console.log(r);
-    // });
+    // charges: 840
+    // id: "s5CnMSrvx3PDKWW2eUTy"
+    // location: "Unnamed Road, Tanauan, Batangas, Philippines"
+    // notes: "trtry"
+    // offers: (2) [{…}, {…}]
+    // prof: "ALF85zQI7PPvazgMdzkY4E5AqrH2"
+    // scheduleDate: t {seconds: 1614504239, nanoseconds: 0}
+    // scheduleTime: t {seconds: 1614504239, nanoseconds: 1000000}
+    // status: "pending"
+
+    this.bookings$ = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.bookingsService.getByProfessional(user.uid);
+      })
+    );
   }
 
 }

@@ -1,3 +1,52 @@
-<p>
-  pro works!
-</p>
+<ng-container *ngIf="bookings$ | async; let bookings; else loadingUsers">
+    <ion-list>
+        <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
+            <ion-item lines="none" button (click)="onDeail(booking, slidingItem)" detail>
+                <ion-thumbnail slot="start">
+                    <ng-container *ngIf="item.admin.user.photoURL; else elseDummy">
+                        <img [src]="item.admin.user.photoURL" />
+                    </ng-container>
+                    <ng-template #elseDummy>
+                        <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                    </ng-template>
+                </ion-thumbnail>
+                <ion-label>
+                    <h2>{{ (item.user.name.firstname + ' ' + item.user.name.lastname) | titlecase }}</h2>
+                    <ion-chip outline>
+                        <ion-label>{{ item.user.id | counter:'single':'Service' | async}}</ion-label>
+                    </ion-chip>
+                    <ion-chip outline>
+                        <ion-label>{{ item.user.id | counter:'package':'Package' | async}}</ion-label>
+                    </ion-chip>
+                </ion-label>
+                <ion-note slot="end">{{ item.user.classification }}</ion-note>
+            </ion-item>
+        </ion-item-sliding>
+    </ion-list>
+    <div id="container" class="ion-text-center" *ngIf="users.length === 0">
+        <ion-icon name="list-outline"></ion-icon>
+        <p>No users found</p>
+    </div>
+</ng-container>
+<ng-template #loadingUsers>
+    <ion-item lines="none">
+        <ion-thumbnail slot="start">
+            <ion-skeleton-text animated></ion-skeleton-text>
+        </ion-thumbnail>
+        <ion-label>
+            <h3>
+                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+            </h3>
+            <ion-chip outline>
+                <ion-label>
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-label>
+            </ion-chip>
+            <ion-chip outline>
+                <ion-label>
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-label>
+            </ion-chip>
+        </ion-label>
+    </ion-item>
+</ng-template>

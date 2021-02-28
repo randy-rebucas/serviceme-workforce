@@ -217,7 +217,8 @@ export class FormComponent implements OnInit, OnDestroy {
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const bookingData  = {
         offers: this.offerItems,
-        prof: this.proId,
+        professionalId: this.proId,
+        clientId: user.uid,
         location: this.currentLocation,
         charges: Number(this.totalCharges),
         scheduleDate: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleDate)),
