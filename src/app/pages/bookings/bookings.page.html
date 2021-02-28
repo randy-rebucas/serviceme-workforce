@@ -1,9 +1,89 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>bookings</ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-title>My Bookings</ion-title>
+    </ion-toolbar>
+    <ion-toolbar>
+        <ion-list>
+            <ion-item lines="none">
+                <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Filter booking Id"></ion-searchbar>
+            </ion-item>
+            <!-- <ion-item lines="none">
+                <ion-label>By date</ion-label>
+                <ion-datetime displayFormat="MM/DD/YYYY" placeholder="MM/DD/YYYY"></ion-datetime>
+            </ion-item>
+            <ion-item lines="none">
+                <ion-label>By Status</ion-label>
+                <ion-select placeholder="Select">
+                    <ion-select-option value="completed">Completed</ion-select-option>
+                    <ion-select-option value="pending">Pending</ion-select-option>
+                </ion-select>
+            </ion-item> -->
+        </ion-list>
+    </ion-toolbar>
 </ion-header>
 
-<ion-content>
-
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">Offers</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ng-container *ngIf="bookings$ | async; let bookings; else loadingBookings">
+        <ion-list>
+            <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
+                <ion-item lines="none">
+                    <ion-label class="ion-text-wrap">
+                        <h2>{{ (booking.proInfo.name.firstname + ' ' + booking.proInfo.name.lastname) | titlecase }} - <small>{{ booking.proInfo.classification }}</small></h2>
+                        <p>{{ booking.bookingInfo.charges | currency:defaultCurrency:'symbol-narrow' }}</p>
+                        <ion-chip outline>
+                            <ion-icon name="calendar-outline"></ion-icon>
+                            <ion-label>{{ booking.bookingInfo.scheduleDate.toDate() | date:'mediumDate' }}</ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-icon name="time-outline"></ion-icon>
+                            <ion-label>{{ booking.bookingInfo.scheduleTime.toDate() | date:'shortTime' }}</ion-label>
+                        </ion-chip>
+                    </ion-label>
+                    <ion-note slot="end">{{ booking.bookingInfo.status | titlecase }}</ion-note>
+                </ion-item>
+                <ion-item-options side="end">
+                    <ion-item-option color="danger" (click)="onCancel(booking, slidingItem)">
+                        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                    </ion-item-option>
+                    <ion-item-option color="primary" (click)="onPreview(booking, slidingItem)">
+                        <ion-icon name="eye-outline" slot="icon-only"></ion-icon>
+                    </ion-item-option>
+                </ion-item-options>
+            </ion-item-sliding>
+        </ion-list>
+        <div id="container" class="ion-text-center" *ngIf="bookings.length === 0">
+            <ion-icon name="list-outline"></ion-icon>
+            <p>No bookings found</p>
+        </div>
+    </ng-container>
+    <ng-template #loadingBookings>
+        <ion-item lines="none">
+            <ion-label>
+                <h2>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </h2>
+                <p>
+                    <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                </p>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+            </ion-label>
+        </ion-item>
+    </ng-template>
 </ion-content>
