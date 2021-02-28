@@ -1,3 +1,158 @@
-<p>
-  preview works!
-</p>
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+
+    <!-- booking details -->
+    <ng-container *ngIf="booking$ | async as booking; else elseBooking">
+        <ion-card class="ion-no-padding ion-no-margin no-box-shadow details" color="secondary">
+            <ion-card-header>
+                <ion-card-subtitle>Scheduled: {{booking.bookingInfo.scheduleDate.toDate() | date:'mediumDate'}} - {{booking.bookingInfo.scheduleTime.toDate() | date:'shortTime'}} : ({{booking.bookingInfo.status}})
+                </ion-card-subtitle>
+                <ion-card-title>{{ (booking.proInfo.name.firstname + ' ' + booking.proInfo.name.lastname) | titlecase }} - <small>{{ booking.proInfo.classification }}</small></ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                {{ booking.bookingInfo.location }}
+                <ion-list-header>
+                    <ion-label>Notes</ion-label>
+                </ion-list-header>
+                <ion-item class="ion-text-wrap" lines="none" color="tertiary">
+                    <ion-label class="ion-text-wrap">
+                        {{ booking.bookingInfo.notes }}
+                    </ion-label>
+                </ion-item>
+
+                <ion-list-header>
+                    <ion-label>Total charge</ion-label>
+                </ion-list-header>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        {{ booking.bookingInfo.charges | currency:defaultCurrency:'symbol-narrow' }}
+                    </ion-label>
+                </ion-item>
+
+                <ion-list-header>
+                    <ion-label>Service selected</ion-label>
+                </ion-list-header>
+                <ion-item lines="none" color="tertiary">
+                    <ion-thumbnail *ngFor="let offer of booking.bookingInfo.offers">
+                        <ng-container *ngIf="offer.imageUrl; else elseParentDummy">
+                            <img [src]="offer.imageUrl" />
+                        </ng-container>
+                        <ng-template #elseParentDummy>
+                            <ion-img src="/assets/images/icon-logo.png"></ion-img>
+                        </ng-template>
+                    </ion-thumbnail>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <ng-container *ngIf="booking.bookingInfo.status === 'completed'">
+            <ng-container *ngIf="feedbacks$ | async; let feedbacks; else loadingFeedbacks">
+                <ion-list-header>
+                    <ion-label>Feedbacks</ion-label>
+                </ion-list-header>
+                <ion-item lines="none" *ngFor="let feedback of feedbacks" color="tertiary" class="ion-padding">
+                    <ion-label class="ion-text-wrap">
+                        {{feedback.feedback}}
+                    </ion-label>
+                </ion-item>
+                <ng-container *ngIf="feedbacks.length === 0">
+                    <ion-item>
+                        <ion-label>
+                            No feedback given.
+                        </ion-label>
+                    </ion-item>
+                </ng-container>
+            </ng-container>
+            <ng-template #loadingFeedbacks>
+                <ion-item lines="none">
+                    <ion-label>
+                        <h2>
+                            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                        </h2>
+                        <p>
+                            <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                        </p>
+                        <ion-chip outline>
+                            <ion-label>
+                                <ion-skeleton-text animated></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-label>
+                                <ion-skeleton-text animated></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                    </ion-label>
+                </ion-item>
+            </ng-template>
+            <form [formGroup]="form" (submit)="onCreate(booking.bookingInfo.id)" class="ion-padding">
+                <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
+                    <ion-card-header>
+                        <ion-card-subtitle>Please be honest to leave a feedback.</ion-card-subtitle>
+                    </ion-card-header>
+                    <ion-card-content>
+                        <ion-item lines="none">
+                            <ion-label position="floating">Comments</ion-label>
+                            <ion-textarea rows="3" formControlName="feedback"></ion-textarea>
+                        </ion-item>
+                        <ion-button expand="block" type="submit">Submit</ion-button>
+                    </ion-card-content>
+                </ion-card>
+            </form>
+        </ng-container>
+
+    </ng-container>
+    <ng-template #elseBooking>
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>
+                    <ion-card-subtitle>
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-skeleton-text animated></ion-skeleton-text>
+                <ion-item lines="none">
+                    <ion-thumbnail slot="start">
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-thumbnail>
+                    <ion-label>
+                        <h2>
+                            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                        </h2>
+                        <ion-chip outline>
+                            <ion-icon name="time-outline"></ion-icon>
+                            <ion-label>
+                                <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-icon name="cash-outline"></ion-icon>
+                            <ion-label>
+                                <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+                            </ion-label>
+                        </ion-chip>
+                    </ion-label>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+    </ng-template>
+
+</ion-content>

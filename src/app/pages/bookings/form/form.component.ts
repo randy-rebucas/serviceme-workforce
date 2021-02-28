@@ -1,5 +1,5 @@
 import { TitleCasePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
@@ -23,7 +23,7 @@ import firebase from 'firebase/app';
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
-export class FormComponent implements OnInit {
+export class FormComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public title: string;
   public state: boolean;
@@ -241,5 +241,7 @@ export class FormComponent implements OnInit {
     });
   }
 
-
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
 }

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { AlertController } from '@ionic/angular';
+import { AlertController, IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
 import { forkJoin, from, Observable, Subject } from 'rxjs';
 import { map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
@@ -8,6 +8,7 @@ import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
 import { Bookings } from './bookings';
 import { BookingsService } from './bookings.service';
+import { PreviewComponent } from './preview/preview.component';
 
 @Component({
   selector: 'app-bookings',
@@ -21,10 +22,13 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
   private subs = new SubSink();
   constructor(
     private alertController: AlertController,
+    private modalController: ModalController,
+    private loadingController: LoadingController,
     private authService: AuthService,
     private bookingsService: BookingsService,
     private usersService: UsersService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private routerOutlet: IonRouterOutlet,
   ) {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -70,9 +74,66 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
     this.bookings$ = this.getBookingListener();
   }
 
-  onCancel() {}
+  onDelete(booking: Bookings, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.loadingController.create({
+      message: 'Deleting...'
+    })).subscribe(loadingEl => {
+      loadingEl.present();
+      this.doDelete(booking.id, ionItemSliding);
+    });
+  }
 
-  onPreview() {}
+  doDelete(bookingId: string, ionItemSliding: IonItemSliding) {
+    this.authService.getUserState().pipe(
+      switchMap((user) => {
+        return from(this.bookingsService.delete(user.uid, bookingId));
+      })
+    ).subscribe(() => {
+      this.loadingController.dismiss();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  onCancel(booking: Bookings, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.loadingController.create({
+      message: 'Canceling...'
+    })).subscribe(loadingEl => {
+      loadingEl.present();
+      this.doCancel(booking.id, ionItemSliding);
+    });
+  }
+
+  doCancel(bookingId: string, ionItemSliding: IonItemSliding) {
+    this.authService.getUserState().pipe(
+      switchMap((user) => {
+        return from(this.bookingsService.update(user.uid, bookingId, { status: 'canceled' }));
+      })
+    ).subscribe(() => {
+      this.loadingController.dismiss();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  onPreview(booking: any, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.modalController.create({
+      component: PreviewComponent,
+      componentProps: {
+        title: 'Preview',
+        bookingData: booking
+      },
+      swipeToClose: true,
+      presentingElement: this.routerOutlet.nativeEl
+    })).subscribe((modalEl) => {
+      modalEl.present();
+      ionItemSliding.closeOpened();
+    });
+  }
 
   onChange(event: CustomEvent) {
     const searchKey = event.detail.value;

@@ -1,0 +1,44 @@
+ion-header {
+    ion-toolbar {
+        --color: var(--ion-color-primary);
+    }
+}
+
+ion-content {
+    ion-card {
+        &.details {
+            ion-card-content {
+                ion-item {
+                    --background: var(--ion-color-secondary);
+                    ion-thumbnail {
+                        display: inline-flex;
+                        ion-img {
+                            img {
+                                border: 1px solid #fccd12;
+                                padding: 8px;
+                                filter: contrast(0.5);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ion-item {
+        padding-top: unset;
+        padding-bottom: unset;
+    }
+    form {
+        ion-card {
+            ion-card-content {
+                ion-item {
+                    border: 1px solid var(--ion-color-primary);
+                    margin-bottom: 10px;
+                }
+                ion-button {
+                    margin: unset;
+                }
+            }
+        }
+    }
+}
