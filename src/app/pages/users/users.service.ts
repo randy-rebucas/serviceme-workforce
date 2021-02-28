@@ -76,22 +76,22 @@ export class UsersService {
    * users/{userId}/{subCollection}
    */
 
-  private childCollections(colRef: string, subCollection: string): AngularFirestoreCollection<useClass> {
+  private childCollections(document: string, targetCollection: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(
         collection +
         '/' +
-        colRef +
+        document +
         '/' +
-        subCollection
+        targetCollection
       );
   }
 
-  setSubCollection(colRef: string, collectionName: string, data: any) {
-    return this.childCollections(colRef, collectionName).doc().set(data);
+  setSubCollection(document: string, targetCollection: string, documentId: string, data: any) {
+    return this.childCollections(document, targetCollection).doc(documentId).set(data);
   }
 
-  getSubCollection(colRef: string, collectionName: string) {
-    return this.fetchData(this.childCollections(colRef, collectionName));
+  getSubCollection(document: string, targetCollection: string) {
+    return this.fetchData(this.childCollections(document, targetCollection));
   }
 
 }

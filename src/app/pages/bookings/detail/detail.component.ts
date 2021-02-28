@@ -118,12 +118,12 @@ export class DetailComponent implements OnInit, OnDestroy {
     return selectedOffer.id === currentChilds.id;
   }
 
-  onBook() {
+  onBook(userId: string) {
     this.subs.sink = from(this.modalController.create({
       component: FormComponent,
       componentProps: {
         title: 'Create booking',
-        prof: this.userId
+        prof: userId
       }
     })).subscribe((modalEl) => {
       modalEl.onDidDismiss().then((modalDismissRes) => {

@@ -74,6 +74,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+
     this.offerItems$ = this.bookingsService.getOffers();
     this.subs.sink = this.offerItems$.subscribe((offerItems) => {
       if (offerItems.length === 0) {
@@ -196,16 +197,19 @@ export class FormComponent implements OnInit, OnDestroy {
       );
   }
 
-  setMyBooking(user: firebase.User, booking: DocumentReference<firebase.firestore.DocumentData>) {
+  private setBookingCollection(userDocId: string, bookingDocId: string) {
     const bookingData = {
-      bookingId: booking.id
+      userId: userDocId
     };
-    from(this.userService.setSubCollection(user.uid, 'bookings', bookingData)).subscribe(() => {
-      this.form.reset();
-      this.loadingController.dismiss();
-      this.bookingsService.setOffers([]);
-      this.onDismiss(true);
-    });
+    return from(this.userService.setSubCollection(userDocId, 'bookings', bookingDocId, bookingData));
+  }
+
+  private setClientBookingCollection(userId: string, booking: DocumentReference<firebase.firestore.DocumentData>) {
+    return this.setBookingCollection(userId, booking.id);
+  }
+
+  private setProfessionalBookingCollection(userId: string, booking: DocumentReference<firebase.firestore.DocumentData>) {
+    return this.setBookingCollection(userId, booking.id);
   }
   /**
    *
@@ -217,8 +221,6 @@ export class FormComponent implements OnInit, OnDestroy {
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const bookingData  = {
         offers: this.offerItems,
-        professionalId: this.proId,
-        clientId: user.uid,
         location: this.currentLocation,
         charges: Number(this.totalCharges),
         scheduleDate: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleDate)),
@@ -228,7 +230,17 @@ export class FormComponent implements OnInit, OnDestroy {
       };
 
       this.subs.sink = from(this.bookingsService.insert(bookingData)).subscribe((booking) => {
-        this.setMyBooking(user, booking);
+        // set a copy of booking to client sub collections
+        this.subs.sink = from(this.userService.setSubCollection(user.uid, 'bookings', booking.id, { userId: this.proId }))
+        .subscribe(() => {
+          // set a copy of booking for pro sub collection
+          this.subs.sink = from(this.userService.setSubCollection(this.proId, 'bookings', booking.id, { userId: user.uid }))
+          .subscribe(() => {
+            this.form.reset();
+            this.onDismiss(true);
+            this.bookingsService.setOffers([]);
+          });
+        });
       }, (error: any) => {
         this.loadingController.dismiss();
         this.presentAlert(error.code, error.message);
