@@ -1,74 +1,100 @@
-<ion-segment [value]="bookingStatus" (ionChange)="statusChanged($event)">
-    <ion-segment-button value="pending">
-        <ion-label>Pending</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="cancel">
-        <ion-label>Canceled</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="decline">
-        <ion-label>Declined</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="completed">
-        <ion-label>Completed</ion-label>
-    </ion-segment-button>
-</ion-segment>
+<ion-content>
 
-<ng-container *ngIf="bookings$ | async; let bookings; else loadingUsers">
-    <ion-list>
-        <ion-list-header>
-            <ion-label>New Booking Request</ion-label>
-        </ion-list-header>
-        <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
-            <ion-item lines="none" button>
-                <ion-avatar slot="start">
-                    <ng-container *ngIf="booking.clientAuth.user.photoURL; else elseDummy">
-                        <img [src]="booking.clientAuth.user.photoURL" />
+    <ion-segment [value]="bookingStatus" (ionChange)="statusChanged($event)">
+        <ion-segment-button value="pending">
+            <ion-label>Pending</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="canceled">
+            <ion-label>Canceled</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="declined">
+            <ion-label>Declined</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="completed">
+            <ion-label>Completed</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+
+    <ng-container *ngIf="bookings$ | async; let bookings; else loadingUsers">
+        <ion-list>
+            <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
+                <ion-item lines="none" button>
+                    <ion-avatar slot="start">
+                        <ng-container *ngIf="booking.bookingDetail.admin.user.photoURL; else elseDummy">
+                            <img [src]="booking.bookingDetail.admin.user.photoURL" />
+                        </ng-container>
+                        <ng-template #elseDummy>
+                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                        </ng-template>
+                    </ion-avatar>
+                    <ion-label class="ion-text-wrap">
+                        <h2>{{ (booking.usersCollection.name.firstname + ' ' + booking.usersCollection.name.lastname) | titlecase }}</h2>
+                        <p>{{ booking.bookingDetail.booking.bookingCollection.location }}</p>
+                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }}</p>
+                        <!-- <p [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</p> -->
+                    </ion-label>
+                    <ion-icon [name]="booking.usersCollection.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
+                </ion-item>
+                <ion-item-options side="end">
+                    <ng-container [ngSwitch]="booking.bookingDetail.booking.bookingCollection.status">
+                        <!-- the same view can be shown in more than one case -->
+                        <ng-template *ngSwitchCase="pending">
+                            pending
+                        </ng-template>
+                        <ng-template *ngSwitchCase="canceled">
+                            canceled
+                        </ng-template>
+                        <ng-template *ngSwitchCase="declined">
+                            declined
+                        </ng-template>
+                        <!--default case when there are no matches -->
+                        <ng-template *ngSwitchDefault>
+                            completed
+                        </ng-template>
                     </ng-container>
-                    <ng-template #elseDummy>
-                        <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
-                    </ng-template>
-                </ion-avatar>
-                <ion-label class="ion-text-wrap">
-                    <h2>{{ (booking.client.name.firstname + ' ' + booking.client.name.lastname) | titlecase }}</h2>
-                    <p>{{ booking.booking.location }}</p>
-                    <p>{{ booking.booking.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.booking.scheduleTime.toDate() | date:'shortTime' }}</p>
-                </ion-label>
-                <ion-icon [name]="booking.client.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
-            </ion-item>
-            <ion-item-options side="end">
-                <ion-item-option color="success" (click)="onAccept(booking, slidingItem)">
-                    <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
-                </ion-item-option>
-                <ion-item-option color="danger" (click)="onDecline(booking, slidingItem)">
-                    <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-                </ion-item-option>
-            </ion-item-options>
-        </ion-item-sliding>
-    </ion-list>
-    <div id="container" class="ion-text-center" *ngIf="bookings.length === 0">
-        <ion-icon name="list-outline"></ion-icon>
-        <p>No users found</p>
-    </div>
-</ng-container>
-<ng-template #loadingUsers>
-    <ion-item lines="none">
-        <ion-avatar slot="start">
-            <ion-skeleton-text animated></ion-skeleton-text>
-        </ion-avatar>
-        <ion-label>
-            <h3>
-                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
-            </h3>
-            <ion-chip outline>
-                <ion-label>
-                    <ion-skeleton-text animated></ion-skeleton-text>
-                </ion-label>
-            </ion-chip>
-            <ion-chip outline>
-                <ion-label>
-                    <ion-skeleton-text animated></ion-skeleton-text>
-                </ion-label>
-            </ion-chip>
-        </ion-label>
-    </ion-item>
-</ng-template>
+
+                    <ng-container *ngIf="booking.bookingDetail.booking.bookingCollection.status === 'pending'">
+                        <ion-item-option color="success" (click)="onAccept(booking, slidingItem)">
+                            <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
+                        </ion-item-option>
+                        <ion-item-option color="danger" (click)="onDecline(booking, slidingItem)">
+                            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                        </ion-item-option>
+                    </ng-container>
+                    <!-- <ng-container *ngIf="booking.bookingDetail.booking.bookingCollection.status === 'accepted">
+                        <ion-item-option color="primary" (click)="onLocate(booking, slidingItem)">
+                            <ion-icon name="navigate-outline" slot="icon-only"></ion-icon>
+                        </ion-item-option>
+                    </ng-container> -->
+
+                </ion-item-options>
+            </ion-item-sliding>
+        </ion-list>
+        <div id="container" class="ion-text-center" *ngIf="bookings.length === 0">
+            <ion-icon name="list-outline"></ion-icon>
+            <p>No {{bookingStatus}} booking found</p>
+        </div>
+    </ng-container>
+    <ng-template #loadingUsers>
+        <ion-item lines="none">
+            <ion-avatar slot="start">
+                <ion-skeleton-text animated></ion-skeleton-text>
+            </ion-avatar>
+            <ion-label>
+                <h3>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </h3>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+            </ion-label>
+        </ion-item>
+    </ng-template>
+</ion-content>

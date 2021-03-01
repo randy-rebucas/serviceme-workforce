@@ -49,6 +49,7 @@ export class ClientComponent implements OnInit, OnDestroy {
         );
       })
     ).subscribe((users) => {
+      console.log(users);
       this.userUpdated.next(users);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);

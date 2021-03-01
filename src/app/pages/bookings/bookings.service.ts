@@ -36,8 +36,8 @@ export class BookingsService {
     return this.angularFirestore.collection<useClass>(collection);
   }
 
-  private byStatusCollection(status: string): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection, ref => ref.where('status', '==', status));
+  private byStatusCollection(): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(collection);
   }
 
   private byProfessionalCollection(userId: string): AngularFirestoreCollection<useClass> {
@@ -71,8 +71,8 @@ export class BookingsService {
     return this.defaultCollection().get();
   }
 
-  getOne(id: string, status: string): Observable<useClass> {
-    return this.byStatusCollection(status).doc<useClass>(id).valueChanges().pipe(
+  getOne(id: string): Observable<useClass> {
+    return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
         // data.id = id;

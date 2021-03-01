@@ -76,13 +76,13 @@ export class UsersService {
    * users/{userId}/{subCollection}
    */
 
-  private childCollections(document: string, targetCollection: string): AngularFirestoreCollection<useClass> {
+  private childCollections(document: string, subCollection: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(
         collection +
         '/' +
         document +
         '/' +
-        targetCollection
+        subCollection
       );
   }
 
