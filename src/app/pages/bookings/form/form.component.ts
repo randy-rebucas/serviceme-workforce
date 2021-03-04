@@ -30,6 +30,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public state: boolean;
   private proId: string;
   private currentLocation: any;
+  private coord: object;
   public locationOption$: BehaviorSubject<boolean>;
   public offerItems$: Observable<Offers[]>;
   public offerItems: Offers[];
@@ -57,6 +58,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.proId = this.navParams.data.prof;
     this.currentDate = new Date();
     this.currentLocation = null;
+    this.coord = null;
     this.maxDate = new Date(new Date().setDate(new Date().getDate() + 7));
 
     this.totalCharges = 0;
@@ -176,6 +178,10 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private pointLocation(coordinates: any) {
     this.subs.sink = this.getAddress(coordinates.latitude, coordinates.longitude).subscribe(address => {
+      this.coord = {
+        lat: coordinates.latitude,
+        lng: coordinates.longitude
+      };
       this.currentLocation = address.formatted_address;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
@@ -222,6 +228,7 @@ export class FormComponent implements OnInit, OnDestroy {
       const bookingData  = {
         offers: this.offerItems,
         location: this.currentLocation,
+        coordinates: this.coord,
         charges: Number(this.totalCharges),
         scheduleDate: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleDate)),
         scheduleTime: firebase.firestore.Timestamp.fromDate(new Date(this.form.value.scheduleTime)),

@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
-import { forkJoin, from, Observable, Subject } from 'rxjs';
-import { map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
+import { BehaviorSubject, forkJoin, from, Observable, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
+import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 import { SubSink } from 'subsink';
 import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
@@ -15,10 +16,11 @@ import { PreviewComponent } from './preview/preview.component';
   templateUrl: './bookings.page.html',
   styleUrls: ['./bookings.page.scss'],
 })
-export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
+export class BookingsPage implements OnInit, OnDestroy {
   public defaultCurrency: string;
   public bookings$: Observable<Bookings[]>;
   private bookingListener = new Subject<Bookings[]>();
+  private bookingStatus$: BehaviorSubject<string|null>;
   private subs = new SubSink();
   constructor(
     private alertController: AlertController,
@@ -27,9 +29,12 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
     private authService: AuthService,
     private bookingsService: BookingsService,
     private usersService: UsersService,
+    private adminFunctionService: AdminFunctionService,
     private settingsService: SettingsService,
     private routerOutlet: IonRouterOutlet,
   ) {
+    this.bookingStatus$ = new BehaviorSubject('');
+
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
@@ -45,40 +50,117 @@ export class BookingsPage implements OnInit, AfterViewInit, OnDestroy {
     return this.bookingListener.asObservable();
   }
 
-  initialized() {
-    // from(this.authService.getCurrentUser()).pipe(
-    //   // get all bookings
-    //   switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
-    //     // bookings response
-    //     mergeMap((bookingMap: any[]) => {
-    //       return from(bookingMap).pipe(
-    //         // merge join collections bookings
-    //         mergeMap((bookingInfo) => {
-    //           console.log(bookingInfo);
-    //           return this.bookingsService.getOne(bookingInfo.id).pipe(
-    //             // merge profissional user collections
-    //             mergeMap((booking) => {
-    //               return this.usersService.getOne(bookingInfo.userId).pipe(
-    //                 map(profissional => ({ booking, profissional })),
-    //               );
-    //             }),
-    //             reduce((a, i) => [...a, i], [])
-    //           );
-    //         }),
-    //       );
-    //     })
-    //   ))
-    // ).subscribe((bookings) => {
-    //   console.log(bookings);
-    //   this.bookingListener.next(bookings);
-    // });
+  // get user data to retrive names
+  getUser(bookingDetail: any, subCollectionForiegnKeyId: string) {
+    return this.usersService.getOne(subCollectionForiegnKeyId).pipe(
+      map(usersCollection => ({ usersCollection, bookingDetail })),
+    );
   }
+  // get auth user data to retrive photoUrl
+  getAuthUser(booking) {
+    return this.adminFunctionService.getById(booking.bookingSubCollection.userId).pipe(
+      map(admin => ({ booking, admin })),
+      // merge user collection to get common user intity object
+      mergeMap((bookingDetail) => {
+        return this.getUser(bookingDetail, booking.bookingSubCollection.userId);
+      })
+    );
+  }
+  // get sub collections
+  getSubCollectionDocument(bookingSubCollection: any, status: string) {
+    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
+      // map to combine user booking sub-collection to collection
+      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
+      // filter by status
+      filter(bookingStatus => bookingStatus.bookingCollection.status === status),
+      // merge the user auth data to get firebase.User object
+      mergeMap((booking) => {
+        return this.getAuthUser(booking);
+      })
+    );
+  }
+
+  getUnfilteredSubCollectionDocument(bookingSubCollection: any) {
+    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
+      // map to combine user booking sub-collection to collection
+      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
+      // merge the user auth data to get firebase.User object
+      mergeMap((booking) => {
+        return this.getAuthUser(booking);
+      })
+    );
+  }
+
+  // get Main Collection {bookings}
+  getCollection(booking: any[], status: string) {
+    return from(booking).pipe(
+      mergeMap((bookingSubCollection) => {
+        return (status !== '') ?
+        this.getSubCollectionDocument(bookingSubCollection, status) :
+        this.getUnfilteredSubCollectionDocument(bookingSubCollection);
+      }),
+      reduce((a, i) => [...a, i], [])
+    );
+  }
+
+  // get all sub collection bookings from user perspective
+  getSubCollection(documentRef: string, collectionRef: string, status: string) {
+    return this.usersService.getSubCollection(documentRef, collectionRef).pipe(
+      // bookings response
+      mergeMap((bookingMap: any[]) => {
+        return this.getCollection(bookingMap, status);
+      })
+    );
+  }
+
+  // initialize
+  initialized() {
+    this.bookingStatus$.pipe(
+      switchMap((status) => {
+        return from(this.authService.getCurrentUser()).pipe(
+          // get all bookings
+          switchMap((user) => this.getSubCollection(user.uid, 'bookings', status))
+        );
+      })
+    ).subscribe((bookings) => {
+      this.bookingListener.next(bookings);
+    });
+  }
+  // initialized() {
+  //   from(this.authService.getCurrentUser()).pipe(
+  //     // get all bookings
+  //     switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
+  //       // bookings response
+  //       mergeMap((bookingMap: any[]) => {
+  //         return from(bookingMap).pipe(
+  //           // merge join collections bookings
+  //           mergeMap((bookingInfo) => {
+  //             console.log(bookingInfo);
+
+  //             return this.bookingsService.getOne(bookingInfo.id).pipe(
+  //               // merge profissional user collections
+  //               mergeMap((booking) => {
+  //                 return this.usersService.getOne(bookingInfo.userId).pipe(
+  //                   map(profissional => ({ booking, profissional })),
+  //                 );
+  //               }),
+  //               reduce((a, i) => [...a, i], [])
+  //             );
+  //           }),
+  //         );
+  //       })
+  //     ))
+  //   ).subscribe((bookings) => {
+  //     console.log(bookings);
+  //     this.bookingListener.next(bookings);
+  //   });
+  // }
 
   ngOnInit() {
+    // initialize bookings
     this.initialized();
-  }
 
-  ngAfterViewInit() {
+    // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
   }
 

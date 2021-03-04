@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { IonItemSliding } from '@ionic/angular';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
@@ -7,6 +8,7 @@ import { AdminFunctionService } from 'src/app/shared/services/admin-function.ser
 import { SubSink } from 'subsink';
 import { Bookings } from '../../bookings/bookings';
 import { BookingsService } from '../../bookings/bookings.service';
+import { PreviewComponent } from '../../bookings/preview/preview.component';
 import { UsersService } from '../../users/users.service';
 
 @Component({
@@ -14,7 +16,7 @@ import { UsersService } from '../../users/users.service';
   templateUrl: './pro.component.html',
   styleUrls: ['./pro.component.scss'],
 })
-export class ProComponent implements OnInit {
+export class ProComponent implements OnInit, OnDestroy {
   public bookings$: Observable<Bookings[]>;
   private bookingListener = new Subject<any>();
 
@@ -23,10 +25,14 @@ export class ProComponent implements OnInit {
 
   private subs = new SubSink();
   constructor(
+    private modalController: ModalController,
+    private alertController: AlertController,
     private authService: AuthService,
     private usersService: UsersService,
     private adminFunctionService: AdminFunctionService,
-    private bookingsService: BookingsService
+    private bookingsService: BookingsService,
+    private routerOutlet: IonRouterOutlet,
+    private router: Router
   ) {
     this.bookingStatus$ = new BehaviorSubject('pending');
 
@@ -67,11 +73,25 @@ export class ProComponent implements OnInit {
       })
     );
   }
+
+  getUnfilteredSubCollectionDocument(bookingSubCollection: any) {
+    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
+      // map to combine user booking sub-collection to collection
+      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
+      // merge the user auth data to get firebase.User object
+      mergeMap((booking) => {
+        return this.getAuthUser(booking);
+      })
+    );
+  }
+
   // get Main Collection {bookings}
   getCollection(booking: any[], status: string) {
     return from(booking).pipe(
       mergeMap((bookingSubCollection) => {
-        return this.getSubCollectionDocument(bookingSubCollection, status);
+        return (status !== '') ?
+        this.getSubCollectionDocument(bookingSubCollection, status) :
+        this.getUnfilteredSubCollectionDocument(bookingSubCollection);
       }),
       reduce((a, i) => [...a, i], [])
     );
@@ -89,7 +109,7 @@ export class ProComponent implements OnInit {
 
   // initialize
   initialized() {
-    this.bookingStatus$.pipe(
+    this.subs.sink = this.bookingStatus$.pipe(
       switchMap((status) => {
         return from(this.authService.getCurrentUser()).pipe(
           // get all bookings
@@ -98,6 +118,8 @@ export class ProComponent implements OnInit {
       })
     ).subscribe((bookings) => {
       this.bookingListener.next(bookings);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
 
     // from(this.authService.getCurrentUser()).pipe(
@@ -151,6 +173,57 @@ export class ProComponent implements OnInit {
   }
 
   onAccept(booking: any, ionItemSliding: IonItemSliding) {
-    console.log(booking);
+    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
+      this.initialized();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
   }
-}
+
+  onDecline(booking: any, ionItemSliding: IonItemSliding) {
+    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'declined' })).subscribe(() => {
+      this.initialized();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  onPreview(booking: any, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.modalController.create({
+      component: PreviewComponent,
+      componentProps: {
+        title: 'Preview',
+        bookingData: booking
+      },
+      swipeToClose: true,
+      presentingElement: this.routerOutlet.nativeEl
+    })).subscribe((modalEl) => {
+      modalEl.present();
+      ionItemSliding.closeOpened();
+    });
+  }
+
+  onLocate(booking: any, ionItemSliding: IonItemSliding) {
+    this.bookingsService.setBooking(booking);
+    ionItemSliding.closeOpened();
+    this.router.navigate(['pages/locator']);
+  }
+
+  presentAlert(alertHeader: string, alertMessage: string) {
+    this.subs.sink = from(this.alertController.create({
+      header: alertHeader, // alert.code,
+      message: alertMessage, // alert.message,
+      buttons: ['OK']
+    })).subscribe(alertEl => {
+        alertEl.present();
+    });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
+ }

@@ -40,6 +40,23 @@ ion-content {
                         }
                     }
                 }
+                p {
+                    span {
+                        float: right;
+                        &.canceled {
+                            color: var(--ion-color-danger);
+                        }
+                        &.accepted {
+                            color: var(--ion-color-success);
+                        }
+                        &.declined {
+                            color: var(--ion-color-danger-tint);
+                        }
+                        &.pending {
+                            color: var(--ion-color-warning);
+                        }
+                    }
+                }
                 ion-note {
                     font-size: 14px;
                 }

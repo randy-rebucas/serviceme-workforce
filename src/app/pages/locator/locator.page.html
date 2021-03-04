@@ -1,0 +1,28 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Locator</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">Locator</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ion-item>
+        <ion-label>
+            {{location}}
+        </ion-label>
+        <ion-button slot="end" *ngIf="!isStart" (click)="onStartLocate()">
+            Start
+        </ion-button>
+        <ion-button slot="end" *ngIf="isStart" (click)="onStopLocate()">
+            Stop
+        </ion-button>
+    </ion-item>
+    <div class="map" id="map" #map></div>
+</ion-content>

@@ -1,0 +1,37 @@
+ion-header {
+    ion-toolbar {
+        --background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        padding: 0 10px;
+        color: var(--ion-color-primary-contrast);
+        ion-list {
+            background: transparent;
+            ion-item {
+                --background: transparent;
+                &:not(:first-child) {
+                    --background: var(--ion-color-secondary);
+                }
+                ion-searchbar {
+                    -webkit-padding-start: 0px;
+                    padding-inline-start: 0px;
+                    -webkit-padding-end: 0px;
+                    padding-inline-end: 0px;
+                }
+            }
+        }
+    }
+}
+
+ion-content {
+    .map {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: transparent;
+        opacity: 0;
+        transition: opacity 150ms ease-in;
+        &.visible {
+            opacity: 1;
+        }
+    }
+}

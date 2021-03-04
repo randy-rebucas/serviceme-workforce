@@ -52,6 +52,7 @@ export class PreviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+
     this.form = new FormGroup({
       feedback: new FormControl(null, {
         updateOn: 'blur',

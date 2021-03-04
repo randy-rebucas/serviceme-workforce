@@ -67,9 +67,15 @@ const routes: Routes = [
         canActivate: [AngularFireAuthGuard],
         data: { authGuardPipe: clientOnly },
         loadChildren: () => import('./bookings/bookings.module').then( m => m.BookingsPageModule)
+      },
+      {
+        path: 'locator',
+        canActivate: [AngularFireAuthGuard],
+        data: { authGuardPipe: proOnly },
+        loadChildren: () => import('./locator/locator.module').then( m => m.LocatorPageModule)
       }
     ]
-  }
+  },
 ];
 
 @NgModule({
