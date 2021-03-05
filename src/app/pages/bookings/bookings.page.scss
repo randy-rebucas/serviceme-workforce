@@ -47,6 +47,9 @@ ion-content {
                             color: var(--ion-color-danger);
                         }
                         &.accepted {
+                            color: var(--ion-color-success-tint);
+                        }
+                        &.completed {
                             color: var(--ion-color-success);
                         }
                         &.declined {

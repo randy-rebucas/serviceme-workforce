@@ -6,6 +6,9 @@ ion-header {
 
 ion-content {
     ion-card {
+        &:not(.details) {
+            margin: 1em 0;
+        }
         &.details {
             ion-card-content {
                 ion-item {

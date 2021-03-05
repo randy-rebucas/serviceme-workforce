@@ -33,6 +33,16 @@
     </ion-header>
     <ng-container *ngIf="bookings$ | async; let bookings; else loadingBookings">
         <ion-list>
+            <ion-item *ngIf="bookingStatus != 'pending'" (ionChange)="statusChanged($event)">
+                <ion-label>Filter status</ion-label>
+                <ion-select placeholder="Select One">
+                    <ion-select-option value="">All</ion-select-option>
+                    <ion-select-option value="declined">Declined</ion-select-option>
+                    <ion-select-option value="canceled">Canceled</ion-select-option>
+                    <ion-select-option value="accepted">Accepted</ion-select-option>
+                    <ion-select-option value="completed">Completed</ion-select-option>
+                </ion-select>
+            </ion-item>
             <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
                 <ion-item lines="none" button>
                     <ion-avatar slot="start">
@@ -46,7 +56,8 @@
                     <ion-label class="ion-text-wrap">
                         <h2>{{ (booking.usersCollection.name.firstname + ' ' + booking.usersCollection.name.lastname) | titlecase }}</h2>
                         <p>{{ booking.bookingDetail.booking.bookingCollection.location }}</p>
-                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }} - <span [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</span></p>
+                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }}
+                            <span [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</span></p>
                     </ion-label>
                     <!-- <ion-icon [name]="booking.usersCollection.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon> -->
                 </ion-item>
@@ -69,7 +80,7 @@
                 </ion-item-options>
             </ion-item-sliding>
         </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="bookings.length === 0">
+        <div id="container" class="ion-text-center" *ngIf="(bookings$ | async)?.length === 0">
             <ion-icon name="list-outline"></ion-icon>
             <p>No bookings found</p>
         </div>

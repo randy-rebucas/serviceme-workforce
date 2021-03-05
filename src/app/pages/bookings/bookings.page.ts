@@ -21,6 +21,7 @@ export class BookingsPage implements OnInit, OnDestroy {
   public bookings$: Observable<Bookings[]>;
   private bookingListener = new Subject<Bookings[]>();
   private bookingStatus$: BehaviorSubject<string|null>;
+  public bookingStatus: string;
   private subs = new SubSink();
   constructor(
     private alertController: AlertController,
@@ -34,6 +35,10 @@ export class BookingsPage implements OnInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
   ) {
     this.bookingStatus$ = new BehaviorSubject('');
+
+    this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
+      this.bookingStatus = bookingStatus;
+    });
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
@@ -115,7 +120,7 @@ export class BookingsPage implements OnInit, OnDestroy {
 
   // initialize
   initialized() {
-    this.bookingStatus$.pipe(
+    this.subs.sink = this.bookingStatus$.pipe(
       switchMap((status) => {
         return from(this.authService.getCurrentUser()).pipe(
           // get all bookings
@@ -124,6 +129,8 @@ export class BookingsPage implements OnInit, OnDestroy {
       })
     ).subscribe((bookings) => {
       this.bookingListener.next(bookings);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
   // initialized() {
@@ -162,6 +169,11 @@ export class BookingsPage implements OnInit, OnDestroy {
 
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
+  }
+
+  statusChanged(event: CustomEvent) {
+    // update status
+    this.bookingStatus$.next(event.detail.value);
   }
 
   onDelete(booking: Bookings, ionItemSliding: IonItemSliding) {

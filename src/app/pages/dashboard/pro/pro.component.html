@@ -34,7 +34,8 @@
                     <ion-label class="ion-text-wrap">
                         <h2>{{ (booking.usersCollection.name.firstname + ' ' + booking.usersCollection.name.lastname) | titlecase }}</h2>
                         <p>{{ booking.bookingDetail.booking.bookingCollection.location }}</p>
-                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }} - <span [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</span></p>
+                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }}
+                            <span [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</span></p>
                     </ion-label>
                     <!-- <ion-icon [name]="booking.usersCollection.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon> -->
                 </ion-item>

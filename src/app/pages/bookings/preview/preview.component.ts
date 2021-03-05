@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, ModalController, NavParams } from '@ionic/angular';
 import { from, Observable, of } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
 import { SettingsService } from '../../settings/settings.service';
@@ -10,6 +10,7 @@ import { SettingsService } from '../../settings/settings.service';
 import firebase from 'firebase/app';
 import { FeedbacksService } from '../feedbacks.service';
 import { Feedbacks } from '../feedbacks';
+import { UsersService } from '../../users/users.service';
 @Component({
   selector: 'app-preview',
   templateUrl: './preview.component.html',
@@ -37,7 +38,8 @@ export class PreviewComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private authService: AuthService,
     private settingsService: SettingsService,
-    private feedbacksService: FeedbacksService
+    private feedbacksService: FeedbacksService,
+    private usersService: UsersService
   ) {
     this.title = this.navParams.data.title;
     this.booking$ = of(this.navParams.data.bookingData);
@@ -62,17 +64,66 @@ export class PreviewComponent implements OnInit, OnDestroy {
       })
     });
 
+      // initialized() {
+    // from(this.authService.getCurrentUser()).pipe(
+    //   // get all bookings
+    //   switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
+    //     // bookings response
+    //     mergeMap((bookingMap: any[]) => {
+    //       return from(bookingMap).pipe(
+    //         // merge join collections bookings
+    //         mergeMap((bookingInfo) => {
+    //           console.log(bookingInfo);
+
+    //           return this.bookingsService.getOne(bookingInfo.id).pipe(
+    //             // merge profissional user collections
+    //             mergeMap((booking) => {
+    //               return this.usersService.getOne(bookingInfo.userId).pipe(
+    //                 map(profissional => ({ booking, profissional })),
+    //               );
+    //             }),
+    //             reduce((a, i) => [...a, i], [])
+    //           );
+    //         }),
+    //       );
+    //     })
+    //   ))
+    // ).subscribe((bookings) => {
+    //   console.log(bookings);
+    //   this.bookingListener.next(bookings);
+    // });
+  // }
+
     this.feedbacks$ = this.booking$.pipe(
       switchMap((booking) => {
         return this.feedbacksService.getAll(booking.bookingDetail.booking.bookingSubCollection.id).pipe(
-          // map((filterBooking) => {
-          //   return filterBooking.filter((bookings) => {
-          //     return bookings.id === booking.bookingDetail.booking.bookingSubCollection.userId;
-          //   });
-          // })
+          map((filterBooking) => {
+            return filterBooking.filter((bookings) => {
+              return bookings.id === booking.bookingDetail.booking.bookingSubCollection.userId;
+            });
+          }),
+          mergeMap((feedbackMap: any[]) => {
+            return from(feedbackMap).pipe(
+              // merge join collections bookings
+              mergeMap((feedback) => {
+                console.log(feedback);
+                return this.usersService.getOne(feedback.id).pipe(
+                  map(profissional => ({ feedback, profissional })),
+                );
+              }),
+              reduce((a, i) => [...a, i], [])
+            );
+            // return this.usersService.getOne(feedback).pipe(
+            //   map(usersCollection => ({ usersCollection, bookingDetail })),
+            // );
+          })
         );
       })
     );
+
+    this.feedbacks$.subscribe((r) => {
+      console.log(r);
+    });
   }
 
   onDismiss(state: boolean) {
