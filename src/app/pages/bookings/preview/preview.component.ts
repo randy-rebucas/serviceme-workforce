@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, ModalController, NavParams } from '@ionic/angular';
 import { from, Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
 import { SettingsService } from '../../settings/settings.service';
@@ -21,6 +21,8 @@ export class PreviewComponent implements OnInit, OnDestroy {
   public booking$: Observable<any>;
   public feedbacks$: Observable<Feedbacks[]>;
   public defaultCurrency: string;
+
+  private userId: string;
   private subs = new SubSink();
 
   /**
@@ -60,12 +62,15 @@ export class PreviewComponent implements OnInit, OnDestroy {
       })
     });
 
-    this.booking$.subscribe((r) => {
-      console.log(r);
-    });
     this.feedbacks$ = this.booking$.pipe(
       switchMap((booking) => {
-        return this.feedbacksService.getAll(booking.bookingInfo.id).pipe();
+        return this.feedbacksService.getAll(booking.bookingDetail.booking.bookingSubCollection.id).pipe(
+          // map((filterBooking) => {
+          //   return filterBooking.filter((bookings) => {
+          //     return bookings.id === booking.bookingDetail.booking.bookingSubCollection.userId;
+          //   });
+          // })
+        );
       })
     );
   }
@@ -81,13 +86,13 @@ export class PreviewComponent implements OnInit, OnDestroy {
   onCreate(bookingId: string) {
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const feedbackData  = {
-        userId: user.uid,
         feedback: this.form.value.feedback,
         timestamp: firebase.firestore.Timestamp.fromDate(new Date())
       };
 
-      this.subs.sink = from(this.feedbacksService.insert(bookingId, feedbackData)).subscribe(() => {
+      this.subs.sink = from(this.feedbacksService.insert(bookingId, user.uid, feedbackData)).subscribe(() => {
         this.form.reset();
+        this.feedbacks$ = this.feedbacksService.getAll(bookingId);
       }, (error: any) => {
         this.presentAlert(error.code, error.message);
       });

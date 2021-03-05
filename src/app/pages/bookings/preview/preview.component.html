@@ -71,12 +71,19 @@
                     </ion-label>
                 </ion-item>
                 <ng-container *ngIf="feedbacks.length === 0">
-                    <ion-item>
+                    <ion-item lines="none">
                         <ion-label>
                             No feedback given.
                         </ion-label>
                     </ion-item>
                 </ng-container>
+
+                <ion-item lines="none" *ngIf="feedbacks.includes(booking.bookingDetail.booking.bookingSubCollection.userId)">
+                    <ion-label>
+                        Exist
+                    </ion-label>
+                </ion-item>
+
             </ng-container>
             <ng-template #loadingFeedbacks>
                 <ion-item lines="none">

@@ -192,6 +192,16 @@ export class ProComponent implements OnInit, OnDestroy {
     });
   }
 
+  onComplete(booking: any, ionItemSliding: IonItemSliding) {
+    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'completed' })).subscribe(() => {
+      this.initialized();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
   onPreview(booking: any, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.modalController.create({
       component: PreviewComponent,

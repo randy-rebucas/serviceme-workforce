@@ -56,8 +56,8 @@ export class FeedbacksService {
     );
   }
 
-  insert(colRef: string, data: any) {
-    return this.defaultCollection(colRef).doc(data.userId).set({
+  insert(colRef: string, subColRef: string, data: any) {
+    return this.defaultCollection(colRef).doc(subColRef).set({
       feedback: data.feedback,
       timestamp: data.timestamp
     });

@@ -53,6 +53,12 @@
                             <ion-icon name="eye-outline" slot="icon-only"></ion-icon>
                         </ion-item-option>
                     </ng-container>
+                    <ng-container *ngSwitchCase="'completed'">
+                        <!-- only view details allowed -->
+                        <ion-item-option color="primary" (click)="onPreview(booking, slidingItem)">
+                            <ion-icon name="eye-outline" slot="icon-only"></ion-icon>
+                        </ion-item-option>
+                    </ng-container>
                     <ng-container *ngSwitchCase="'declined'">
                         <!-- no action from proffissional dashboard -->
                         <ion-item-option color="primary" (click)="onPreview(booking, slidingItem)">

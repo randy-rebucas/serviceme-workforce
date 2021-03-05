@@ -1,13 +1,14 @@
 import { Component, ElementRef, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController, Platform } from '@ionic/angular';
+import { Plugins, Capacitor } from '@capacitor/core';
+
 import { BehaviorSubject, from } from 'rxjs';
 import { SubSink } from 'subsink';
 import { environment } from 'src/environments/environment';
 
-import { Plugins, Capacitor } from '@capacitor/core';
 import { BookingsService } from '../bookings/bookings.service';
 import { Coordinates } from '../bookings/bookings';
-import { Router } from '@angular/router';
 declare var google;
 
 @Component({
