@@ -14,8 +14,8 @@ import { PayPal, PayPalConfiguration, PayPalPayment } from '@ionic-native/paypal
 import { environment } from 'src/environments/environment';
 import { Transactions } from '../transactions/transactions';
 
-// const payPalClientId = environment.payPalClientId;
-// const payPalEnv = environment.payPalEnv;
+const payPalClientId = environment.payPalClientId;
+const payPalEnv = environment.payPalEnv;
 
 @Component({
   selector: 'app-payments',
@@ -75,78 +75,78 @@ export class PaymentsPage implements OnInit, OnDestroy {
 
   get formCtrls() { return this.form.controls; }
 
-  // setSubCollection(user: firebase.User, transaction: any) {
-  //   this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { userId: user.uid }))
-  //   .subscribe(() => {
-  //     this.form.reset();
-  //     this.loadingController.dismiss();
-  //   });
-  // }
+  setSubCollection(user: firebase.User, transaction: any) {
+    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { userId: user.uid }))
+    .subscribe(() => {
+      this.form.reset();
+      this.loadingController.dismiss();
+    });
+  }
 
-  // setTransactionData( payPalId: string) {
-  //   this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-  //     const amount = this.form.value.amount;
-  //     const transactionData  = {
-  //       amount: Number(amount.replace(/[^0-9.-]+/g, '')),
-  //       currency: this.defaultCurrency,
-  //       description: this.shortDescription,
-  //       timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
-  //       ref: payPalId,
-  //       status: 'completed',
-  //       type: 'payment'
-  //     };
+  setTransactionData( payPalId: string) {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      const amount = this.form.value.amount;
+      const transactionData  = {
+        amount: Number(amount.replace(/[^0-9.-]+/g, '')),
+        currency: this.defaultCurrency,
+        description: this.shortDescription,
+        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+        ref: payPalId,
+        status: 'completed',
+        type: 'payment'
+      };
 
-  //     this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
-  //       this.setSubCollection(user, transaction);
-  //     }, (error: any) => {
-  //       this.loadingController.dismiss();
-  //       this.presentAlert(error.code, error.message);
-  //     });
-  //   });
-  // }
+      this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
+        this.setSubCollection(user, transaction);
+      }, (error: any) => {
+        this.loadingController.dismiss();
+        this.presentAlert(error.code, error.message);
+      });
+    });
+  }
 
-  // paypalPayment() {
-  //   const payment = new PayPalPayment(this.form.value.amount, this.defaultCurrency, this.shortDescription, 'sale');
-  //   this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
-  //     this.setTransactionData(paypalResponse);
-  //   }, (error: any) => {
-  //     this.loadingController.dismiss();
-  //     this.presentAlert(error.code, error.message);
-  //   });
-  // }
+  paypalPayment() {
+    const payment = new PayPalPayment(this.form.value.amount, this.defaultCurrency, this.shortDescription, 'sale');
+    this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
+      this.setTransactionData(paypalResponse);
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
 
-  // paypalRender() {
-  //   this.subs.sink = from(this.payPal.prepareToRender(payPalEnv, new PayPalConfiguration({
-  //     // Only needed if you get an "Internal Service Error" after PayPal login!
-  //     // payPalShippingAddressOption: 2 // PayPalShippingAddressOptionPayPal
-  //   }))).subscribe(() => {
-  //     this.paypalPayment();
-  //   }, (error: any) => {
-  //     this.loadingController.dismiss();
-  //     this.presentAlert(error.code, error.message);
-  //   });
-  // }
+  paypalRender() {
+    this.subs.sink = from(this.payPal.prepareToRender(payPalEnv, new PayPalConfiguration({
+      // Only needed if you get an "Internal Service Error" after PayPal login!
+      // payPalShippingAddressOption: 2 // PayPalShippingAddressOptionPayPal
+    }))).subscribe(() => {
+      this.paypalPayment();
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
 
-  // doCashIn() {
-  //   this.subs.sink = from(this.payPal.init({
-  //     PayPalEnvironmentProduction: payPalClientId,
-  //     PayPalEnvironmentSandbox: payPalClientId
-  //   })).subscribe(() => {
-  //     this.paypalRender();
-  //   }, (error: any) => {
-  //     this.loadingController.dismiss();
-  //     this.presentAlert(error.code, error.message);
-  //   });
-  // }
+  doCashIn() {
+    this.subs.sink = from(this.payPal.init({
+      PayPalEnvironmentProduction: payPalClientId,
+      PayPalEnvironmentSandbox: payPalClientId
+    })).subscribe(() => {
+      this.paypalRender();
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
+  }
 
-  // onCashIn() {
-  //   this.subs.sink = from(this.loadingController.create({
-  //     message: 'Please wait...'
-  //   })).subscribe(loadingEl => {
-  //     loadingEl.present();
-  //     this.doCashIn();
-  //   });
-  // }
+  onCashIn() {
+    this.subs.sink = from(this.loadingController.create({
+      message: 'Please wait...'
+    })).subscribe(loadingEl => {
+      loadingEl.present();
+      this.doCashIn();
+    });
+  }
 
   presentAlert(alertHeader: string, alertMessage: string) {
     this.subs.sink = from(this.alertController.create({

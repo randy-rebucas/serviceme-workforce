@@ -24,7 +24,6 @@
                         <ion-label>{{ item.user.id | counter:'package':'Package' | async}}</ion-label>
                     </ion-chip>
                 </ion-label>
-                <!-- {{(item.user.availability | weekDay) ? 'Availlable' : 'No Avialable'}} -->
                 <ion-note slot="end" [ngClass]="{'available': item.user.availability | weekDay}"></ion-note>
             </ion-item>
             <ion-item lines="full" class="ion-no-margin desc">
