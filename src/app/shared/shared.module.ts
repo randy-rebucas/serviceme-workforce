@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { IonicModule } from '@ionic/angular';
@@ -7,12 +7,16 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ListItemComponent } from './components/list-item/list-item.component';
 import { NumberToTimePipe } from './pipes/number-to-time.pipe';
 import { CounterPipe } from './pipes/counter.pipe';
+import { BookingCounterPipe } from './pipes/booking-counter.pipe';
+import { WeekDayPipe } from './pipes/week-day.pipe';
 
 @NgModule({
   declarations: [
     ListItemComponent,
     NumberToTimePipe,
-    CounterPipe
+    CounterPipe,
+    BookingCounterPipe,
+    WeekDayPipe
   ],
   imports: [
     CommonModule,
@@ -22,10 +26,13 @@ import { CounterPipe } from './pipes/counter.pipe';
   exports: [
     ListItemComponent,
     NumberToTimePipe,
-    CounterPipe
+    CounterPipe,
+    BookingCounterPipe,
+    WeekDayPipe
   ],
   providers: [
-    AndroidPermissions
+    AndroidPermissions,
+    CurrencyPipe
   ]
 })
 export class SharedModule { }

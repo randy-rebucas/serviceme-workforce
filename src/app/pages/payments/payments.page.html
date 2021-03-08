@@ -1,9 +1,67 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>payments</ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Payments</ion-title>
+    </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">Payments</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <form [formGroup]="form" (submit)="onCashIn()">
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Cash In</ion-card-title>
+                <ion-card-subtitle>Please enter amount.</ion-card-subtitle>
+            </ion-card-header>
 
+            <ion-card-content>
+                <ion-list>
+                    <ion-item>
+                        <ion-label position="floating">Amount</ion-label>
+                        <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" class="ion-text-center"></ion-input>
+                    </ion-item>
+                    <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
+                        <ion-label *ngIf="formCtrls.amount.errors.required">
+                            <ion-note color="danger">Amount is required!</ion-note>
+                        </ion-label>
+                        <ion-label *ngIf="formCtrls.amount.errors.maxlength">
+                            <ion-note color="danger">Amount must be between 1 and 8 characters.</ion-note>
+                        </ion-label>
+                    </ion-item>
+                </ion-list>
+                <ion-button expand="block" type="submit" [disabled]="!form.valid">Submit</ion-button>
+            </ion-card-content>
+        </ion-card>
+        <!-- <ion-row>
+        <ion-col>
+            <ion-list-header>
+                <ion-label>Please enter amount.</ion-label>
+            </ion-list-header>
+        </ion-col>
+    </ion-row>
+    <ion-row>
+        <ion-col>
+            <ion-item class="input-item">
+                <ion-label position="floating">Amount</ion-label>
+                <ion-input formControlName="amount"></ion-input>
+            </ion-item>
+            <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
+                <ion-label *ngIf="formCtrls.amount.errors.required">
+                    <ion-note color="danger">Amount is required!</ion-note>
+                </ion-label>
+                <ion-label *ngIf="formCtrls.amount.errors.maxlength">
+                    <ion-note color="danger">Only 6 max characters allowed.</ion-note>
+                </ion-label>
+            </ion-item>
+        </ion-col>
+    </ion-row> -->
+
+
+    </form>
 </ion-content>

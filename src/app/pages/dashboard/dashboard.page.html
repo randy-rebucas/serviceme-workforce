@@ -52,6 +52,19 @@
             <ion-title size="large">Dashboard</ion-title>
         </ion-toolbar>
     </ion-header>
+    <ion-card class="wallet ion-margin-bottom">
+        <ion-item>
+            <ion-label>Wallet Balance</ion-label>
+            <ion-buttons slot="end">
+                <ion-button (click)="onPickMethods()">
+                    <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+            </ion-buttons>
+        </ion-item>
+        <ion-card-content class="ion-text-center">
+            <h1>{{ currenctBalance | currency }}</h1>
+        </ion-card-content>
+    </ion-card>
     <ng-container *ngIf="isClient">
         <app-client></app-client>
     </ng-container>

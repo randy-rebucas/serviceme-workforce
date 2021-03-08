@@ -49,7 +49,6 @@ export class ClientComponent implements OnInit, OnDestroy {
         );
       })
     ).subscribe((users) => {
-      console.log(users);
       this.userUpdated.next(users);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
@@ -98,12 +97,12 @@ export class ClientComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDeail(user: any, ionItemSliding: IonItemSliding) {
+  onDeail(userDetail: any, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.modalController.create({
       component: DetailComponent,
       componentProps: {
         title: 'Detail',
-        userData: user,
+        userData: userDetail,
         state: false
       },
       swipeToClose: true,

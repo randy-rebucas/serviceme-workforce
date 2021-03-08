@@ -15,7 +15,8 @@
                     </ng-template>
                 </ion-thumbnail>
                 <ion-label>
-                    <h2>{{ (item.user.name.firstname + ' ' + item.user.name.lastname) | titlecase }}</h2>
+                    <h2>{{ (item.user.name.firstname + ' ' + item.user.name.lastname) | titlecase }} <small>- {{ item.user.classification }}</small></h2>
+                    <p>{{ item.user.address.country }}</p>
                     <ion-chip outline>
                         <ion-label>{{ item.user.id | counter:'single':'Service' | async}}</ion-label>
                     </ion-chip>
@@ -23,7 +24,15 @@
                         <ion-label>{{ item.user.id | counter:'package':'Package' | async}}</ion-label>
                     </ion-chip>
                 </ion-label>
-                <ion-note slot="end">{{ item.user.classification }}</ion-note>
+                <!-- {{(item.user.availability | weekDay) ? 'Availlable' : 'No Avialable'}} -->
+                <ion-note slot="end" [ngClass]="{'available': item.user.availability | weekDay}"></ion-note>
+            </ion-item>
+            <ion-item lines="full" class="ion-no-margin desc">
+                <ion-label class="ion-text-wrap">
+                    <p>{{item.user.id | bookingCounter:'completed':'job' | async | titlecase}}
+                        <span>{{item.user.id | bookingCounter:'completed':'earnings' | async}}</span>
+                    </p>
+                </ion-label>
             </ion-item>
         </ion-item-sliding>
     </ion-list>

@@ -1,0 +1,21 @@
+ion-header {
+    ion-toolbar {
+        --background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+        padding: 0 10px;
+        color: var(--ion-color-primary-contrast);
+    }
+}
+
+ion-content {
+    ion-item {
+        ion-input {
+            height: 90px;
+            font-size: 62px!important;
+            text-align: center;
+        }
+        &.input-item {
+            height: 100px;
+        }
+    }
+}

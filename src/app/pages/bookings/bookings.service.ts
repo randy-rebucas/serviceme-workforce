@@ -52,7 +52,7 @@ export class BookingsService {
   private byProfessionalCollection(userId: string): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(
       collection,
-      ref => ref.where('prof', '==', userId)
+      ref => ref.where('professionalId', '==', userId)
     );
   }
 

@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   googleMapsApiKey: 'AIzaSyDYjgsE7jfyoLg9Efc6cMP-bBczakfJeZM',
-  payPalClientId: 'ARx_qTcA9R8vB0REORsPveyMuNAfcEMOsP4Z_oYAmdidQgiEuqoswb_8BXjgyKHzsgvFWVMngC6IZ9Lk',
+  payPalClientId: 'AeGqI_BcI2FsmEYVBH0XL-zSsOkcj_Ncb_2Zzic48r_l8xysSoZEexVUIP13w3RE5jAKYtC0FxrsGFBf',
   payPalEnv: 'PayPalEnvironmentProduction',
   firebase: {
     apiKey: 'AIzaSyC1P3bJSJZpzs7cd0QoizMEkkZqCqMCFCs',
