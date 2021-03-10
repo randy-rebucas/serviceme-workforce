@@ -5,12 +5,13 @@ import { ActionSheetController, AlertController, ToastController } from '@ionic/
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
-import { map, mergeMap, reduce, toArray } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
 import { PaymentsService } from '../payments/payments.service';
-import { Transactions } from '../transactions/transactions';
+import { MyTransactions, Transactions } from '../transactions/transactions';
 import firebase from 'firebase/app';
+import { TransactionsService } from '../transactions/transactions.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,7 +24,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public isAdmin: boolean;
   public currenctBalance: number;
   public currentUser$: Observable<firebase.User>;
-  public transactions$: Observable<Transactions[]>;
+  public transactions$: Observable<any[]>;
   public lists$: Observable<any>;
   public user: Users[];
   private subs = new SubSink();
@@ -36,7 +37,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private authService: AuthService,
     private adminFunctionService: AdminFunctionService,
     private usersService: UsersService,
-    private paymentsService: PaymentsService
+    private paymentsService: PaymentsService,
+    private transactionService: TransactionsService
   ) {
     this.currenctBalance = 0;
   }
@@ -72,27 +74,42 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       })
     );
 
-    // // get current user details
-    // this.user$ = from(this.authService.getCurrentUser());
+    this.transactions$ = from(this.authService.getCurrentUser()).pipe(
+      // get all transactions
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
+        // transactions response
+        mergeMap((transactionMap: any[]) => {
+          // merge collection
+          return from(transactionMap).pipe(
+            mergeMap((transactionSubCollection) => {
+              return this.transactionService.getOne(transactionSubCollection.id).pipe(
+                // map to combine user transactions sub-collection to collection
+                map(transactionCollection => ({ transactionSubCollection, transactionCollection })),
+                // filter by status
+                filter(transactionStatus => transactionStatus.transactionCollection.status === 'completed')
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        })
+      ))
+    );
 
-    // this.subs.sink = from(this.authService.getCurrentUser()).subscribe((currentUser) => {
-    //   this.subs.sink = this.transactionsService.getBySender(null).subscribe((transactions) => {
-    //     const transactionItems = transactions.filter((transaction) => {
-    //       return transaction.to === currentUser.uid || transaction.from === currentUser.uid
-    //     });
-    //     this.transactionsService.myTransactions(transactionItems);
-    //   });
-    // });
-
-    // // get user transactions
-    // this.transactions$ = this.transactionsService.getMyTransactions();
-    // // get current balance
-    // this.subs.sink = this.transactionsService.getBalance().subscribe((balanceResponse) => {
-    //   this.currenctBalance = balanceResponse;
-    // });
+    this.subs.sink = from(this.transactions$).subscribe((transactions) => {
+      let balance = 0;
+      transactions.forEach(transaction => {
+        balance += transaction.transactionSubCollection.balance;
+      });
+      // set current balance observable value
+      this.transactionService.setBalance(balance);
+    });
   }
 
   ngAfterViewInit() {
+    this.subs.sink = this.transactionService.getBalance().subscribe((balance) => {
+      this.currenctBalance = balance;
+    });
+
     this.subs.sink = this.currentUser$.subscribe((user) => {
       if (!user.emailVerified) {
         console.log('please verify');

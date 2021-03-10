@@ -9,6 +9,7 @@ import { SubSink } from 'subsink';
 import { Bookings } from '../../bookings/bookings';
 import { BookingsService } from '../../bookings/bookings.service';
 import { PreviewComponent } from '../../bookings/preview/preview.component';
+import { Transactions } from '../../transactions/transactions';
 import { UsersService } from '../../users/users.service';
 
 @Component({
@@ -18,6 +19,7 @@ import { UsersService } from '../../users/users.service';
 })
 export class ProComponent implements OnInit, OnDestroy {
   public bookings$: Observable<Bookings[]>;
+  
   private bookingListener = new Subject<any>();
 
   private bookingStatus$: BehaviorSubject<string|null>;
