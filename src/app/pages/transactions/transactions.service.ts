@@ -9,7 +9,7 @@ import {
 } from '@angular/fire/firestore';
 import firebase from 'firebase/app';
 
-import { Transactions, Transactions as useClass } from './transactions';
+import { Transactions, MyTransactions as useClass } from './transactions';
 
 const collection = 'transactions';
 const orderField = 'timestamp';
@@ -43,7 +43,7 @@ export class TransactionsService {
   }
 
   private defaultCollection(): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection, ref => ref.orderBy(orderField, orderBy));
+    return this.angularFirestore.collection<useClass>(collection); // , ref => ref.orderBy(orderField, orderBy)
   }
 
   public filterBySender(limit: number | null) {
@@ -84,7 +84,7 @@ export class TransactionsService {
     return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
-        data.id = id;
+        // data.id = id;
         return data;
       })
     );

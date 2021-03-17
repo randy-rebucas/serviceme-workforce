@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable, of, Subject } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { ActionSheetController, AlertController, ToastController } from '@ionic/angular';
 import { UsersService } from '../users/users.service';
@@ -27,6 +27,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public transactions$: Observable<any[]>;
   public lists$: Observable<any>;
   public user: Users[];
+  private transactionListener = new Subject<any>();
   private subs = new SubSink();
 
   constructor(
@@ -41,6 +42,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private transactionService: TransactionsService
   ) {
     this.currenctBalance = 0;
+  }
+
+  getTransactionListener() {
+    return this.transactionListener.asObservable();
   }
 
   ngOnInit() {
@@ -74,7 +79,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       })
     );
 
-    this.transactions$ = from(this.authService.getCurrentUser()).pipe(
+    from(this.authService.getCurrentUser()).pipe(
       // get all transactions
       switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
         // transactions response
@@ -82,9 +87,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           // merge collection
           return from(transactionMap).pipe(
             mergeMap((transactionSubCollection) => {
-              return this.transactionService.getOne(transactionSubCollection.id).pipe(
+              return this.transactionService.getOne(transactionSubCollection.id.trim()).pipe(
                 // map to combine user transactions sub-collection to collection
-                map(transactionCollection => ({ transactionSubCollection, transactionCollection })),
+                map(transactionCollection => ({transactionSubCollection, transactionCollection})),
                 // filter by status
                 filter(transactionStatus => transactionStatus.transactionCollection.status === 'completed')
               );
@@ -93,7 +98,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           );
         })
       ))
-    );
+    ).subscribe((transactions) => {
+      this.transactionListener.next(transactions);
+    });
+
+    this.transactions$ = this.getTransactionListener();
 
     this.subs.sink = from(this.transactions$).subscribe((transactions) => {
       let balance = 0;

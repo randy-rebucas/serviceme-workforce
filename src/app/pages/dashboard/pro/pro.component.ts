@@ -10,7 +10,10 @@ import { Bookings } from '../../bookings/bookings';
 import { BookingsService } from '../../bookings/bookings.service';
 import { PreviewComponent } from '../../bookings/preview/preview.component';
 import { Transactions } from '../../transactions/transactions';
+import { TransactionsService } from '../../transactions/transactions.service';
 import { UsersService } from '../../users/users.service';
+import firebase from 'firebase/app';
+import { SettingsService } from '../../settings/settings.service';
 
 @Component({
   selector: 'app-pro',
@@ -19,12 +22,12 @@ import { UsersService } from '../../users/users.service';
 })
 export class ProComponent implements OnInit, OnDestroy {
   public bookings$: Observable<Bookings[]>;
-  
   private bookingListener = new Subject<any>();
 
   private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
-
+  private defaultCurrency: string;
+  private balance: number;
   private subs = new SubSink();
   constructor(
     private modalController: ModalController,
@@ -34,12 +37,23 @@ export class ProComponent implements OnInit, OnDestroy {
     private adminFunctionService: AdminFunctionService,
     private bookingsService: BookingsService,
     private routerOutlet: IonRouterOutlet,
-    private router: Router
+    private router: Router,
+    private userService: UsersService,
+    private settingsService: SettingsService,
+    private transactionsService: TransactionsService
   ) {
     this.bookingStatus$ = new BehaviorSubject('pending');
 
     this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
       this.bookingStatus = bookingStatus;
+    });
+
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.settingsService.getOne(user.uid);
+      })
+    ).subscribe((settings) => {
+      this.defaultCurrency = (settings) ? settings.currency : 'USD';
     });
   }
 
@@ -123,42 +137,6 @@ export class ProComponent implements OnInit, OnDestroy {
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
-
-    // from(this.authService.getCurrentUser()).pipe(
-    //   // get all bookings
-    //   switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
-    //     // bookings response
-    //     mergeMap((bookingMap: any[]) => {
-    //       // merge collection
-    //       return from(bookingMap).pipe(
-    //         mergeMap((bookingSubCollection) => {
-    //           return this.bookingsService.getOne(bookingSubCollection.id).pipe(
-    //             // map to combine user booking sub-collection to collection
-    //             map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
-    //             // filter by status
-    //             filter(bookingStatus => bookingStatus.bookingCollection.status === status),
-    //             // merge the user auth data to get firebase.User object
-    //             mergeMap((booking) => {
-    //               return this.adminFunctionService.getById(booking.bookingSubCollection.userId).pipe(
-    //                 map(admin => ({ booking, admin })),
-    //                 // merge user collection to get common user intity object
-    //                 mergeMap((bookingDetail) => {
-    //                   return this.usersService.getOne(booking.bookingSubCollection.userId).pipe(
-    //                     map(usersCollection => ({ usersCollection, bookingDetail })),
-    //                   );
-    //                 })
-    //               );
-    //             })
-    //           );
-    //         }),
-    //         reduce((a, i) => [...a, i], [])
-    //       );
-    //     })
-    //   ))
-    // ).subscribe((bookings) => {
-    //   console.log(bookings);
-    //   this.bookingListener.next(bookings);
-    // });
   }
 
   ngOnInit() {
@@ -194,11 +172,48 @@ export class ProComponent implements OnInit, OnDestroy {
     });
   }
 
+  setTransactionData() {
+    this.transactionsService.getBalance().subscribe((balance) => {
+      this.balance = balance;
+    });
+  }
+
+  private setTransactionSubCollection(userDocId: string, collectionDocId: string, data: any, ionItemSliding: IonItemSliding) {
+    const transactionData = {
+      balance: -data.chargesAmount
+    };
+    this.subs.sink = from(this.userService.setSubCollection(userDocId, 'transactions', collectionDocId, transactionData)).subscribe(() => {
+      this.initialized();
+      ionItemSliding.closeOpened();
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  private setTransactionCollection(booking: any, ionItemSliding: IonItemSliding) {
+    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    const proId = booking.bookingDetail.booking.bookingSubCollection.userId;
+    const charges = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    const transactionData = {
+      amount: charges,
+      currency: this.defaultCurrency,
+      description: 'Job done. Booking Id :' + bookingId,
+      timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+      ref: bookingId,
+      status: 'completed',
+      type: 'payment'
+    };
+    this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
+      this.setTransactionSubCollection(proId, transaction.id, { chargesAmount: charges}, ionItemSliding);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
   onComplete(booking: any, ionItemSliding: IonItemSliding) {
     const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
     this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'completed' })).subscribe(() => {
-      this.initialized();
-      ionItemSliding.closeOpened();
+      this.setTransactionCollection(booking, ionItemSliding);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

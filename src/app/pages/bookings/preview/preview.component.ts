@@ -120,10 +120,6 @@ export class PreviewComponent implements OnInit, OnDestroy {
         );
       })
     );
-
-    this.feedbacks$.subscribe((r) => {
-      console.log(r);
-    });
   }
 
   onDismiss(state: boolean) {

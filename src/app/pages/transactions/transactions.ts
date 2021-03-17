@@ -6,7 +6,7 @@ export class Transactions {
         public timestamp: Date,
         public ref: string,
         public status: string,
-        public type?: string,
+        public type: string,
         public id?: string
     ) {}
 }
@@ -21,7 +21,7 @@ export class MyTransactions extends Transactions{
         public ref: string,
         public status: string,
         public balance: number,
-        public type?: string,
+        public type: string,
         public id?: string,
     ) {
         super(amount, currency, description, timestamp, ref, status, type, id);

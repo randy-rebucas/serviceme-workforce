@@ -52,7 +52,7 @@
             <ion-title size="large">Dashboard</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ion-card class="wallet ion-margin-bottom">
+    <ion-card class="wallet ion-margin-bottom" *ngIf="isPro">
         <ion-item>
             <ion-label>Wallet Balance</ion-label>
             <ion-buttons slot="end">
