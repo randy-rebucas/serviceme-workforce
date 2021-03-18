@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, LOCALE_ID, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
@@ -12,8 +12,10 @@ import { PreviewComponent } from '../../bookings/preview/preview.component';
 import { Transactions } from '../../transactions/transactions';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { UsersService } from '../../users/users.service';
-import firebase from 'firebase/app';
 import { SettingsService } from '../../settings/settings.service';
+import { PaymentsService } from '../../payments/payments.service';
+import firebase from 'firebase/app';
+import { CurrencyPipe, formatCurrency, getCurrencySymbol } from '@angular/common';
 
 @Component({
   selector: 'app-pro',
@@ -27,8 +29,10 @@ export class ProComponent implements OnInit, OnDestroy {
   private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
   private defaultCurrency: string;
+  private commissionPercentage: number;
   private balance: number;
   private subs = new SubSink();
+
   constructor(
     private modalController: ModalController,
     private alertController: AlertController,
@@ -38,10 +42,14 @@ export class ProComponent implements OnInit, OnDestroy {
     private bookingsService: BookingsService,
     private routerOutlet: IonRouterOutlet,
     private router: Router,
+    private currencyPipe: CurrencyPipe,
     private userService: UsersService,
     private settingsService: SettingsService,
-    private transactionsService: TransactionsService
+    private paymentsService: PaymentsService,
+    private transactionsService: TransactionsService,
+    @Inject(LOCALE_ID) private locale: string
   ) {
+    this.commissionPercentage = 10;
     this.bookingStatus$ = new BehaviorSubject('pending');
 
     this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
@@ -140,6 +148,8 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.setTransactionData();
+
     // initialize bookings
     this.initialized();
 
@@ -153,13 +163,46 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   onAccept(booking: any, ionItemSliding: IonItemSliding) {
-    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
-    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
-      this.initialized();
-      ionItemSliding.closeOpened();
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
+    const serviceCharge = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    const currentBalance = Number(this.balance);
+    const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
+
+    if (currentBalance < commissionCharge) {
+      this.subs.sink = from(this.alertController.create(
+        {
+          header: 'Insufficient balance!',
+          message: 'Please do cash in atleast ' + formatCurrency(commissionCharge, this.locale, getCurrencySymbol(this.defaultCurrency, 'narrow')) +
+          ' as ' +
+          this.commissionPercentage +
+          '% of ' + formatCurrency(serviceCharge, this.locale, getCurrencySymbol(this.defaultCurrency, 'narrow')) +
+          ' service charges before you can accept this service offer.',
+          buttons: [
+            {
+              text: 'Cancel',
+              role: 'cancel',
+              cssClass: 'secondary',
+              handler: () => {}
+            }, {
+              text: 'Ok',
+              handler: () => {
+                this.paymentsService.setMethod('paypal');
+                this.router.navigate(['/pages/payments']);
+              }
+            }
+          ]
+        }
+      )).subscribe((alertEl) => {
+        alertEl.present();
+      });
+    } else {
+      const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+      this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
+        this.initialized();
+        ionItemSliding.closeOpened();
+      }, (error: any) => {
+        this.presentAlert(error.code, error.message);
+      });
+    }
   }
 
   onDecline(booking: any, ionItemSliding: IonItemSliding) {

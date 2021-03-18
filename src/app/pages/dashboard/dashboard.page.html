@@ -62,7 +62,7 @@
             </ion-buttons>
         </ion-item>
         <ion-card-content class="ion-text-center">
-            <h1>{{ currenctBalance | currency }}</h1>
+            <h1>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</h1>
         </ion-card-content>
     </ion-card>
     <ng-container *ngIf="isClient">

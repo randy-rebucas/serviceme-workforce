@@ -12,6 +12,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { MyTransactions, Transactions } from '../transactions/transactions';
 import firebase from 'firebase/app';
 import { TransactionsService } from '../transactions/transactions.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,6 +29,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public lists$: Observable<any>;
   public user: Users[];
   private transactionListener = new Subject<any>();
+  private defaultCurrency: string;
   private subs = new SubSink();
 
   constructor(
@@ -39,9 +41,18 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private adminFunctionService: AdminFunctionService,
     private usersService: UsersService,
     private paymentsService: PaymentsService,
-    private transactionService: TransactionsService
+    private transactionService: TransactionsService,
+    private settingsService: SettingsService
   ) {
     this.currenctBalance = 0;
+
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        return this.settingsService.getOne(user.uid);
+      })
+    ).subscribe((settings) => {
+      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+    });
   }
 
   getTransactionListener() {
@@ -121,7 +132,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.subs.sink = this.currentUser$.subscribe((user) => {
       if (!user.emailVerified) {
-        console.log('please verify');
         from(this.alertController.create(
           {
             header: 'Verification!',
