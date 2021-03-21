@@ -13,55 +13,117 @@
             <ion-title size="large">Payments</ion-title>
         </ion-toolbar>
     </ion-header>
-    <form [formGroup]="form" (submit)="onCashIn()">
-        <ion-card>
-            <ion-card-header>
-                <ion-card-title>Cash In</ion-card-title>
-                <ion-card-subtitle>Please enter amount.</ion-card-subtitle>
-            </ion-card-header>
+    <ng-container *ngIf="method === 'remittance'; else elseTemplate">
+        <form [formGroup]="formRequest" (submit)="onRequestCashIn()">
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>Cash In</ion-card-title>
+                    <ion-card-subtitle>Please enter details.</ion-card-subtitle>
+                </ion-card-header>
 
-            <ion-card-content>
-                <ion-list>
-                    <ion-item>
-                        <ion-label position="floating">Amount</ion-label>
-                        <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" class="ion-text-center"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
-                        <ion-label *ngIf="formCtrls.amount.errors.required">
-                            <ion-note color="danger">Amount is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.amount.errors.maxlength">
-                            <ion-note color="danger">Amount must be between 1 and 8 characters.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                </ion-list>
-                <ion-button expand="block" type="submit" [disabled]="!form.valid">Submit</ion-button>
-            </ion-card-content>
-        </ion-card>
-        <!-- <ion-row>
-        <ion-col>
-            <ion-list-header>
-                <ion-label>Please enter amount.</ion-label>
-            </ion-list-header>
-        </ion-col>
-    </ion-row>
-    <ion-row>
-        <ion-col>
-            <ion-item class="input-item">
-                <ion-label position="floating">Amount</ion-label>
-                <ion-input formControlName="amount"></ion-input>
-            </ion-item>
-            <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
-                <ion-label *ngIf="formCtrls.amount.errors.required">
-                    <ion-note color="danger">Amount is required!</ion-note>
-                </ion-label>
-                <ion-label *ngIf="formCtrls.amount.errors.maxlength">
-                    <ion-note color="danger">Only 6 max characters allowed.</ion-note>
-                </ion-label>
-            </ion-item>
-        </ion-col>
-    </ion-row> -->
+                <ion-card-content>
+                    <p>Pay in any remittance center and use details as follows</p>
+                    <address>
+                        Recipient/Receiver: <b>Randy C Rebucas</b> <br/>
+                        Mobile #: <b>09179157515</b> <br/>
+                        Note: <b>Payment for cutsonwheel cash-in.</b>
+                    </address>
+                    <ion-list>
+                        <ion-item>
+                            <ion-label position="floating">Amount</ion-label>
+                            <ion-input formControlName="amount" #customBox (keyup)="onCustomInput(customBox.value)" class=""></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formRequestCtrls.amount.errors && formRequestCtrls.amount.touched">
+                            <ion-label *ngIf="formRequestCtrls.amount.errors.required">
+                                <ion-note color="danger">Amount is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formRequestCtrls.amount.errors.maxlength">
+                                <ion-note color="danger">Amount must be between 1 and 8 characters.</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ion-list>
+                    <ion-list>
+                        <ion-item>
+                            <ion-label position="floating">Reference Number</ion-label>
+                            <ion-input formControlName="reference"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formRequestCtrls.reference.errors && formRequestCtrls.reference.touched">
+                            <ion-label *ngIf="formRequestCtrls.reference.errors.required">
+                                <ion-note color="danger">Reference is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formRequestCtrls.reference.errors.maxlength">
+                                <ion-note color="danger">Reference must be between 1 and 15 characters.</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ion-list>
+                    <ion-list>
+                        <ion-item>
+                            <ion-label position="floating">Date Paid</ion-label>
+                            <ion-datetime formControlName="paidDate" [value]="currentDate.toISOString()"></ion-datetime>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formRequestCtrls.paidDate.errors && formRequestCtrls.paidDate.touched">
+                            <ion-label *ngIf="formRequestCtrls.paidDate.errors.required">
+                                <ion-note color="danger">Date Paid is required!</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ion-list>
+                    <ion-button expand="block" type="submit" [disabled]="!formRequest.valid">Submit</ion-button>
+                </ion-card-content>
+            </ion-card>
+        </form>
+    </ng-container>
+    <ng-template #elseTemplate>
+        <form [formGroup]="form" (submit)="onCashIn()">
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>Cash In</ion-card-title>
+                    <ion-card-subtitle>Please enter amount.</ion-card-subtitle>
+                </ion-card-header>
+
+                <ion-card-content>
+                    <ion-list>
+                        <ion-item>
+                            <ion-label position="floating">Amount</ion-label>
+                            <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" class="ion-text-center amount"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
+                            <ion-label *ngIf="formCtrls.amount.errors.required">
+                                <ion-note color="danger">Amount is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formCtrls.amount.errors.maxlength">
+                                <ion-note color="danger">Amount must be between 1 and 8 characters.</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ion-list>
+                    <ion-button expand="block" type="submit" [disabled]="!form.valid">Submit</ion-button>
+                </ion-card-content>
+            </ion-card>
+            <!-- <ion-row>
+            <ion-col>
+                <ion-list-header>
+                    <ion-label>Please enter amount.</ion-label>
+                </ion-list-header>
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col>
+                <ion-item class="input-item">
+                    <ion-label position="floating">Amount</ion-label>
+                    <ion-input formControlName="amount"></ion-input>
+                </ion-item>
+                <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
+                    <ion-label *ngIf="formCtrls.amount.errors.required">
+                        <ion-note color="danger">Amount is required!</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.amount.errors.maxlength">
+                        <ion-note color="danger">Only 6 max characters allowed.</ion-note>
+                    </ion-label>
+                </ion-item>
+            </ion-col>
+        </ion-row> -->
 
 
-    </form>
+        </form>
+    </ng-template>
+
 </ion-content>

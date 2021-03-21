@@ -12,8 +12,8 @@ import { PaymentsService } from '../payments/payments.service';
 import { MyTransactions, Transactions } from '../transactions/transactions';
 import { TransactionsService } from '../transactions/transactions.service';
 import { SettingsService } from '../settings/settings.service';
-import firebase from 'firebase/app';
 import { environment } from 'src/environments/environment';
+import firebase from 'firebase/app';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,8 +29,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public transactions$: Observable<any[]>;
   public lists$: Observable<any>;
   public user: Users[];
+  public defaultCurrency: string;
   private transactionListener = new Subject<any>();
-  private defaultCurrency: string;
   private subs = new SubSink();
 
   constructor(
@@ -181,15 +181,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
             this.router.navigate(['/pages/payments']);
           }
         }, {
-          text: 'Alipay',
-          icon: 'logo-alipay',
+          text: 'Remittance',
+          icon: 'cash',
           handler: () => {
-            this.toastController.create({
-              message: 'Sorry for inconvenience. Alipay is under maintenance!',
-              duration: 5000
-            }).then((toastEl) => {
-              toastEl.present();
-            });
+            this.paymentsService.setMethod('remittance');
+            this.router.navigate(['/pages/payments']);
           }
         }, {
           text: 'Cancel',
@@ -205,6 +201,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   navigateTo() {
     this.router.navigate(['/pages/payments']);
+  }
+
+  onViewTransactions() {
+    this.router.navigate(['/pages/transactions']);
   }
 
   ngOnDestroy() {

@@ -1,9 +1,48 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>transactions</ion-title>
-  </ion-toolbar>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Transactions</ion-title>
+    </ion-toolbar>
 </ion-header>
 
-<ion-content>
-
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">Transactions</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ng-container *ngIf="transactions$ | async; let transactions; else loadingTransactions">
+        <ion-list>
+            <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
+                <ion-item lines="none">
+                    <ion-label>
+                        <h2>{{ transaction.transactionCollection.amount | currency:defaultCurrency:'symbol-narrow' }}</h2>
+                        <p>{{ (transaction.transactionCollection.ref) ? transaction.transactionCollection.ref : 'No reference' }}</p>
+                    </ion-label>
+                    <ion-note slot="end" [ngClass]="{'completed': transaction.transactionCollection.status === 'completed'}">{{ transaction.transactionCollection.status | titlecase }}</ion-note>
+                </ion-item>
+            </ion-item-sliding>
+        </ion-list>
+        <div id="container" class="ion-text-center" *ngIf="transactions.length === 0">
+            <ion-icon name="list-outline"></ion-icon>
+            <p>No transactions found</p>
+        </div>
+    </ng-container>
+    <ng-template #loadingTransactions>
+        <ion-item lines="none">
+            <ion-label>
+                <h2>
+                    <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                </h2>
+                <p>
+                    <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                </p>
+            </ion-label>
+            <ion-note slot="end">
+                <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+            </ion-note>
+        </ion-item>
+    </ng-template>
 </ion-content>

@@ -10,9 +10,11 @@ ion-header {
 ion-content {
     ion-item {
         ion-input {
-            height: 90px;
-            font-size: 62px!important;
-            text-align: center;
+            &.amount {
+                height: 90px;
+                font-size: 62px!important;
+                text-align: center;
+            }
         }
         &.input-item {
             height: 100px;

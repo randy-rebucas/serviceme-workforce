@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
@@ -24,6 +24,8 @@ const payPalEnv = environment.payPalEnv;
 })
 export class PaymentsPage implements OnInit, OnDestroy {
   public form: FormGroup;
+  public formRequest: FormGroup;
+  public currentDate: Date;
   private defaultCurrency: string;
   private initialDeposit: number;
   private shortDescription: string;
@@ -33,6 +35,7 @@ export class PaymentsPage implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private loadingController: LoadingController,
+    private toastController: ToastController,
     private alertController: AlertController,
     private settingsService: SettingsService,
     private transactionsService: TransactionsService,
@@ -52,6 +55,7 @@ export class PaymentsPage implements OnInit, OnDestroy {
 
     this.initialDeposit = environment.initialDeposit;
     this.shortDescription = 'Cash In';
+    this.currentDate = new Date();
   }
 
   ngOnInit() {
@@ -65,6 +69,21 @@ export class PaymentsPage implements OnInit, OnDestroy {
         validators: [Validators.required, Validators.maxLength(8)]
       })
     });
+
+    this.formRequest = new FormGroup({
+      amount: new FormControl(null, {
+        updateOn: 'blur',
+        validators: [Validators.required, Validators.maxLength(8)]
+      }),
+      reference: new FormControl(null, {
+        updateOn: 'blur',
+        validators: [Validators.required, Validators.maxLength(15)]
+      }),
+      paidDate: new FormControl(null, {
+        updateOn: 'blur',
+        validators: [Validators.required]
+      })
+    });
   }
 
   onInput(value: any) {
@@ -73,26 +92,41 @@ export class PaymentsPage implements OnInit, OnDestroy {
     this.formCtrls.amount.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
   }
 
+  onCustomInput(value: any) {
+    let input = value.replace(/[\D\s\._\-]+/g, '');
+    input = input ? parseInt( input, 10 ) : 0;
+    this.formRequestCtrls.amount.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
+  }
+
   get formCtrls() { return this.form.controls; }
 
+  get formRequestCtrls() { return this.formRequest.controls; }
+
   setSubCollection(user: firebase.User, transaction: any, amount: number) {
-    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: amount }))
+    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: Number(amount) }))
     .subscribe(() => {
-      this.form.reset();
+      if (this.method === 'remittance') {
+        this.toastController.create({
+          message: 'Please wait, while we confirm your payment.',
+          duration: 5000
+        }).then((toastEl) => {
+          toastEl.present();
+        });
+      }
+      this.formRequest.reset();
       this.loadingController.dismiss();
     });
   }
 
-  setTransactionData( payPalId: string) {
+  setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      const amount = this.form.value.amount;
       const transactionData  = {
-        amount: Number(amount.replace(/[^0-9.-]+/g, '')),
+        amount: Number(amount),
         currency: this.defaultCurrency,
         description: this.shortDescription,
-        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
-        ref: payPalId,
-        status: 'completed',
+        timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
+        ref: refId,
+        status: transactionStatus,
         type: 'payment'
       };
 
@@ -106,9 +140,28 @@ export class PaymentsPage implements OnInit, OnDestroy {
   }
 
   paypalPayment() {
-    const payment = new PayPalPayment(this.form.value.amount, this.defaultCurrency, this.shortDescription, 'sale');
+    const amountValue = this.form.value.amount;
+    const amount = amountValue.replace(/[^0-9.-]+/g, '');
+    const payment = new PayPalPayment(amount, this.defaultCurrency, this.shortDescription, 'sale');
     this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
-      this.setTransactionData(paypalResponse);
+      // Example sandbox response
+      //
+      // {
+      //   "client": {
+      //     "environment": "sandbox",
+      //     "product_name": "PayPal iOS SDK",
+      //     "paypal_sdk_version": "2.16.0",
+      //     "platform": "iOS"
+      //   },
+      //   "response_type": "payment",
+      //   "response": {
+      //     "id": "PAY-1AB23456CD789012EF34GHIJ",
+      //     "state": "approved",
+      //     "create_time": "2016-10-03T13:33:33Z",
+      //     "intent": "sale"
+      //   }
+      // }
+      this.setTransactionData(amount, paypalResponse.response.id, new Date(), 'completed');
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
@@ -145,6 +198,22 @@ export class PaymentsPage implements OnInit, OnDestroy {
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doCashIn();
+    });
+  }
+
+  doRequestCashIn() {
+    const amountValue = this.formRequest.value.amount;
+    const dateValue = new Date(this.formRequest.value.paidDate);
+    const amount = amountValue.replace(/[^0-9.-]+/g, '');
+    this.setTransactionData(amount, this.formRequest.value.reference, dateValue, 'pending');
+  }
+
+  onRequestCashIn() {
+    this.subs.sink = from(this.loadingController.create({
+      message: 'Please wait...'
+    })).subscribe(loadingEl => {
+      loadingEl.present();
+      this.doRequestCashIn();
     });
   }
 
