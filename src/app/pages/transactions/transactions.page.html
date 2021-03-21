@@ -21,7 +21,7 @@
                         <h2>{{ transaction.transactionCollection.amount | currency:defaultCurrency:'symbol-narrow' }}</h2>
                         <p>{{ (transaction.transactionCollection.ref) ? transaction.transactionCollection.ref : 'No reference' }}</p>
                     </ion-label>
-                    <ion-note slot="end" [ngClass]="{'completed': transaction.transactionCollection.status === 'completed'}">{{ transaction.transactionCollection.status | titlecase }}</ion-note>
+                    <ion-note slot="end" [ngClass]="transaction.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</ion-note>
                 </ion-item>
             </ion-item-sliding>
         </ion-list>

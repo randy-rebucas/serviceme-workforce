@@ -13,9 +13,20 @@ ion-content {
             ion-item {
                 ion-note {
                     font-size: 14px;
-                    color: var(--ion-color-warning);
+                    &.canceled {
+                        color: var(--ion-color-danger);
+                    }
+                    &.accepted {
+                        color: var(--ion-color-success-tint);
+                    }
                     &.completed {
                         color: var(--ion-color-success);
+                    }
+                    &.declined {
+                        color: var(--ion-color-danger-tint);
+                    }
+                    &.pending {
+                        color: var(--ion-color-warning);
                     }
                 }
             }
