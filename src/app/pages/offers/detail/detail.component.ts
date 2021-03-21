@@ -7,6 +7,7 @@ import { finalize, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Base64 } from 'src/app/helper/base64';
 import { FirestoreService } from 'src/app/shared/services/firestore.service';
+import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import { SettingsService } from '../../settings/settings.service';
 import { FormComponent } from '../form/form.component';
@@ -61,7 +62,7 @@ export class DetailComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

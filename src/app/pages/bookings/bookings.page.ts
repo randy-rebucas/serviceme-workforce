@@ -4,6 +4,7 @@ import { BehaviorSubject, forkJoin, from, Observable, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
+import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
@@ -45,7 +46,7 @@ export class BookingsPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

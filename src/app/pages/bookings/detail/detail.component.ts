@@ -3,6 +3,7 @@ import { AlertController, ModalController, NavParams } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
+import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import { Offers } from '../../offers/offers';
 import { OffersService } from '../../offers/offers.service';
@@ -47,7 +48,7 @@ export class DetailComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
   }
 

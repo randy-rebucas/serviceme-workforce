@@ -10,9 +10,10 @@ import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
 import { PaymentsService } from '../payments/payments.service';
 import { MyTransactions, Transactions } from '../transactions/transactions';
-import firebase from 'firebase/app';
 import { TransactionsService } from '../transactions/transactions.service';
 import { SettingsService } from '../settings/settings.service';
+import firebase from 'firebase/app';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,7 +52,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
   }
 

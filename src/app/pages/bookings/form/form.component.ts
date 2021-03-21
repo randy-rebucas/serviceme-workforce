@@ -69,7 +69,7 @@ export class FormComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

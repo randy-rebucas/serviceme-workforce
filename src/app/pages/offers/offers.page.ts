@@ -10,6 +10,7 @@ import { FormComponent } from './form/form.component';
 import { SubSink } from 'subsink';
 import { DetailComponent } from './detail/detail.component';
 import { SettingsService } from '../settings/settings.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-offers',
@@ -65,7 +66,7 @@ export class OffersPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

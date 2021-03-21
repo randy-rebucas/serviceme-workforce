@@ -5,6 +5,7 @@ import { BehaviorSubject, combineLatest, from, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { ClassificationsService } from 'src/app/shared/services/classifications.service';
+import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import { SettingsService } from './settings.service';
 
@@ -39,7 +40,7 @@ export class SettingsPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
   }
 

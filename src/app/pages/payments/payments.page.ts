@@ -45,12 +45,12 @@ export class PaymentsPage implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
 
-    this.initialDeposit = 100;
+    this.initialDeposit = environment.initialDeposit;
     this.shortDescription = 'Cash In';
   }
 
@@ -75,8 +75,8 @@ export class PaymentsPage implements OnInit, OnDestroy {
 
   get formCtrls() { return this.form.controls; }
 
-  setSubCollection(user: firebase.User, transaction: any) {
-    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { userId: user.uid }))
+  setSubCollection(user: firebase.User, transaction: any, amount: number) {
+    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: amount }))
     .subscribe(() => {
       this.form.reset();
       this.loadingController.dismiss();
@@ -97,7 +97,7 @@ export class PaymentsPage implements OnInit, OnDestroy {
       };
 
       this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
-        this.setSubCollection(user, transaction);
+        this.setSubCollection(user, transaction, amount);
       }, (error: any) => {
         this.loadingController.dismiss();
         this.presentAlert(error.code, error.message);

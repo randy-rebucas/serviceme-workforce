@@ -48,7 +48,6 @@ export class PagesPage implements OnInit, OnDestroy {
   private getUserInfo(userId: string) {
     this.subs.sink = this.usersService.getOne(userId).subscribe((user) => {
       if (!user.address) {
-        console.log('address created.');
         this.locateUser();
       }
     }, (error: any) => {

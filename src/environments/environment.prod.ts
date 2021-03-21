@@ -3,6 +3,9 @@ export const environment = {
   googleMapsApiKey: 'AIzaSyDYjgsE7jfyoLg9Efc6cMP-bBczakfJeZM',
   payPalClientId: 'AeGqI_BcI2FsmEYVBH0XL-zSsOkcj_Ncb_2Zzic48r_l8xysSoZEexVUIP13w3RE5jAKYtC0FxrsGFBf',
   payPalEnv: 'PayPalEnvironmentProduction',
+  commissionPercentage: 10,
+  initialDeposit: 100,
+  defaultCurrency: 'PHP',
   firebase: {
     apiKey: 'AIzaSyC1P3bJSJZpzs7cd0QoizMEkkZqCqMCFCs',
     authDomain: 'cutsonwheel-233209.firebaseapp.com',

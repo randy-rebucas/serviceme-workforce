@@ -14,8 +14,9 @@ import { TransactionsService } from '../../transactions/transactions.service';
 import { UsersService } from '../../users/users.service';
 import { SettingsService } from '../../settings/settings.service';
 import { PaymentsService } from '../../payments/payments.service';
-import firebase from 'firebase/app';
 import { CurrencyPipe, formatCurrency, getCurrencySymbol } from '@angular/common';
+import { environment } from 'src/environments/environment';
+import firebase from 'firebase/app';
 
 @Component({
   selector: 'app-pro',
@@ -49,7 +50,7 @@ export class ProComponent implements OnInit, OnDestroy {
     private transactionsService: TransactionsService,
     @Inject(LOCALE_ID) private locale: string
   ) {
-    this.commissionPercentage = 10;
+    this.commissionPercentage = environment.commissionPercentage;
     this.bookingStatus$ = new BehaviorSubject('pending');
 
     this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
@@ -61,7 +62,7 @@ export class ProComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
   }
 
@@ -199,6 +200,7 @@ export class ProComponent implements OnInit, OnDestroy {
       this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
         this.initialized();
         ionItemSliding.closeOpened();
+        this.bookingStatus$.next('');
       }, (error: any) => {
         this.presentAlert(error.code, error.message);
       });
@@ -221,24 +223,29 @@ export class ProComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setTransactionSubCollection(userDocId: string, collectionDocId: string, data: any, ionItemSliding: IonItemSliding) {
-    const transactionData = {
-      balance: -data.chargesAmount
-    };
-    this.subs.sink = from(this.userService.setSubCollection(userDocId, 'transactions', collectionDocId, transactionData)).subscribe(() => {
-      this.initialized();
-      ionItemSliding.closeOpened();
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
+  private setTransactionSubCollection(collectionDocId: string, data: any, ionItemSliding: IonItemSliding) {
+    from(this.authService.getCurrentUser()).subscribe((user) => {
+      const transactionData = {
+        balance: -data.chargesAmount
+      };
+      this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', collectionDocId, transactionData)).subscribe(() => {
+        this.initialized();
+        ionItemSliding.closeOpened();
+      }, (error: any) => {
+        this.presentAlert(error.code, error.message);
+      });
     });
   }
 
   private setTransactionCollection(booking: any, ionItemSliding: IonItemSliding) {
     const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
-    const proId = booking.bookingDetail.booking.bookingSubCollection.userId;
-    const charges = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    // const charges = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    const serviceCharge = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    // const currentBalance = Number(this.balance);
+    const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
+
     const transactionData = {
-      amount: charges,
+      amount: commissionCharge,
       currency: this.defaultCurrency,
       description: 'Job done. Booking Id :' + bookingId,
       timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
@@ -247,7 +254,7 @@ export class ProComponent implements OnInit, OnDestroy {
       type: 'payment'
     };
     this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
-      this.setTransactionSubCollection(proId, transaction.id, { chargesAmount: charges}, ionItemSliding);
+      this.setTransactionSubCollection(transaction.id, { chargesAmount: commissionCharge}, ionItemSliding);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

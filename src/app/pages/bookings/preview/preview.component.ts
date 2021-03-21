@@ -11,6 +11,7 @@ import firebase from 'firebase/app';
 import { FeedbacksService } from '../feedbacks.service';
 import { Feedbacks } from '../feedbacks';
 import { UsersService } from '../../users/users.service';
+import { environment } from 'src/environments/environment';
 @Component({
   selector: 'app-preview',
   templateUrl: './preview.component.html',
@@ -49,7 +50,7 @@ export class PreviewComponent implements OnInit, OnDestroy {
         return this.settingsService.getOne(user.uid);
       })
     ).subscribe((settings) => {
-      this.defaultCurrency = (settings) ? settings.currency : 'USD';
+      this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
