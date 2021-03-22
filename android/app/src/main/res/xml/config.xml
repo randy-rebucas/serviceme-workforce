@@ -18,8 +18,16 @@
     <param name="android-package" value="uk.co.whiteoctober.cordova.AppVersion"/>
   </feature>
 
+  <feature name="Badge">
+    <param name="android-package" value="de.appplant.cordova.plugin.badge.Badge"/>
+  </feature>
+
   <feature name="Camera">
     <param name="android-package" value="org.apache.cordova.camera.CameraLauncher"/>
+  </feature>
+
+  <feature name="Device">
+    <param name="android-package" value="org.apache.cordova.device.Device"/>
   </feature>
 
   <feature name="File">
@@ -30,6 +38,14 @@
   <feature name="FirebaseAnalytics">
     <param name="android-package" value="by.chemerisuk.cordova.firebase.FirebaseAnalyticsPlugin"/>
     <param name="onload" value="$ANALYTICS_COLLECTION_ENABLED"/>
+  </feature>
+
+  <feature name="LocalNotification">
+    <param name="android-package" value="de.appplant.cordova.plugin.localnotification.LocalNotification"/>
+  </feature>
+
+  <feature name="NetworkStatus">
+    <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager"/>
   </feature>
 
   
