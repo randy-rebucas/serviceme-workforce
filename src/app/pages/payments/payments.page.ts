@@ -26,10 +26,10 @@ export class PaymentsPage implements OnInit, OnDestroy {
   public form: FormGroup;
   public formRequest: FormGroup;
   public currentDate: Date;
+  public method: string;
   private defaultCurrency: string;
   private initialDeposit: number;
   private shortDescription: string;
-  private method: string;
   private subs = new SubSink();
 
   constructor(

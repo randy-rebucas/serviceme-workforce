@@ -24,9 +24,9 @@ export class DetailComponent implements OnInit, OnDestroy {
   public offerItems: any[];
   public offers$: Observable<Offers[]>;
   public offerOption: string;
+  public userId: string;
   private offerOption$: BehaviorSubject<string|null>;
   private offersUpdated = new Subject<Offers[]>();
-  private userId: string;
   private subs = new SubSink();
   constructor(
     private navParams: NavParams,
@@ -86,7 +86,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  offerChanged(event: CustomEvent) {
+  offerChanged(event: any) {
     this.offerOption$.next(event.detail.value);
   }
 
@@ -97,7 +97,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  onPickService(event: CustomEvent, selectedOffer: Offers) {
+  onPickService(event: any, selectedOffer: Offers) {
+    console.log(event);
     if (event.detail.checked) {
       this.offerItems.push(selectedOffer);
       this.bookingsService.setOffers(this.offerItems);

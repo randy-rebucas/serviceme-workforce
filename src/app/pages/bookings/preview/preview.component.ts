@@ -21,7 +21,7 @@ export class PreviewComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public title: string;
   public booking$: Observable<any>;
-  public feedbacks$: Observable<Feedbacks[]>;
+  public feedbacks$: Observable<any[]>;
   public defaultCurrency: string;
 
   private userId: string;
@@ -107,16 +107,12 @@ export class PreviewComponent implements OnInit, OnDestroy {
             return from(feedbackMap).pipe(
               // merge join collections bookings
               mergeMap((feedback) => {
-                console.log(feedback);
                 return this.usersService.getOne(feedback.id).pipe(
                   map(profissional => ({ feedback, profissional })),
                 );
               }),
               reduce((a, i) => [...a, i], [])
             );
-            // return this.usersService.getOne(feedback).pipe(
-            //   map(usersCollection => ({ usersCollection, bookingDetail })),
-            // );
           })
         );
       })

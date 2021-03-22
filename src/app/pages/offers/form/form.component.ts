@@ -94,7 +94,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.formCtrls.charges.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
   }
 
-  onDurationSelected(event: CustomEvent) {
+  onDurationSelected(event: any) {
     this.durations$.next(event.detail.value);
   }
 

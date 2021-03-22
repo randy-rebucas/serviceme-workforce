@@ -8,7 +8,9 @@ ion-content {
             justify-content: center;
             &:last-child {
                 img {
-                    margin-bottom: 8em !important;
+                    margin-bottom: 4em !important;
+                    filter: opacity(0.5);
+                    width: 50%;
                 }
             }
             &:first-child {

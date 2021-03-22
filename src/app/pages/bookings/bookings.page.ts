@@ -19,8 +19,8 @@ import { PreviewComponent } from './preview/preview.component';
 })
 export class BookingsPage implements OnInit, OnDestroy {
   public defaultCurrency: string;
-  public bookings$: Observable<Bookings[]>;
-  private bookingListener = new Subject<Bookings[]>();
+  public bookings$: Observable<any[]>;
+  private bookingListener = new Subject<any[]>();
   private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
   private subs = new SubSink();
@@ -170,9 +170,13 @@ export class BookingsPage implements OnInit, OnDestroy {
 
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
+
+    this.bookings$.subscribe((r) => {
+      console.log(r);
+    });
   }
 
-  statusChanged(event: CustomEvent) {
+  statusChanged(event: any) {
     // update status
     this.bookingStatus$.next(event.detail.value);
   }

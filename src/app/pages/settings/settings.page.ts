@@ -44,7 +44,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     });
   }
 
-  onSelectCurrency(event: CustomEvent) {
+  onSelectCurrency(event: any) {
     this.defaultCurrency$.next(event.detail.value);
   }
 

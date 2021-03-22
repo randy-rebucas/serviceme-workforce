@@ -64,7 +64,7 @@ export class ClientComponent implements OnInit, OnDestroy {
     this.initialized();
   }
 
-  onChange(event: CustomEvent) {
+  onChange(event: any) {
     const searchKey = event.detail.value;
     this.subs.sink = this.usersService.getAll().pipe(
       map((users) => {

@@ -199,7 +199,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onSelectClassification(event: CustomEvent) {
+  onSelectClassification(event: any) {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.userService.update(user.uid, { classification: event.detail.value });
@@ -221,7 +221,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
     return o1.id === o2.id;
   }
 
-  onSelectAvailability(event: CustomEvent) {
+  onSelectAvailability(event: any) {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.userService.update(user.uid, { availability: event.detail.value });

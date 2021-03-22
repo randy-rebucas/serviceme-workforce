@@ -24,7 +24,7 @@ import firebase from 'firebase/app';
   styleUrls: ['./pro.component.scss'],
 })
 export class ProComponent implements OnInit, OnDestroy {
-  public bookings$: Observable<Bookings[]>;
+  public bookings$: Observable<any[]>;
   private bookingListener = new Subject<any>();
 
   private bookingStatus$: BehaviorSubject<string|null>;
@@ -158,7 +158,7 @@ export class ProComponent implements OnInit, OnDestroy {
     this.bookings$ = this.getBookingListener();
   }
 
-  statusChanged(event: CustomEvent) {
+  statusChanged(event: any) {
     // update status
     this.bookingStatus$.next(event.detail.value);
   }

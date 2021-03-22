@@ -52,15 +52,12 @@
 
                     <ion-item>
                         <ion-label>Category</ion-label>
-                        <ng-container *ngIf="categories$ | async; let categories; else loadingDeals">
+                        <ng-container *ngIf="categories$ | async; let categories;">
                             <ion-select formControlName="category">
                                 <ion-select-option *ngFor="let category of categories" [value]="category.name">{{category.name}}</ion-select-option>
                                 <ng-container *ngIf="categories.length === 0">
                                     <ion-select-option value="">No category found</ion-select-option>
                                 </ng-container>
-                                <ng-template #loadingDeals>
-                                    <ion-select-option>Loading categories &hellip;</ion-select-option>
-                                </ng-template>
                             </ion-select>
                         </ng-container>
                     </ion-item>

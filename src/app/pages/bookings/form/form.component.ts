@@ -28,8 +28,8 @@ export class FormComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public title: string;
   public state: boolean;
+  public currentLocation: any;
   private proId: string;
-  private currentLocation: any;
   private coord: object;
   public locationOption$: BehaviorSubject<boolean>;
   public offerItems$: Observable<Offers[]>;
@@ -115,7 +115,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   get formCtrls() { return this.form.controls; }
 
-  onPickAddress(event: CustomEvent) {
+  onPickAddress(event: any) {
     this.locationOption$.next(event.detail.checked);
   }
 

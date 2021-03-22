@@ -79,7 +79,7 @@ export class OffersPage implements OnInit, OnDestroy {
     this.initialized();
   }
 
-  onChange(event: CustomEvent) {
+  onChange(event: any) {
     const searchKey = event.detail.value;
 
     this.authService.getUserState().pipe(
@@ -106,7 +106,7 @@ export class OffersPage implements OnInit, OnDestroy {
     });
   }
 
-  offerChanged(event: CustomEvent) {
+  offerChanged(event: any) {
     this.offerOption$.next(event.detail.value);
   }
 

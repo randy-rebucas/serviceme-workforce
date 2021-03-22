@@ -26,7 +26,7 @@ import { TitleCasePipe } from '@angular/common';
   styleUrls: ['./profile.page.scss'],
 })
 export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
-  public user$: Observable<{}>;
+  public user$: Observable<any>;
   public uploadPercent: Observable<number>;
   public showProgress: boolean;
   private username$: BehaviorSubject<string|null>;

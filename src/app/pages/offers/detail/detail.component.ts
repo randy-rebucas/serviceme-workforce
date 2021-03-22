@@ -133,7 +133,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSelect(event: CustomEvent, selectedOffer: Offers, type: string) {
+  onSelect(event: any, selectedOffer: Offers, type: string) {
     if (event.detail.checked) {
       this.offerItems.push(selectedOffer);
       this.onUpdateOffer(this.offerItems, type);

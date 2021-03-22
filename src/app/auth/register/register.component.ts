@@ -90,7 +90,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return this.form.controls;
   }
 
-  onPick(event: CustomEvent) {
+  onPick(event: any) {
     this.selectedType$.next(event.detail.value);
   }
 
@@ -161,7 +161,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     });
   }
 
-  onCheck(event: CustomEvent) {
+  onCheck(event: any) {
     this.isChecked = true;
   }
 
