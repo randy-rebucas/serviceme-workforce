@@ -1,0 +1,45 @@
+https://gw.dragonpay.ph/Pay.aspx https://test.dragonpay.ph/Pay.aspx 
+https://gw.dragonpay.ph/Pay.aspx?merchantid=ABC&txnid=12345678&amount=1000.00& ccy=PHP&description=Box+of+Chocolates&digest=a4b3d08462 
+
+https://gw.dragonpay.ph/api/collect/v1/{refno} https://gw.dragonpay.ph/api/collect/v1/txnid/{txnid}
+https://gw.dragonpay.ph/Pay.aspx?merchantid=ABC&txnid=1234&…&mode=1 
+mode=7 to show alternative payments [gcash/paypal] 
+
+https://gw.dragonpay.ph/Pay.aspx?merchantid=ABC&txnid=1234&…&procid=GCSH 
+https://gw.dragonpay.ph/DragonPayWebService/MerchantService.asmx
+
+// my generic biller https://test.dragonpay.ph/GenPay.aspx?merchantid=DL4915CUTSONWHCCL&invoiceno=00001&name=randy+rebucas&email=rebucasrandy1986%40gmail.com&amount=500&remarks=Cash+in
+
+
+search
+    settlementDate
+    status
+    refferenceNo
+    processor
+    transactionId
+
+merchantid
+transactionId
+amount
+currency
+description
+email
+digest [checksum of all parameters]
+param1 [return url - completed]
+param2 [return url - error]
+
+public amount: number,
+public currency: string,
+public description: string,
+public timestamp: Date,
+public ref: string,
+public status: string,
+public type: string,
+public id?: string
+-----------
+Unit no., Bldg. Name, Street Name
+Barangay / Subdivision / Village
+Region / Province
+City / Municipality
+Zip Code
+Country

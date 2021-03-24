@@ -1,0 +1,102 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+
+    <ion-card class="ion-no-padding no-box-shadow" color="secondary">
+        <ng-container *ngIf="transaction$ | async as transaction; else elseLoadTransaction">
+            <ion-card-header>
+                <ion-card-subtitle>Settlement Date: {{transaction.transactionCollection.timestamp.toDate() | date}}</ion-card-subtitle>
+                <ion-card-title>{{transaction.transactionCollection.type | titlecase}}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <p>{{transaction.transactionCollection.description}}</p>
+
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Amount:
+                    </ion-label>
+                    <ion-note slot="end">
+                        {{ transaction.transactionSubCollection.balance | currency:transaction.transactionCollection.currency:'symbol-narrow' }}
+                    </ion-note>
+                </ion-item>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Status:
+                    </ion-label>
+                    <ion-note slot="end">{{transaction.transactionCollection.status}}</ion-note>
+                </ion-item>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Ref #:
+                    </ion-label>
+                    <ion-note slot="end">{{transaction.transactionCollection.ref}}</ion-note>
+                </ion-item>
+            </ion-card-content>
+        </ng-container>
+        <ng-template #elseLoadTransaction>
+            <ion-card-header>
+                <ion-card-subtitle>
+                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                </ion-card-subtitle>
+                <ion-card-title>
+                    <ion-skeleton-text animated style="width: 30%"></ion-skeleton-text>
+                </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <p>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </p>
+
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Amount:
+                    </ion-label>
+                    <ion-note slot="end">
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </ion-note>
+                </ion-item>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Status:
+                    </ion-label>
+                    <ion-note slot="end">
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </ion-note>
+                </ion-item>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label>
+                        Ref #:
+                    </ion-label>
+                    <ion-note slot="end">
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </ion-note>
+                </ion-item>
+            </ion-card-content>
+        </ng-template>
+    </ion-card>
+
+    <!--transactionCollection
+
+
+        ref: "11111111"
+
+
+      transactionSubCollection:
+        balance: 1000
+        id: " oqbF2cfW1uTc8JeXUbp2"-->
+
+</ion-content>

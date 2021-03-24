@@ -9,7 +9,7 @@
         </ion-segment-button>
     </ion-segment>
 
-    <ng-container *ngIf="bookings$ | async; let bookings; else loadingUsers">
+    <ng-container *ngIf="bookings$ | async; let bookings; else loadingBookings">
         <ion-list>
             <ion-item *ngIf="bookingStatus != 'pending'" (ionChange)="statusChanged($event)">
                 <ion-label>Filter status</ion-label>
@@ -77,12 +77,8 @@
                 </ion-item-options>
             </ion-item-sliding>
         </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="(bookings$ | async)?.length === 0 || bookings.length === 0">
-            <ion-icon name="list-outline"></ion-icon>
-            <p>No {{bookingStatus}} booking found</p>
-        </div>
     </ng-container>
-    <ng-template #loadingUsers>
+    <ng-template #loadingBookings>
         <ion-item lines="none">
             <ion-avatar slot="start">
                 <ion-skeleton-text animated></ion-skeleton-text>
@@ -104,4 +100,8 @@
             </ion-label>
         </ion-item>
     </ng-template>
+    <div id="container" class="ion-text-center" *ngIf="(bookings$ | async)?.length === 0 ">
+        <ion-icon name="list-outline"></ion-icon>
+        <p>No {{bookingStatus}} booking found</p>
+    </div>
 </ion-content>

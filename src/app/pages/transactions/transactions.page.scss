@@ -1,33 +1,49 @@
 ion-header {
     ion-toolbar {
-        --background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
-        background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
-        padding: 0 10px;
-        color: var(--ion-color-primary-contrast);
+        &:not(.filters) {
+            --background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+            background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
+            padding: 0 10px;
+            color: var(--ion-color-primary-contrast);
+        }
     }
 }
 
 ion-content {
+    ion-card {
+        ion-item {
+            ion-label {
+                text-align: center;
+            }
+        }
+        ion-card-content {
+            padding-top: 0;
+        }
+    }
     ion-list {
         ion-item-sliding {
             ion-item {
+                ion-label {
+                    p {
+                        &.canceled {
+                            color: var(--ion-color-danger);
+                        }
+                        &.accepted {
+                            color: var(--ion-color-success-tint);
+                        }
+                        &.completed {
+                            color: var(--ion-color-success);
+                        }
+                        &.declined {
+                            color: var(--ion-color-danger-tint);
+                        }
+                        &.pending {
+                            color: var(--ion-color-warning);
+                        }
+                    }
+                }
                 ion-note {
                     font-size: 14px;
-                    &.canceled {
-                        color: var(--ion-color-danger);
-                    }
-                    &.accepted {
-                        color: var(--ion-color-success-tint);
-                    }
-                    &.completed {
-                        color: var(--ion-color-success);
-                    }
-                    &.declined {
-                        color: var(--ion-color-danger-tint);
-                    }
-                    &.pending {
-                        color: var(--ion-color-warning);
-                    }
                 }
             }
         }

@@ -14,6 +14,9 @@ import { AngularFireStorageModule } from '@angular/fire/storage';
 import { environment } from '../environments/environment';
 import { HttpClientModule } from '@angular/common/http';
 
+import { Network } from '@ionic-native/network/ngx';
+import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -28,6 +31,8 @@ import { HttpClientModule } from '@angular/common/http';
     // AngularFirestoreModule.enablePersistence(),
   ],
   providers: [
+    Network,
+    LocalNotifications,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent],

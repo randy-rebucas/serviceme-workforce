@@ -5,6 +5,18 @@
         </ion-buttons>
         <ion-title>Transactions</ion-title>
     </ion-toolbar>
+    <ion-toolbar class="filters">
+        <!-- <ion-searchbar showCancelButton="focus" placeholder="Filter reference #" (ionInput)=filterTransactions($event)></ion-searchbar> -->
+        <!-- Default Segment -->
+        <ion-segment [value]="status" (ionChange)="filterStatus($event)">
+            <ion-segment-button value="completed">
+                <ion-label>Completed</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="pending">
+                <ion-label>Pending</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -13,15 +25,23 @@
             <ion-title size="large">Transactions</ion-title>
         </ion-toolbar>
     </ion-header>
+    <ion-card class="wallet ion-margin-bottom" *ngIf="status === 'completed'">
+        <ion-item lines="none">
+            <ion-label>Wallet Balance</ion-label>
+        </ion-item>
+        <ion-card-content class="ion-text-center">
+            <h1>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</h1>
+        </ion-card-content>
+    </ion-card>
     <ng-container *ngIf="transactions$ | async; let transactions; else loadingTransactions">
         <ion-list>
             <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
-                <ion-item lines="none">
+                <ion-item lines="full" button (click)="onDeail(transaction, slidingItem)" detail>
                     <ion-label>
-                        <h2>{{ transaction.transactionCollection.amount | currency:defaultCurrency:'symbol-narrow' }}</h2>
-                        <p>{{ (transaction.transactionCollection.ref) ? transaction.transactionCollection.ref : 'No reference' }}</p>
+                        <h2>Ref: {{ (transaction.transactionCollection.ref) ? transaction.transactionCollection.ref : 'No reference' }}</h2>
+                        <p [ngClass]="transaction.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</p>
                     </ion-label>
-                    <ion-note slot="end" [ngClass]="transaction.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</ion-note>
+                    <ion-note slot="end" [ngStyle]="{'color':transaction.transactionSubCollection.balance > 0 ? 'green' : 'red' }"><strong>{{ transaction.transactionSubCollection.balance | currency:defaultCurrency:'symbol-narrow' }}</strong></ion-note>
                 </ion-item>
             </ion-item-sliding>
         </ion-list>
@@ -31,7 +51,7 @@
         </div>
     </ng-container>
     <ng-template #loadingTransactions>
-        <ion-item lines="none">
+        <ion-item lines="full" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]">
             <ion-label>
                 <h2>
                     <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
