@@ -20,15 +20,15 @@
         <ng-container *ngIf="!selectedType; else elseTemplate">
             <ion-card>
                 <ion-card-header>
-                    <ion-card-title>I want to</ion-card-title>
                     <ion-card-subtitle>Select what type of account you want.</ion-card-subtitle>
+                    <ion-card-title>I want to</ion-card-title>
                 </ion-card-header>
 
                 <ion-card-content>
                     <ion-list>
                         <ion-radio-group (ionChange)="onPick($event)">
                             <ion-item>
-                                <ion-label>Hire for a Service</ion-label>
+                                <ion-label>Book for a Service</ion-label>
                                 <ion-radio value="client"></ion-radio>
                             </ion-item>
 

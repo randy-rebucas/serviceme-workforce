@@ -6,6 +6,7 @@ export const environment = {
   commissionPercentage: 10,
   initialDeposit: 100,
   defaultCurrency: 'PHP',
+  enableSigningBonus: true,
   firebase: {
     apiKey: 'AIzaSyC1P3bJSJZpzs7cd0QoizMEkkZqCqMCFCs',
     authDomain: 'cutsonwheel-233209.firebaseapp.com',

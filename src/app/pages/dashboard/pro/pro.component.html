@@ -79,7 +79,7 @@
         </ion-list>
     </ng-container>
     <ng-template #loadingBookings>
-        <ion-item lines="none">
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7]">
             <ion-avatar slot="start">
                 <ion-skeleton-text animated></ion-skeleton-text>
             </ion-avatar>

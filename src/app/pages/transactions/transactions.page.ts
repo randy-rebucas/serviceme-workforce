@@ -82,7 +82,6 @@ export class TransactionsPage implements OnInit, AfterViewInit {
 
     this.subs.sink = from(this.transactions$).subscribe((transactions) => {
       let balance = 0;
-      console.log(transactions);
       transactions.forEach(transaction => {
         balance += transaction.transactionSubCollection.balance;
       });

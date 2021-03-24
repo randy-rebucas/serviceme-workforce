@@ -6,6 +6,9 @@ import { SubSink } from 'subsink';
 import { AuthService } from '../auth.service';
 import firebase from 'firebase/app';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
+import { TransactionsService } from 'src/app/pages/transactions/transactions.service';
+import { UsersService } from 'src/app/pages/users/users.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +18,7 @@ import { AdminFunctionService } from 'src/app/shared/services/admin-function.ser
 export class RegisterComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public isChecked: boolean;
+  private enableSigningBonus: boolean;
   private subs = new SubSink();
   private selectedType$: BehaviorSubject<string|null>;
   public selectedType: string;
@@ -23,9 +27,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
     private loadingController: LoadingController,
     private alertController: AlertController,
     private authService: AuthService,
+    private transactionsService: TransactionsService,
+    private userService: UsersService,
     private adminFunctionService: AdminFunctionService
   ) {
     this.isChecked = false;
+    this.enableSigningBonus = environment.enableSigningBonus;
     this.selectedType$ = new BehaviorSubject(null);
   }
 
@@ -98,14 +105,46 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.selectedType$.next(null);
   }
 
+  setSubCollection(user: firebase.User, transaction: any, amount: number) {
+    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: Number(amount) }))
+    .subscribe(() => {
+      this.loadingController.dismiss();
+      this.form.reset();
+      this.onDismiss(true);
+      this.authService.signOut();
+    });
+  }
+
+  setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      const transactionData  = {
+        amount: Number(amount),
+        currency: 'PHP',
+        description: 'signing bonus.',
+        timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
+        ref: refId,
+        status: transactionStatus,
+        type: 'payment'
+      };
+
+      this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
+        this.setSubCollection(user, transaction, amount);
+      }, (error: any) => {
+        this.loadingController.dismiss();
+        this.presentAlert(error.code, error.message);
+      });
+    });
+  }
+
   sendEmailVerification(userCredential: firebase.auth.UserCredential) {
     this.subs.sink = from(userCredential.user.sendEmailVerification()).subscribe(() => {
       this.loadingController.dismiss();
       // tslint:disable-next-line: max-line-length
       this.presentAlert('Verify your email', 'One last step to continue your registration. Check ou email and click on the link to verify.');
-      this.form.reset();
-      this.onDismiss(true);
-      this.authService.signOut();
+      if (this.enableSigningBonus) {
+        const referenceId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+        this.setTransactionData(100, referenceId, new Date(), 'completed');
+      }
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);

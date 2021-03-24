@@ -36,11 +36,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
-    this.transaction$.subscribe((r) => {
-      console.log(r);
-    });
-  }
+  ngOnInit() {}
 
   onDismiss(state: boolean) {
     this.modalController.dismiss({

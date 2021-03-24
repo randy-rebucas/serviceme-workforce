@@ -86,7 +86,7 @@
         </div>
     </ng-container>
     <ng-template #loadingBookings>
-        <ion-item lines="none">
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8]">
             <ion-label>
                 <h2>
                     <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
