@@ -7,6 +7,7 @@ export class Offers {
         public charges: number,
         public timestamp: any,
         public type: string,
+        public quantity?: number,
         public childs?: any,
         public imageUrl?: string,
         public id?: string,

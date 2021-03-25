@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Plugins, Capacitor } from '@capacitor/core';
 
 import { BehaviorSubject, from, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { find, map, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { SettingsService } from '../../settings/settings.service';
@@ -75,22 +75,28 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
-
-    this.offerItems$ = this.bookingsService.getOffers();
+  getTotal() {
     this.subs.sink = this.offerItems$.subscribe((offerItems) => {
+      console.log(offerItems);
       if (offerItems.length === 0) {
         this.onDismiss(true);
       }
       let sum = 0;
       offerItems.forEach(offerItem => {
-        sum += Number(offerItem.charges);
+        sum += Number(offerItem.charges) * offerItem.quantity;
       });
       this.totalCharges = sum;
       this.offerItems = offerItems;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
+  }
+
+  ngOnInit() {
+
+    this.offerItems$ = this.bookingsService.getOffers();
+
+    this.getTotal();
 
     this.subs.sink = this.locationOption$.subscribe((locationOption) => {
       if (locationOption) {
@@ -255,9 +261,26 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  onRemove(selectedItem: Offers) {
-    const updatedItems = this.offerItems.filter(item => item.id !== selectedItem.id);
-    this.bookingsService.setOffers(updatedItems);
+  increaseQuantity(selectedItem: Offers) {
+    from(this.offerItems$).pipe(
+      map(txs => txs.find(item => item.id === selectedItem.id))
+    ).subscribe((existItem) => {
+      existItem.quantity += 1;
+      this.getTotal();
+    });
+  }
+
+  decreaseQuantity(selectedItem: Offers) {
+    from(this.offerItems$).pipe(
+      map(txs => txs.find(item => item.id === selectedItem.id))
+    ).subscribe((existItem) => {
+      existItem.quantity -= 1;
+      if (existItem.quantity < 1) {
+        const updatedItems = this.offerItems.filter(item => item.id !== selectedItem.id);
+        this.bookingsService.setOffers(updatedItems);
+      }
+      this.getTotal();
+    });
   }
 
   presentAlert(alertHeader: string, alertMessage: string) {

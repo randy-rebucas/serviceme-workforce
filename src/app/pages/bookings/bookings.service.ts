@@ -29,6 +29,10 @@ export class BookingsService {
     this.offerItems$.next(offers);
   }
 
+  cleanOffers() {
+    this.offerItems$.next([]);
+  }
+
   getOffers() {
     return this.offerItems$.asObservable();
   }

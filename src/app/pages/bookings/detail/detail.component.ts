@@ -98,9 +98,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   onPickService(event: any, selectedOffer: Offers) {
-    console.log(event);
     if (event.detail.checked) {
-      this.offerItems.push(selectedOffer);
+      this.offerItems.push({...selectedOffer, quantity: 1});
       this.bookingsService.setOffers(this.offerItems);
     } else {
       const updatedOffers = this.offerItems.filter(offer => offer.id !== selectedOffer.id);
