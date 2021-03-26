@@ -15,7 +15,6 @@ import { environment } from '../environments/environment';
 import { HttpClientModule } from '@angular/common/http';
 
 import { Network } from '@ionic-native/network/ngx';
-import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
 @NgModule({
   declarations: [AppComponent],
@@ -32,7 +31,6 @@ import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
   ],
   providers: [
     Network,
-    LocalNotifications,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent],

@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, IonInput, LoadingController, ToastController } from '@ionic/angular';
 import { from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
@@ -13,6 +13,8 @@ import { PaymentsService } from './payments.service';
 import { PayPal, PayPalConfiguration, PayPalPayment } from '@ionic-native/paypal/ngx';
 import { environment } from 'src/environments/environment';
 import { Transactions } from '../transactions/transactions';
+import { Router } from '@angular/router';
+
 
 const payPalClientId = environment.payPalClientId;
 const payPalEnv = environment.payPalEnv;
@@ -22,7 +24,7 @@ const payPalEnv = environment.payPalEnv;
   templateUrl: './payments.page.html',
   styleUrls: ['./payments.page.scss'],
 })
-export class PaymentsPage implements OnInit, OnDestroy {
+export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   public form: FormGroup;
   public formRequest: FormGroup;
   public currentDate: Date;
@@ -31,7 +33,7 @@ export class PaymentsPage implements OnInit, OnDestroy {
   private initialDeposit: number;
   private shortDescription: string;
   private subs = new SubSink();
-
+  @ViewChild('box', {static: false}) inputEl: IonInput;
   constructor(
     private authService: AuthService,
     private loadingController: LoadingController,
@@ -41,6 +43,7 @@ export class PaymentsPage implements OnInit, OnDestroy {
     private transactionsService: TransactionsService,
     private userService: UsersService,
     private paymentsService: PaymentsService,
+    private router: Router,
     private payPal: PayPal,
   ) {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
@@ -53,14 +56,26 @@ export class PaymentsPage implements OnInit, OnDestroy {
       this.presentAlert(error.code, error.message);
     });
 
-    this.initialDeposit = environment.initialDeposit;
-    this.shortDescription = 'Cash In';
+    this.shortDescription = 'Deposit';
     this.currentDate = new Date();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.inputEl.setFocus();
+    }, 200);
   }
 
   ngOnInit() {
     this.paymentsService.getCurrentMethod().subscribe((methodResponse) => {
-      this.method = methodResponse;
+      // check if method exist.
+      if (!methodResponse) {
+        this.router.navigate(['/pages']);
+      }
+      // set method
+      this.method = methodResponse.method;
+      // set deposit amount
+      this.initialDeposit = (methodResponse.amount < environment.initialDeposit ) ? environment.initialDeposit : methodResponse.amount;
     });
 
     this.form = new FormGroup({
@@ -84,6 +99,10 @@ export class PaymentsPage implements OnInit, OnDestroy {
         validators: [Validators.required]
       })
     });
+  }
+
+  onFocus(value: any) {
+    this.formCtrls.amount.setValue(Number(value).toLocaleString('en-US'));
   }
 
   onInput(value: any) {

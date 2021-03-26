@@ -84,7 +84,7 @@
                     <ion-list>
                         <ion-item>
                             <ion-label position="floating">Amount</ion-label>
-                            <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" class="ion-text-center amount"></ion-input>
+                            <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" (ionFocus)="onFocus(box.value)" class="ion-text-center amount"></ion-input>
                         </ion-item>
                         <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
                             <ion-label *ngIf="formCtrls.amount.errors.required">

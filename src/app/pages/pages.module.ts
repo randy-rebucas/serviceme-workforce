@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { PagesPageRoutingModule } from './pages-routing.module';
 
 import { PagesPage } from './pages.page';
+import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
 
 @NgModule({
@@ -16,6 +17,9 @@ import { PagesPage } from './pages.page';
     IonicModule,
     PagesPageRoutingModule
   ],
-  declarations: [PagesPage]
+  declarations: [PagesPage],
+  providers: [
+    LocalNotifications,
+  ]
 })
 export class PagesPageModule {}

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
@@ -8,7 +8,6 @@ import { SubSink } from 'subsink';
 import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
 import { DetailComponent } from './detail/detail.component';
-import { Transactions } from './transactions';
 import { TransactionsService } from './transactions.service';
 
 @Component({
@@ -16,13 +15,14 @@ import { TransactionsService } from './transactions.service';
   templateUrl: './transactions.page.html',
   styleUrls: ['./transactions.page.scss'],
 })
-export class TransactionsPage implements OnInit, AfterViewInit {
+export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
   public transactions$: Observable<any[]>;
   public defaultCurrency: string;
   public currenctBalance: number;
+  public status: string;
+
   private transactionListener = new Subject<any>();
   private status$: BehaviorSubject<string|null>;
-  private status: string;
   private subs = new SubSink();
   constructor(
     private authService: AuthService,
@@ -32,8 +32,11 @@ export class TransactionsPage implements OnInit, AfterViewInit {
     private transactionsService: TransactionsService,
     private settingsService: SettingsService
   ) {
+    // set initial balance initial value;
     this.currenctBalance = 0;
-
+    // set initial status value
+    this.status$ = new BehaviorSubject('completed');
+    // get user settings
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
@@ -42,7 +45,6 @@ export class TransactionsPage implements OnInit, AfterViewInit {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
 
-    this.status$ = new BehaviorSubject('completed');
   }
 
   getTransactionListener() {
@@ -70,7 +72,7 @@ export class TransactionsPage implements OnInit, AfterViewInit {
                 }),
                 reduce((a, i) => [...a, i], [])
               );
-            })
+            }),
           ))
         )
       )
@@ -78,8 +80,10 @@ export class TransactionsPage implements OnInit, AfterViewInit {
       this.transactionListener.next(transactions);
     });
 
+    // get onservable transactions
     this.transactions$ = this.getTransactionListener();
 
+    // compute total transaction balances
     this.subs.sink = from(this.transactions$).subscribe((transactions) => {
       let balance = 0;
       transactions.forEach(transaction => {
@@ -120,5 +124,9 @@ export class TransactionsPage implements OnInit, AfterViewInit {
     this.subs.sink = this.transactionsService.getBalance().subscribe((balance) => {
       this.currenctBalance = balance;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 }

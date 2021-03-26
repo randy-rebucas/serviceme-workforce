@@ -38,7 +38,7 @@
             <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
                 <ion-item lines="full" button (click)="onDeail(transaction, slidingItem)" detail>
                     <ion-label>
-                        <h2>Ref: {{ (transaction.transactionCollection.ref) ? transaction.transactionCollection.ref : 'No reference' }}</h2>
+                        <h2>Txns Date: {{ transaction.transactionCollection.timestamp.toDate() | date:'mediumDate' }}</h2>
                         <p [ngClass]="transaction.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</p>
                     </ion-label>
                     <ion-note slot="end" [ngStyle]="{'color':transaction.transactionSubCollection.balance > 0 ? 'green' : 'red' }"><strong>{{ transaction.transactionSubCollection.balance | currency:defaultCurrency:'symbol-narrow' }}</strong></ion-note>

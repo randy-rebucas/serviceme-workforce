@@ -29,6 +29,9 @@ export class ProComponent implements OnInit, OnDestroy {
 
   private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
+  public serviceCharge: number;
+  public currentBalance: number;
+  public commissionCharge: number;
   private defaultCurrency: string;
   private commissionPercentage: number;
   private balance: number;
@@ -156,27 +159,34 @@ export class ProComponent implements OnInit, OnDestroy {
 
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
+
+    this.subs.sink = this.bookings$.subscribe((bookingItems) => {
+      let sum = 0;
+      bookingItems.forEach(bookingItem => {
+        sum += Number(bookingItem.bookingDetail.booking.bookingCollection.charges);
+      });
+      // this.serviceCharge = sum;
+
+      this.onCheckBalance(sum);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+
   }
 
-  statusChanged(event: any) {
-    // update status
-    this.bookingStatus$.next(event.detail.value);
-  }
+  onCheckBalance(serviceCharge: number) {
+    this.currentBalance = Number(this.balance);
+    this.commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
 
-  onAccept(booking: any, ionItemSliding: IonItemSliding) {
-    const serviceCharge = Number(booking.bookingDetail.booking.bookingCollection.charges);
-    const currentBalance = Number(this.balance);
-    const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
-
-    if (currentBalance < commissionCharge) {
+    if (this.currentBalance < this.commissionCharge) {
       this.subs.sink = from(this.alertController.create(
         {
           header: 'Insufficient balance!',
-          message: 'Please do cash in atleast ' + formatCurrency(commissionCharge, this.locale, getCurrencySymbol(this.defaultCurrency, 'narrow')) +
+          message: 'Please deposit atleast ' + formatCurrency(this.commissionCharge, this.locale, getCurrencySymbol(this.defaultCurrency, 'narrow')) +
           ' as ' +
           this.commissionPercentage +
           '% of ' + formatCurrency(serviceCharge, this.locale, getCurrencySymbol(this.defaultCurrency, 'narrow')) +
-          ' service charges before you can accept this service offer.',
+          ' as total charges before you can accept services offered.',
           buttons: [
             {
               text: 'Cancel',
@@ -186,7 +196,7 @@ export class ProComponent implements OnInit, OnDestroy {
             }, {
               text: 'Ok',
               handler: () => {
-                this.paymentsService.setMethod('paypal');
+                this.paymentsService.setMethod('paypal', this.commissionCharge);
                 this.router.navigate(['/pages/payments']);
               }
             }
@@ -195,16 +205,23 @@ export class ProComponent implements OnInit, OnDestroy {
       )).subscribe((alertEl) => {
         alertEl.present();
       });
-    } else {
-      const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
-      this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
-        this.initialized();
-        ionItemSliding.closeOpened();
-        this.bookingStatus$.next('');
-      }, (error: any) => {
-        this.presentAlert(error.code, error.message);
-      });
     }
+  }
+
+  statusChanged(event: any) {
+    // update status
+    this.bookingStatus$.next(event.detail.value);
+  }
+
+  onAccept(booking: any, ionItemSliding: IonItemSliding) {
+    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
+      this.initialized();
+      ionItemSliding.closeOpened();
+      this.bookingStatus$.next('');
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
   }
 
   onDecline(booking: any, ionItemSliding: IonItemSliding) {
@@ -239,9 +256,7 @@ export class ProComponent implements OnInit, OnDestroy {
 
   private setTransactionCollection(booking: any, ionItemSliding: IonItemSliding) {
     const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
-    // const charges = Number(booking.bookingDetail.booking.bookingCollection.charges);
     const serviceCharge = Number(booking.bookingDetail.booking.bookingCollection.charges);
-    // const currentBalance = Number(this.balance);
     const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
 
     const transactionData = {

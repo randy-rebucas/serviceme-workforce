@@ -67,7 +67,7 @@
                         </ion-item-option>
                     </ng-container>
                     <ng-container *ngSwitchDefault>
-                        <ion-item-option color="success" (click)="onAccept(booking, slidingItem)">
+                        <ion-item-option color="success" (click)="onAccept(booking, slidingItem)" [disabled]="currentBalance < commissionCharge">
                             <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
                         </ion-item-option>
                         <ion-item-option color="danger" (click)="onDecline(booking, slidingItem)">

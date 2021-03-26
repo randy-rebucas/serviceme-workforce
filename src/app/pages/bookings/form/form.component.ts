@@ -19,6 +19,7 @@ import { SubSink } from 'subsink';
 
 import firebase from 'firebase/app';
 import { DocumentReference } from '@angular/fire/firestore';
+import { NotificationsService } from '../../notifications/notifications.service';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -50,6 +51,7 @@ export class FormComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UsersService,
     private settingsService: SettingsService,
+    private notificationsService: NotificationsService,
     private titlecasePipe: TitleCasePipe,
     private http: HttpClient,
   ) {
@@ -209,19 +211,47 @@ export class FormComponent implements OnInit, OnDestroy {
       );
   }
 
-  private setBookingCollection(userDocId: string, bookingDocId: string) {
-    const bookingData = {
-      userId: userDocId
+  private setSubCollection(userId: string, collection: string, customId: string, payload: any) {
+    return from(this.userService.setSubCollection(userId, collection, customId, payload ));
+  }
+
+  private setClientBookingCollection(userId: string, collection: string, customId: string, payload: any) {
+    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
+      const clientId = userId;
+      this.setProfessionalBookingCollection(payload.userId, collection, customId, { userId: clientId });
+    });
+  }
+
+  private setProfessionalBookingCollection(userId: string, collection: string, customId: string, payload: any) {
+    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
+      this.setNotificationData(userId);
+    });
+  }
+
+  private setNotiticationCollection(userId: string, collection: string, customId: string, payload: any) {
+    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
+      this.form.reset();
+      this.onDismiss(true);
+      this.bookingsService.setOffers([]);
+      this.presentAlert('Booking', 'Your booking was successfully set.');
+    });
+  }
+
+  private setNotificationData(proId: string) {
+    const notificationData  = {
+      content: 'You have received an offer',
+      status: 'unread',
+      timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+      type: 'booking'
     };
-    return from(this.userService.setSubCollection(userDocId, 'bookings', bookingDocId, bookingData));
-  }
 
-  private setClientBookingCollection(userId: string, booking: DocumentReference<firebase.firestore.DocumentData>) {
-    return this.setBookingCollection(userId, booking.id);
-  }
-
-  private setProfessionalBookingCollection(userId: string, booking: DocumentReference<firebase.firestore.DocumentData>) {
-    return this.setBookingCollection(userId, booking.id);
+    this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
+      // set sub collection notification
+      this.setNotiticationCollection(proId, 'notifications', notification.id, {});
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
+    });
   }
   /**
    *
@@ -243,17 +273,7 @@ export class FormComponent implements OnInit, OnDestroy {
       };
 
       this.subs.sink = from(this.bookingsService.insert(bookingData)).subscribe((booking) => {
-        // set a copy of booking to client sub collections
-        this.subs.sink = from(this.userService.setSubCollection(user.uid, 'bookings', booking.id, { userId: this.proId }))
-        .subscribe(() => {
-          // set a copy of booking for pro sub collection
-          this.subs.sink = from(this.userService.setSubCollection(this.proId, 'bookings', booking.id, { userId: user.uid }))
-          .subscribe(() => {
-            this.form.reset();
-            this.onDismiss(true);
-            this.bookingsService.setOffers([]);
-          });
-        });
+        this.setClientBookingCollection(user.uid, 'bookings', booking.id, { userId: this.proId });
       }, (error: any) => {
         this.loadingController.dismiss();
         this.presentAlert(error.code, error.message);
@@ -261,22 +281,22 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  increaseQuantity(selectedItem: Offers) {
+  increaseQuantity(selectedOffer: Offers) {
     from(this.offerItems$).pipe(
-      map(txs => txs.find(item => item.id === selectedItem.id))
+      map(offers => offers.find(offer => offer.id === selectedOffer.id))
     ).subscribe((existItem) => {
       existItem.quantity += 1;
       this.getTotal();
     });
   }
 
-  decreaseQuantity(selectedItem: Offers) {
+  decreaseQuantity(selectedOffer: Offers) {
     from(this.offerItems$).pipe(
-      map(txs => txs.find(item => item.id === selectedItem.id))
+      map(offers => offers.find(offer => offer.id === selectedOffer.id))
     ).subscribe((existItem) => {
       existItem.quantity -= 1;
       if (existItem.quantity < 1) {
-        const updatedItems = this.offerItems.filter(item => item.id !== selectedItem.id);
+        const updatedItems = this.offerItems.filter(item => item.id !== selectedOffer.id);
         this.bookingsService.setOffers(updatedItems);
       }
       this.getTotal();
