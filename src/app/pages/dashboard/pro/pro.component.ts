@@ -289,7 +289,7 @@ export class ProComponent implements OnInit, OnDestroy {
     const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
 
     const transactionData = {
-      amount: commissionCharge,
+      amount: -Number(commissionCharge),
       currency: this.defaultCurrency,
       description: 'Job done. Booking Id :' + bookingId,
       timestamp: firebase.firestore.Timestamp.fromDate(new Date()),

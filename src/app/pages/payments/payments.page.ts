@@ -157,25 +157,8 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   paypalPayment() {
     const amountValue = this.form.value.amount;
     const amount = amountValue.replace(/[^0-9.-]+/g, '');
-    const payment = new PayPalPayment('5', this.defaultCurrency, this.shortDescription, 'sale');
+    const payment = new PayPalPayment(amountValue, this.defaultCurrency, this.shortDescription, 'sale');
     this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
-      // Example sandbox response
-      //
-      // {
-      //   "client": {
-      //     "environment": "sandbox",
-      //     "product_name": "PayPal iOS SDK",
-      //     "paypal_sdk_version": "2.16.0",
-      //     "platform": "iOS"
-      //   },
-      //   "response_type": "payment",
-      //   "response": {
-      //     "id": "PAY-1AB23456CD789012EF34GHIJ",
-      //     "state": "approved",
-      //     "create_time": "2016-10-03T13:33:33Z",
-      //     "intent": "sale"
-      //   }
-      // }
       this.setTransactionData(amount, paypalResponse.response.id, new Date(), 'completed');
     }, (error: any) => {
       this.loadingController.dismiss();
