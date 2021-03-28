@@ -4,6 +4,12 @@
             <ion-menu-button></ion-menu-button>
         </ion-buttons>
         <ion-title>Dashboard</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="onOpenNotifications()">
+                <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+            </ion-button>
+            <ion-badge color="danger" *ngIf="notificationCount > 0">{{notificationCount}}</ion-badge>
+        </ion-buttons>
     </ion-toolbar>
     <ng-container *ngIf="currentUser$ | async as user; else elseUserLoading">
         <ion-item lines="none">

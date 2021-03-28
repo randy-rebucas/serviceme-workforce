@@ -58,12 +58,12 @@
                     </ion-list>
                     <ion-list>
                         <ion-item>
-                            <ion-label position="floating">Date Paid</ion-label>
-                            <ion-datetime formControlName="paidDate" [value]="currentDate.toISOString()"></ion-datetime>
+                            <ion-label position="floating">Settlement Date</ion-label>
+                            <ion-datetime formControlName="settlementDate" [value]="currentDate.toISOString()"></ion-datetime>
                         </ion-item>
-                        <ion-item lines="none" *ngIf="formRequestCtrls.paidDate.errors && formRequestCtrls.paidDate.touched">
-                            <ion-label *ngIf="formRequestCtrls.paidDate.errors.required">
-                                <ion-note color="danger">Date Paid is required!</ion-note>
+                        <ion-item lines="none" *ngIf="formRequestCtrls.settlementDate.errors && formRequestCtrls.settlementDate.touched">
+                            <ion-label *ngIf="formRequestCtrls.settlementDate.errors.required">
+                                <ion-note color="danger">Settlement Paid is required!</ion-note>
                             </ion-label>
                         </ion-item>
                     </ion-list>

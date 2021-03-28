@@ -225,6 +225,7 @@ export class ProComponent implements OnInit, OnDestroy {
       }),
     ).subscribe((userResponse) => {
       const notificationData  = {
+        title: 'Booked Accepted!',
         content: 'Booking accepted by ' + userResponse.name.firstname + ' ' + userResponse.name.lastname,
         status: 'unread',
         timestamp: firebase.firestore.Timestamp.fromDate(new Date()),

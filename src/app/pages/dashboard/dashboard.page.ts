@@ -15,6 +15,7 @@ import { SettingsService } from '../settings/settings.service';
 import { environment } from 'src/environments/environment';
 import { BookingsService } from '../bookings/bookings.service';
 import firebase from 'firebase/app';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,6 +34,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public user: Users[];
   public defaultCurrency: string;
   public commissionCharge: number;
+  public notificationCount: number;
+  private notificationListener = new Subject<any>();
   private commissionPercentage: number;
   private serviceCharge: number;
   private bookingStatus$: BehaviorSubject<string|null>;
@@ -51,9 +54,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private bookingsService: BookingsService,
     private paymentsService: PaymentsService,
     private transactionService: TransactionsService,
+    private notificationsService: NotificationsService,
     private settingsService: SettingsService
   ) {
     this.currenctBalance = 0;
+    this.notificationCount = 0;
     this.commissionPercentage = environment.commissionPercentage;
     this.bookingStatus$ = new BehaviorSubject('pending');
 
@@ -64,6 +69,39 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
+  }
+
+  onOpenNotifications() {
+    this.router.navigateByUrl('/pages/notifications');
+  }
+
+  getNotifications() {
+    from(this.authService.getCurrentUser()).pipe(
+      // get all notifications
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
+        // notifications response
+        mergeMap((notificationMap: any[]) => {
+          // merge collection
+          return from(notificationMap).pipe(
+            mergeMap((notificationSubCollection) => {
+              return this.notificationsService.getOne(notificationSubCollection.id).pipe(
+                // map to combine user notifications sub-collection to collection
+                map(notificationCollection => ({notificationSubCollection, notificationCollection})),
+                // filter by status
+                filter(notificationStatus => notificationStatus.notificationCollection.status === 'unread')
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        }),
+      ))
+    ).subscribe((notifications) => {
+      this.notificationListener.next(notifications);
+    });
+  }
+
+  getNotificationListener() {
+    return this.notificationListener.asObservable();
   }
 
   getTransactionListener() {
@@ -216,6 +254,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       this.serviceCharge = sum;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
+    });
+
+    this.getNotifications();
+
+    this.getNotificationListener().subscribe((notifications) => {
+      this.notificationCount = notifications.length;
     });
   }
 

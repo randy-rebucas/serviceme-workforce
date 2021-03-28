@@ -94,4 +94,7 @@ export class UsersService {
     return this.fetchData(this.childCollections(document, targetCollection));
   }
 
+  deleteSubCollection(document: string, targetCollection: string, documentId: string): Promise<void> {
+    return this.childCollections(document, targetCollection).doc(documentId).delete();
+  }
 }

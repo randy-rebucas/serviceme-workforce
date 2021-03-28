@@ -90,7 +90,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
         updateOn: 'blur',
         validators: [Validators.required, Validators.maxLength(15)]
       }),
-      paidDate: new FormControl(null, {
+      settlementDate: new FormControl(null, {
         updateOn: 'blur',
         validators: [Validators.required]
       })
@@ -218,7 +218,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
 
   doRequestCashIn() {
     const amountValue = this.formRequest.value.amount;
-    const dateValue = new Date(this.formRequest.value.paidDate);
+    const dateValue = new Date(this.formRequest.value.settlementDate);
     const amount = amountValue.replace(/[^0-9.-]+/g, '');
     this.setTransactionData(amount, this.formRequest.value.reference, dateValue, 'pending');
   }
