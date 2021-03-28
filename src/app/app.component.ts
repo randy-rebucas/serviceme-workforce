@@ -3,9 +3,9 @@ import { Plugins } from '@capacitor/core';
 
 import { AlertController, Platform } from '@ionic/angular';
 import { Network } from '@ionic-native/network/ngx';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 
 import { AuthService } from './auth/auth.service';
-
 import { SubSink } from 'subsink';
 
 const { App } = Plugins;
@@ -22,6 +22,7 @@ export class AppComponent {
     private platform: Platform,
     private authService: AuthService,
     private alertController: AlertController,
+    private splashScreen: SplashScreen,
     private network: Network
   ) {
     this.initializeApp();
@@ -29,6 +30,7 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
+      this.splashScreen.hide();
       this.subs.sink =  this.network.onDisconnect().subscribe(() => {
         this.alertController.create({
           cssClass: 'my-custom-class',

@@ -1,69 +1,67 @@
-<ion-app>
-    <ion-split-pane contentId="main-content">
-        <ion-menu contentId="main-content" type="overlay">
-            <ion-content>
-                <ion-list id="nav-list">
-                    <ion-menu-toggle auto-hide="false">
-                        <ion-item routerDirection="root" [routerLink]="['/pages/profile']" detail>
-                            <ng-container *ngIf="user$ | async as user; else elseTemplate">
-                                <ng-container *ngIf="user.photoURL; then loadAvatar; else loadDefault"></ng-container>
-                                <ng-template #loadAvatar>
-                                    <ion-avatar slot="start">
-                                        <img [src]="user.photoURL" alt="">
-                                    </ion-avatar>
-                                </ng-template>
-                                <ng-template #loadDefault>
-                                    <ion-avatar slot="start">
-                                        <ion-icon name="person-outline" size="large"></ion-icon>
-                                    </ion-avatar>
-                                </ng-template>
-                                <ion-label>
-                                    <h3>{{user.displayName !== null ? user.displayName : '--'}}</h3>
-                                    <p>{{user.email}}</p>
-                                </ion-label>
-                            </ng-container>
-                            <ng-template #elseTemplate>
+<ion-split-pane contentId="main-content">
+    <ion-menu contentId="main-content" type="overlay">
+        <ion-content>
+            <ion-list id="nav-list">
+                <ion-menu-toggle auto-hide="false">
+                    <ion-item routerDirection="root" [routerLink]="['/pages/profile']" detail>
+                        <ng-container *ngIf="user$ | async as user; else elseTemplate">
+                            <ng-container *ngIf="user.photoURL; then loadAvatar; else loadDefault"></ng-container>
+                            <ng-template #loadAvatar>
                                 <ion-avatar slot="start">
-                                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                                    <img [src]="user.photoURL" alt="">
                                 </ion-avatar>
-                                <ion-label>
-                                    <h3>
-                                        <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
-                                    </h3>
-                                    <p>
-                                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
-                                    </p>
-                                </ion-label>
                             </ng-template>
-                        </ion-item>
-                        <ion-item [routerLink]="['/pages/bookings']" *ngIf="isClient" routerLinkActive="active" lines="none" detail="false">
-                            <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
-                            <ion-label>My Bookings</ion-label>
-                        </ion-item>
-                        <ion-item [routerLink]="['/pages/offers']" *ngIf="isPro" routerLinkActive="active" lines="none" detail="false">
-                            <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
-                            <ion-label>My Offers</ion-label>
-                        </ion-item>
-                        <ion-item [routerLink]="['/pages/settings']" routerLinkActive="active" lines="none" detail="false">
-                            <ion-icon slot="start" ios="settings-outline" md="settings-sharp"></ion-icon>
-                            <ion-label>Settings</ion-label>
-                        </ion-item>
-                        <ion-item [routerLink]="['/pages/terms-of-use']" routerLinkActive="active" lines="none" detail="false">
-                            <ion-icon slot="start" ios="information-outline" md="information-sharp"></ion-icon>
-                            <ion-label>Terms of use</ion-label>
-                        </ion-item>
-                        <ion-item [routerLink]="['/pages/privacy-policy']" routerLinkActive="active" lines="none" detail="false">
-                            <ion-icon slot="start" ios="help-outline" md="help-sharp"></ion-icon>
-                            <ion-label>Privacy policy</ion-label>
-                        </ion-item>
-                        <ion-item (click)="onLogout()" lines="none" detail="false">
-                            <ion-icon slot="start" ios="power-outline" md="power-sharp"></ion-icon>
-                            <ion-label>Logout</ion-label>
-                        </ion-item>
-                    </ion-menu-toggle>
-                </ion-list>
-            </ion-content>
-        </ion-menu>
-        <ion-router-outlet id="main-content"></ion-router-outlet>
-    </ion-split-pane>
-</ion-app>
+                            <ng-template #loadDefault>
+                                <ion-avatar slot="start">
+                                    <ion-icon name="person-outline" size="large"></ion-icon>
+                                </ion-avatar>
+                            </ng-template>
+                            <ion-label>
+                                <h3>{{user.displayName !== null ? user.displayName : '--'}}</h3>
+                                <p>{{user.email}}</p>
+                            </ion-label>
+                        </ng-container>
+                        <ng-template #elseTemplate>
+                            <ion-avatar slot="start">
+                                <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                            </ion-avatar>
+                            <ion-label>
+                                <h3>
+                                    <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+                                </h3>
+                                <p>
+                                    <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                                </p>
+                            </ion-label>
+                        </ng-template>
+                    </ion-item>
+                    <ion-item [routerLink]="['/pages/bookings']" *ngIf="isClient" routerLinkActive="active" lines="none" detail="false">
+                        <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
+                        <ion-label>My Bookings</ion-label>
+                    </ion-item>
+                    <ion-item [routerLink]="['/pages/offers']" *ngIf="isPro" routerLinkActive="active" lines="none" detail="false">
+                        <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
+                        <ion-label>My Offers</ion-label>
+                    </ion-item>
+                    <ion-item [routerLink]="['/pages/settings']" routerLinkActive="active" lines="none" detail="false">
+                        <ion-icon slot="start" ios="settings-outline" md="settings-sharp"></ion-icon>
+                        <ion-label>Settings</ion-label>
+                    </ion-item>
+                    <ion-item [routerLink]="['/pages/terms-of-use']" routerLinkActive="active" lines="none" detail="false">
+                        <ion-icon slot="start" ios="information-outline" md="information-sharp"></ion-icon>
+                        <ion-label>Terms of use</ion-label>
+                    </ion-item>
+                    <ion-item [routerLink]="['/pages/privacy-policy']" routerLinkActive="active" lines="none" detail="false">
+                        <ion-icon slot="start" ios="help-outline" md="help-sharp"></ion-icon>
+                        <ion-label>Privacy policy</ion-label>
+                    </ion-item>
+                    <ion-item (click)="onLogout()" lines="none" detail="false">
+                        <ion-icon slot="start" ios="power-outline" md="power-sharp"></ion-icon>
+                        <ion-label>Logout</ion-label>
+                    </ion-item>
+                </ion-menu-toggle>
+            </ion-list>
+        </ion-content>
+    </ion-menu>
+    <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-split-pane>

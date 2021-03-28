@@ -136,6 +136,7 @@
                     </ion-list>
                 </ion-card-content>
             </ion-card>
+            <ion-button shape="round" expand="block" [disabled]="!form.valid" form="ngForm" (click)="bookingForm.ngSubmit.emit('create')">Submit</ion-button>
         </form>
     </ng-container>
     <ng-template #elseOption>
@@ -190,8 +191,8 @@
 
 </ion-content>
 
-<ion-footer class="ion-no-border">
+<!-- <ion-footer class="ion-no-border">
     <ion-toolbar>
         <ion-button shape="round" expand="block" [disabled]="!form.valid" form="ngForm" (click)="bookingForm.ngSubmit.emit('create')">Submit</ion-button>
     </ion-toolbar>
-</ion-footer>
+</ion-footer> -->

@@ -25,6 +25,8 @@ const { App } = Plugins;
   styleUrls: ['./pages.page.scss'],
 })
 export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild(IonRouterOutlet, { static : true }) routerOutlet: IonRouterOutlet;
+
   public user$: Observable<firebase.User>;
   public currenctBalance: number;
   public notifications$: Observable<Notifications[]>;
@@ -34,7 +36,6 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
   public isClient: boolean;
   public isPro: boolean;
   public isAdmin: boolean;
-  @ViewChild(IonRouterOutlet, { static : true }) routerOutlet: IonRouterOutlet;
   constructor(
     private router: Router,
     private http: HttpClient,
@@ -70,6 +71,24 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.getTransactions();
+
+      this.platform.backButton.subscribeWithPriority(10, (processNextHandler) => {
+        if (this.location.isCurrentPathEqualTo('/pages/dashboard')) {
+          // Show Exit Alert!
+          this.showExitConfirm();
+          processNextHandler();
+        } else {
+          this.loadingController.getTop().then(v => v ? this.loadingController.dismiss() : null);
+          // Navigate to back page
+          this.location.back();
+        }
+      });
+
+      this.platform.backButton.subscribeWithPriority(-1, () => {
+        if (!this.routerOutlet.canGoBack()) {
+          App.exitApp();
+        }
+      });
     });
   }
 
