@@ -224,7 +224,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   private setProfessionalBookingCollection(userId: string, collection: string, customId: string, payload: any) {
     this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
-      this.setNotificationData(userId);
+      this.setNotificationData(userId, payload);
     });
   }
 
@@ -237,20 +237,23 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setNotificationData(proId: string) {
-    const notificationData  = {
-      content: 'You have received an offer',
-      status: 'unread',
-      timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
-      type: 'booking'
-    };
+  private setNotificationData(proId: string, payload: any) {
+    this.userService.getOne(payload.userId).subscribe((userResponse) => {
+      const notificationData  = {
+        title: 'New Booking offer!',
+        content: 'You have received an offer from ' + userResponse.name.firstname + ' ' + userResponse.name.lastname,
+        status: 'unread',
+        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+        type: 'booking'
+      };
 
-    this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
-      // set sub collection notification
-      this.setNotiticationCollection(proId, 'notifications', notification.id, {});
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
+      this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
+        // set sub collection notification
+        this.setNotiticationCollection(proId, 'notifications', notification.id, {});
+      }, (error: any) => {
+        this.loadingController.dismiss();
+        this.presentAlert(error.code, error.message);
+      });
     });
   }
   /**
@@ -260,7 +263,8 @@ export class FormComponent implements OnInit, OnDestroy {
    * Set to my booking collections
    */
   onSubmit(event: string, form: FormGroupDirective) {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+    this.subs.sink = from(this.authService.getCurrentUser())
+    .subscribe((user) => {
       const bookingData  = {
         offers: this.offerItems,
         location: this.currentLocation,

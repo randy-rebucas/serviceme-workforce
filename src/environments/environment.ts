@@ -5,7 +5,8 @@
 export const environment = {
   production: false,
   googleMapsApiKey: 'AIzaSyDYjgsE7jfyoLg9Efc6cMP-bBczakfJeZM',
-  payPalClientId: 'AeGqI_BcI2FsmEYVBH0XL-zSsOkcj_Ncb_2Zzic48r_l8xysSoZEexVUIP13w3RE5jAKYtC0FxrsGFBf',
+  payPalProdClientId: 'AaDuaH-PFx9pvx_wAkKVXhUG1lFTJjpBf7Y7otcdph1k-_a0xsGgnxDWq3UT9i9W5LIghHp3342_CBjJ',
+  payPalSandBoxClientId: 'AfIFZALGkJdcXCWWuqnwD-Z1JtNBsf913-X5UilLBhkDijCi-t17tJjFkzS_JtM5112HLLuheKQ12Ho4',
   payPalEnv: 'PayPalEnvironmentProduction',
   commissionPercentage: 10,
   initialDeposit: 100,

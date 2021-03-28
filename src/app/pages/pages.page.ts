@@ -1,26 +1,35 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, IonRouterOutlet, LoadingController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { Plugins, Capacitor } from '@capacitor/core';
-import { from, Observable } from 'rxjs';
+import { from, Observable, Subject } from 'rxjs';
 import { SubSink } from 'subsink';
 import { AuthService } from '../auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { map, switchMap } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 import { Address } from './users/users';
 import { UsersService } from './users/users.service';
 import { ELocalNotificationTriggerUnit, LocalNotifications } from '@ionic-native/local-notifications/ngx';
 import firebase from 'firebase/app';
+import { NotificationsService } from './notifications/notifications.service';
+import { Notifications } from './notifications/notifications';
+import { BookingsService } from './bookings/bookings.service';
+import { TransactionsService } from './transactions/transactions.service';
+import { Coordinates } from './bookings/bookings';
 const { App } = Plugins;
 @Component({
   selector: 'app-pages',
   templateUrl: './pages.page.html',
   styleUrls: ['./pages.page.scss'],
 })
-export class PagesPage implements OnInit, OnDestroy {
+export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
   public user$: Observable<firebase.User>;
+  public currenctBalance: number;
+  public notifications$: Observable<Notifications[]>;
+  private notificationListener = new Subject<any>();
+  private transactionListener = new Subject<any>();
   public subs = new SubSink();
   public isClient: boolean;
   public isPro: boolean;
@@ -35,71 +44,65 @@ export class PagesPage implements OnInit, OnDestroy {
     private usersService: UsersService,
     private platform: Platform,
     private location: Location,
+    private notificationsService: NotificationsService,
     private localNotifications: LocalNotifications,
+    private transactionsService: TransactionsService,
+    private bookingsService: BookingsService
   ) {
     this.platform.ready().then(() => {
-      // var pushAppointments = [];
-
-      // pushAppointments.push({
-      //     id: id++,
-      //     title: translator.translate("Reminder appointment"),
-      //     at: at,
-      //     text: appointment.description + ": " + dateToShow,
-      //     icon: "res:///not_icon",
-      // })
-      // cordova.plugins.notification.local.schedule(pushAppointments);
-
-      this.localNotifications.schedule({
-        id: 1,
-        title: 'New Booking',
-        text: 'New booking waiting for you.', // + Date.now(),
-        data: { page: '/pages' },
-        trigger: { in: 5, unit: ELocalNotificationTriggerUnit.SECOND },
-        foreground: true,
-        // attachments: ['file://img/rb-leipzig.jpg'],
-        actions: [
-          { id: 'accept', title: 'Accept'},
-          { id: 'decline', title: 'Decline'}
-        ]
-      });
+      // get all new notifications
+      this.getNotifications();
 
       this.localNotifications.on('click').subscribe((res) => {
-        console.log(res);
-        // this.router.navigate(['/pages/notifications']);
-      });
-
-      this.localNotifications.on('trigger').subscribe((res) => {
-        console.log(res);
+        this.localNotifications.clear(res.id).then(() => {
+          this.router.navigate(['/pages/notifications']);
+        });
       });
 
       this.localNotifications.on('accept').subscribe((res) => {
-        console.log(res);
-        // actions: (2) [{…}, {…}]
-        // attachments: []
-        // autoClear: true
-        // data: {page: "/pages"}
-        // defaults: 0
-        // foreground: true
-        // groupSummary: false
-        // id: 1
-        // launch: true
-        // led: true
-        // lockscreen: true
-        // meta: {plugin: "cordova-plugin-local-notification", version: "0.9-beta.2"}
-        // number: 0
-        // priority: 1
-        // progressBar: {enabled: false, value: 0, maxValue: 100, indeterminate: false}
-        // showWhen: true
-        // silent: false
-        // smallIcon: "res://icon"
-        // sound: true
-        // text: "New booking waiting for you."
-        // title: "New Booking"
-        // trigger: {in: 5, unit: "second", type: "calendar"}
-        // vibrate: false
-        // wakeup: true
-        // this.router.navigate(['/pages/bills']);
+        // check wallet balance if greaterthan the offer continue else redirect payments
+        // this.subs.sink = from(this.bookingsService.update(res.data.refferenceId, { status: 'accepted' })).subscribe(() => {
+        //   this.bookingsService.setBookingStatus('');
+        //   this.router.navigate(['/pages']);
+        // }, (error: any) => {
+        //   this.presentAlert(error.code, error.message);
+        // });
       });
+
+      this.getTransactions();
+    });
+  }
+
+  getNotificationListener() {
+    return this.notificationListener.asObservable();
+  }
+
+  getTransactionListener() {
+    return this.transactionListener.asObservable();
+  }
+
+  getNotifications() {
+    from(this.authService.getCurrentUser()).pipe(
+      // get all notifications
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
+        // notifications response
+        mergeMap((notificationMap: any[]) => {
+          // merge collection
+          return from(notificationMap).pipe(
+            mergeMap((notificationSubCollection) => {
+              return this.notificationsService.getOne(notificationSubCollection.id).pipe(
+                // map to combine user notifications sub-collection to collection
+                map(notificationCollection => ({notificationSubCollection, notificationCollection})),
+                // filter by status
+                filter(notificationStatus => notificationStatus.notificationCollection.status === 'unread')
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        }),
+      ))
+    ).subscribe((notifications) => {
+      this.notificationListener.next(notifications);
     });
   }
 
@@ -132,10 +135,82 @@ export class PagesPage implements OnInit, OnDestroy {
       });
       this.getUserInfo(user.uid);
     });
+
+    this.getNotificationListener().subscribe((notifications) => {
+      for (const notification of notifications) {
+        this.scheduleNotification(notification.notificationCollection.title, notification.notificationCollection.content, notification);
+      }
+    });
+
+    // compute total transaction balances
+    this.subs.sink = this.getTransactionListener().subscribe((transactions) => {
+      let balance = 0;
+      transactions.forEach(transaction => {
+        balance += transaction.transactionSubCollection.balance;
+      });
+      // set current balance observable value
+      this.transactionsService.setBalance(balance);
+    });
   }
 
-  async showExitConfirm() {
-    const alert = await this.alertController.create({
+  getTransactions() {
+    from(this.authService.getCurrentUser()).pipe(
+      // get all transactions
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
+        // transactions response
+        mergeMap((transactionMap: any[]) => {
+          // merge collection
+          return from(transactionMap).pipe(
+            mergeMap((transactionSubCollection) => {
+              return this.transactionsService.getOne(transactionSubCollection.id.trim()).pipe(
+                // map to combine user transactions sub-collection to collection
+                map(transactionCollection => ({transactionSubCollection, transactionCollection})),
+                // filter by status
+                filter(bookingStatus => bookingStatus.transactionCollection.status === 'completed'),
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        }),
+      ))
+    ).subscribe((transactions) => {
+      this.transactionListener.next(transactions);
+    });
+  }
+
+  ngAfterViewInit() {
+    this.subs.sink = this.transactionsService.getBalance().subscribe((balance) => {
+      this.currenctBalance = balance;
+    });
+  }
+
+  scheduleNotification(notificationTitle: string, notificationText: string, data: any) {
+    const notificationActions = [];
+
+    this.bookingsService.getOne(data.notificationSubCollection.id).subscribe((r) => {
+      console.log(r);
+    });
+    // [
+    //   { id: 'accept', title: 'Accept'},
+    //   { id: 'decline', title: 'Decline'}
+    // ]
+    this.localNotifications.schedule({
+      id: Math.floor(Math.random() * 5),
+      title: notificationTitle,
+      text: notificationText,
+      data: {
+        page: '/pages/notifications',
+        refferenceId: data.notificationSubCollection.id
+      },
+      foreground: true,
+      vibrate: true,
+      // icon: "res:///not_icon",
+      actions: notificationActions
+    });
+  }
+
+  showExitConfirm() {
+    this.subs.sink = from(this.alertController.create({
       cssClass: 'my-custom-class',
       header: 'cutsonwheel close',
       message: 'Do you want to close the app?',
@@ -154,9 +229,9 @@ export class PagesPage implements OnInit, OnDestroy {
           }
         }
       ]
+    })).subscribe((alert) => {
+      alert.present();
     });
-
-    await alert.present();
   }
 
   private getUserInfo(userId: string) {
@@ -182,17 +257,21 @@ export class PagesPage implements OnInit, OnDestroy {
 
   private pointLocation(coordinates: any) {
     this.subs.sink = this.getAddress(coordinates.latitude, coordinates.longitude).subscribe(address => {
-      this.updateLocation(address);
+      this.updateLocation(address, coordinates);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
   }
 
-  private updateLocation(address: Address) {
+  private updateLocation(address: Address, coord: any) {
     const currentAddress = {
-        city: address.city, // 'Noveleta',
-        country: address.country, // 'Philippines',
-        state: address.state, // 'Cavite'
+        city: address.city,
+        country: address.country,
+        state: address.state,
+        coordinates: {
+          lat: coord.latitude,
+          lng: coord.longitude
+        }
     };
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {

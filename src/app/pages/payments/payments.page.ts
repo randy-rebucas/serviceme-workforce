@@ -15,10 +15,6 @@ import { environment } from 'src/environments/environment';
 import { Transactions } from '../transactions/transactions';
 import { Router } from '@angular/router';
 
-
-const payPalClientId = environment.payPalClientId;
-const payPalEnv = environment.payPalEnv;
-
 @Component({
   selector: 'app-payments',
   templateUrl: './payments.page.html',
@@ -161,7 +157,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   paypalPayment() {
     const amountValue = this.form.value.amount;
     const amount = amountValue.replace(/[^0-9.-]+/g, '');
-    const payment = new PayPalPayment(amount, this.defaultCurrency, this.shortDescription, 'sale');
+    const payment = new PayPalPayment('5', this.defaultCurrency, this.shortDescription, 'sale');
     this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
       // Example sandbox response
       //
@@ -188,7 +184,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   paypalRender() {
-    this.subs.sink = from(this.payPal.prepareToRender(payPalEnv, new PayPalConfiguration({
+    this.subs.sink = from(this.payPal.prepareToRender(environment.payPalEnv, new PayPalConfiguration({
       // Only needed if you get an "Internal Service Error" after PayPal login!
       // payPalShippingAddressOption: 2 // PayPalShippingAddressOptionPayPal
     }))).subscribe(() => {
@@ -201,8 +197,8 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
 
   doCashIn() {
     this.subs.sink = from(this.payPal.init({
-      PayPalEnvironmentProduction: payPalClientId,
-      PayPalEnvironmentSandbox: payPalClientId
+      PayPalEnvironmentProduction: environment.payPalProdClientId,
+      PayPalEnvironmentSandbox: environment.payPalSandBoxClientId
     })).subscribe(() => {
       this.paypalRender();
     }, (error: any) => {

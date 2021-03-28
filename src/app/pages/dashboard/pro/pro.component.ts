@@ -17,6 +17,7 @@ import { PaymentsService } from '../../payments/payments.service';
 import { CurrencyPipe, formatCurrency, getCurrencySymbol } from '@angular/common';
 import { environment } from 'src/environments/environment';
 import firebase from 'firebase/app';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Component({
   selector: 'app-pro',
@@ -25,9 +26,6 @@ import firebase from 'firebase/app';
 })
 export class ProComponent implements OnInit, OnDestroy {
   public bookings$: Observable<any[]>;
-  private bookingListener = new Subject<any>();
-
-  private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
   public serviceCharge: number;
   public currentBalance: number;
@@ -51,12 +49,12 @@ export class ProComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     private paymentsService: PaymentsService,
     private transactionsService: TransactionsService,
+    private notificationsService: NotificationsService,
     @Inject(LOCALE_ID) private locale: string
   ) {
     this.commissionPercentage = environment.commissionPercentage;
-    this.bookingStatus$ = new BehaviorSubject('pending');
 
-    this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
+    this.subs.sink = this.bookingsService.getBookingStatus().subscribe((bookingStatus) => {
       this.bookingStatus = bookingStatus;
     });
 
@@ -69,9 +67,6 @@ export class ProComponent implements OnInit, OnDestroy {
     });
   }
 
-  getBookingListener() {
-    return this.bookingListener.asObservable();
-  }
   // get user data to retrive names
   getUser(bookingDetail: any, subCollectionForiegnKeyId: string) {
     return this.usersService.getOne(subCollectionForiegnKeyId).pipe(
@@ -137,7 +132,7 @@ export class ProComponent implements OnInit, OnDestroy {
 
   // initialize
   initialized() {
-    this.subs.sink = this.bookingStatus$.pipe(
+    this.subs.sink = this.bookingsService.getBookingStatus().pipe(
       switchMap((status) => {
         return from(this.authService.getCurrentUser()).pipe(
           // get all bookings
@@ -145,7 +140,7 @@ export class ProComponent implements OnInit, OnDestroy {
         );
       })
     ).subscribe((bookings) => {
-      this.bookingListener.next(bookings);
+      this.bookingsService.setBookingListener(bookings);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
@@ -158,7 +153,7 @@ export class ProComponent implements OnInit, OnDestroy {
     this.initialized();
 
     // get booking listener from booking observables
-    this.bookings$ = this.getBookingListener();
+    this.bookings$ = this.bookingsService.getBookingListener();
 
     this.subs.sink = this.bookings$.subscribe((bookingItems) => {
       let sum = 0;
@@ -171,7 +166,6 @@ export class ProComponent implements OnInit, OnDestroy {
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
-
   }
 
   onCheckBalance(serviceCharge: number) {
@@ -210,15 +204,49 @@ export class ProComponent implements OnInit, OnDestroy {
 
   statusChanged(event: any) {
     // update status
-    this.bookingStatus$.next(event.detail.value);
+    this.bookingsService.setBookingStatus(event.detail.value);
+  }
+
+  private setSubCollection(userId: string, collection: string, customId: string, payload: any) {
+    return from(this.userService.setSubCollection(userId, collection, customId, payload ));
+  }
+
+  private setNotiticationCollection(userId: string, collection: string, customId: string, payload: any) {
+    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
+      this.bookingsService.setOffers([]);
+      this.presentAlert('Booking', 'Sevice offer was successfully accepted.');
+    });
+  }
+
+  private setNotificationData(clientId: string) {
+    from(this.authService.getCurrentUser()).pipe(
+      mergeMap((auhtUser) => {
+        return this.userService.getOne(auhtUser.uid);
+      }),
+    ).subscribe((userResponse) => {
+      const notificationData  = {
+        content: 'Booking accepted by ' + userResponse.name.firstname + ' ' + userResponse.name.lastname,
+        status: 'unread',
+        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+        type: 'booking'
+      };
+
+      this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
+        // set sub collection notification
+        this.setNotiticationCollection(clientId, 'notifications', notification.id, {});
+      }, (error: any) => {
+        this.presentAlert(error.code, error.message);
+      });
+    });
   }
 
   onAccept(booking: any, ionItemSliding: IonItemSliding) {
     const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
     this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
       this.initialized();
+      this.setNotificationData(booking.bookingDetail.booking.bookingSubCollection.userId);
       ionItemSliding.closeOpened();
-      this.bookingStatus$.next('');
+      this.bookingsService.setBookingStatus('');
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

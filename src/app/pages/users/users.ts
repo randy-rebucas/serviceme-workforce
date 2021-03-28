@@ -1,3 +1,5 @@
+import { Coordinates } from '../bookings/bookings';
+
 export interface Name {
     firstname: string;
     lastname: string;
@@ -11,6 +13,7 @@ export interface Address {
     address1?: string;
     address2?: string;
     postalCode?: string;
+    coordinates?: Coordinates;
 }
 
 export interface Roles {

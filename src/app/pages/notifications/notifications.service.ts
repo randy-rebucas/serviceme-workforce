@@ -65,7 +65,7 @@ export class NotificationsService {
     );
   }
 
-  insert(data: any): Promise<DocumentReference> {
+  insert(data: any) {
     return this.defaultCollection().add(data);
   }
 

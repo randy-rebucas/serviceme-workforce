@@ -20,6 +20,8 @@ const collection = 'bookings';
 export class BookingsService {
   private offerItems$ = new BehaviorSubject<Offers[]>([]);
   private booking$ = new BehaviorSubject<any>({});
+  private bookingListener$ = new BehaviorSubject<any>([]);
+  private bookingStatus$ = new BehaviorSubject<string>('pending');
 
   constructor(
     private angularFirestore: AngularFirestore
@@ -43,6 +45,22 @@ export class BookingsService {
 
   getBooking() {
     return this.booking$.asObservable();
+  }
+
+  getBookingListener() {
+    return this.bookingListener$.asObservable();
+  }
+
+  setBookingListener(booking: any[]) {
+    this.bookingListener$.next(booking);
+  }
+
+  setBookingStatus(status: string) {
+    this.bookingStatus$.next(status);
+  }
+
+  getBookingStatus() {
+    return this.bookingStatus$.asObservable();
   }
 
   private defaultCollection(): AngularFirestoreCollection<useClass> {
