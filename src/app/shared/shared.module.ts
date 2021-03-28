@@ -9,6 +9,7 @@ import { NumberToTimePipe } from './pipes/number-to-time.pipe';
 import { CounterPipe } from './pipes/counter.pipe';
 import { BookingCounterPipe } from './pipes/booking-counter.pipe';
 import { WeekDayPipe } from './pipes/week-day.pipe';
+import { MaskPipe } from './pipes/mask.pipe';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { WeekDayPipe } from './pipes/week-day.pipe';
     NumberToTimePipe,
     CounterPipe,
     BookingCounterPipe,
-    WeekDayPipe
+    WeekDayPipe,
+    MaskPipe
   ],
   imports: [
     CommonModule,
@@ -28,7 +30,8 @@ import { WeekDayPipe } from './pipes/week-day.pipe';
     NumberToTimePipe,
     CounterPipe,
     BookingCounterPipe,
-    WeekDayPipe
+    WeekDayPipe,
+    MaskPipe
   ],
   providers: [
     AndroidPermissions,

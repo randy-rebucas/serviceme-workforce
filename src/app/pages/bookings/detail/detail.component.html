@@ -32,9 +32,9 @@
                         </ng-template>
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ user.admin.user.email }}</h2>
-                        <p>{{ user.admin.user.phoneNumber }}</p>
-                        <p>{{ user.user.classification }}</p>
+                        <h2>{{ user.admin.user.email | mask:7:'--'}}</h2>
+                        <p>{{ user.admin.user.phoneNumber | mask:7:'XXXXX'}}</p>
+                        <p>Classification: <strong>{{ user.user.classification }}</strong></p>
                     </ion-label>
                     <ion-icon [name]="user.admin.user.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
                 </ion-item>

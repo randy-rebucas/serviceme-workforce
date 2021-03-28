@@ -84,50 +84,110 @@
             </ion-label>
         </ion-item>
     </ng-template>
-    <form [formGroup]="form" (ngSubmit)="onSubmit($event, bookingForm)" id="ngForm" #bookingForm="ngForm" class="booking-form">
-        <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
-            <ion-card-header>
-                <ion-card-subtitle>All fields are required!</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-                <ion-list class="ion-no-margin ion-no-padding">
-                    <ion-item>
-                        <ion-label position="fixed">Total charges</ion-label>
-                        <ion-input readonly class="ion-text-right" [value]="totalCharges | currency:defaultCurrency:'symbol-narrow'"></ion-input>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Start Date</ion-label>
-                        <ion-datetime formControlName="scheduleDate" [value]="currentDate.toISOString()" [min]="currentDate.toISOString()" [max]="maxDate.toISOString()"></ion-datetime>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.scheduleDate.errors && formCtrls.scheduleDate.touched">
-                        <ion-label *ngIf="formCtrls.scheduleDate.errors.required">
-                            <ion-note color="danger">Date is required!</ion-note>
+    <ion-segment value="form" (ionChange)="optionChanged($event)">
+        <ion-segment-button value="form">
+            <ion-label>Form</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="bookings">
+            <ion-label>Active Bookings</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+    <ng-container *ngIf="option === 'form'; else elseOption">
+        <form [formGroup]="form" (ngSubmit)="onSubmit($event, bookingForm)" id="ngForm" #bookingForm="ngForm" class="booking-form">
+            <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
+                <ion-card-header>
+                    <ion-card-subtitle>All fields are required!</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                    <ion-list class="ion-no-margin ion-no-padding">
+                        <ion-item>
+                            <ion-label position="fixed">Total charges</ion-label>
+                            <ion-input readonly class="ion-text-right" [value]="totalCharges | currency:defaultCurrency:'symbol-narrow'"></ion-input>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="floating">Start Date</ion-label>
+                            <ion-datetime formControlName="scheduleDate" [value]="currentDate.toISOString()" [min]="currentDate.toISOString()" [max]="maxDate.toISOString()"></ion-datetime>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formCtrls.scheduleDate.errors && formCtrls.scheduleDate.touched">
+                            <ion-label *ngIf="formCtrls.scheduleDate.errors.required">
+                                <ion-note color="danger">Date is required!</ion-note>
+                            </ion-label>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="floating">Start Time (15 min steps)</ion-label>
+                            <ion-datetime formControlName="scheduleTime" display-format="h:mm A" (ionChange)="checkAvailability($event)" picker-format="h:mm A" minuteValues="0,15,30,45" [value]="currentDate.toISOString()"></ion-datetime>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formCtrls.scheduleTime.errors && formCtrls.scheduleTime.touched">
+                            <ion-label *ngIf="formCtrls.scheduleTime.errors.required">
+                                <ion-note color="danger">Time is required!</ion-note>
+                            </ion-label>
+                        </ion-item>
+                        <ion-item>
+                            <ion-label position="floating">Notes</ion-label>
+                            <ion-textarea rows="3" formControlName="notes"></ion-textarea>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label class="ion-text-wrap">
+                                <p>(Check the box to use Current Address)</p>
+                                <h2>{{currentLocation}}</h2>
+                            </ion-label>
+                            <ion-checkbox slot="end" [checked]="locationOption$ | async" (ionChange)="onPickAddress($event)"></ion-checkbox>
+                        </ion-item>
+                    </ion-list>
+                </ion-card-content>
+            </ion-card>
+        </form>
+    </ng-container>
+    <ng-template #elseOption>
+        <ng-container *ngIf="bookings$ | async; let bookings; else loadingBookings">
+            <ion-list>
+                <ion-item lines="none" *ngFor="let booking of bookings" button>
+                    <ion-avatar slot="start">
+                        <ng-container *ngIf="booking.bookingDetail.admin.user.photoURL; else elseDummy">
+                            <img [src]="booking.bookingDetail.admin.user.photoURL" />
+                        </ng-container>
+                        <ng-template #elseDummy>
+                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                        </ng-template>
+                    </ion-avatar>
+                    <ion-label class="ion-text-wrap">
+                        <h2>{{ (booking.usersCollection.name.firstname + ' ' + booking.usersCollection.name.lastname) | titlecase }}</h2>
+                        <p>{{ booking.bookingDetail.booking.bookingCollection.location }}</p>
+                        <p [ngClass]="{'today': (booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date) === (currentDate | date)}">{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }}</p>
+                    </ion-label>
+                    <!-- <ion-note slot="end" [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</ion-note> -->
+                    <!-- <ion-icon [name]="booking.usersCollection.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon> -->
+                </ion-item>
+            </ion-list>
+        </ng-container>
+        <ng-template #loadingBookings>
+            <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7]">
+                <ion-avatar slot="start">
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-avatar>
+                <ion-label>
+                    <h3>
+                        <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                    </h3>
+                    <ion-chip outline>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
                         </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Start Time (15 min steps)</ion-label>
-                        <ion-datetime formControlName="scheduleTime" display-format="h:mm A" picker-format="h:mm A" [value]="currentDate.toISOString()"></ion-datetime>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.scheduleTime.errors && formCtrls.scheduleTime.touched">
-                        <ion-label *ngIf="formCtrls.scheduleTime.errors.required">
-                            <ion-note color="danger">Time is required!</ion-note>
+                    </ion-chip>
+                    <ion-chip outline>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
                         </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Notes</ion-label>
-                        <ion-textarea rows="3" formControlName="notes"></ion-textarea>
-                    </ion-item>
-                    <ion-item lines="none">
-                        <ion-label class="ion-text-wrap">
-                            <p>(Check the box to use Current Address)</p>
-                            <h2>{{currentLocation}}</h2>
-                        </ion-label>
-                        <ion-checkbox slot="end" [checked]="locationOption$ | async" (ionChange)="onPickAddress($event)"></ion-checkbox>
-                    </ion-item>
-                </ion-list>
-            </ion-card-content>
-        </ion-card>
-    </form>
+                    </ion-chip>
+                </ion-label>
+            </ion-item>
+        </ng-template>
+        <div id="container" class="ion-text-center" *ngIf="(bookings$ | async)?.length === 0 ">
+            <p>No booking(s) found! Available anytime.</p>
+        </div>
+    </ng-template>
+
+
 </ion-content>
 
 <ion-footer class="ion-no-border">

@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Plugins, Capacitor } from '@capacitor/core';
 
 import { BehaviorSubject, from, Observable } from 'rxjs';
-import { find, map, switchMap } from 'rxjs/operators';
+import { filter, find, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { SettingsService } from '../../settings/settings.service';
@@ -20,6 +20,7 @@ import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
 import { DocumentReference } from '@angular/fire/firestore';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -30,8 +31,10 @@ export class FormComponent implements OnInit, OnDestroy {
   public title: string;
   public state: boolean;
   public currentLocation: any;
+  public option: string;
   private proId: string;
   private coord: object;
+  public bookings$: Observable<any[]>;
   public locationOption$: BehaviorSubject<boolean>;
   public offerItems$: Observable<Offers[]>;
   public offerItems: Offers[];
@@ -50,6 +53,7 @@ export class FormComponent implements OnInit, OnDestroy {
     private bookingsService: BookingsService,
     private authService: AuthService,
     private userService: UsersService,
+    private adminFunctionService: AdminFunctionService,
     private settingsService: SettingsService,
     private notificationsService: NotificationsService,
     private titlecasePipe: TitleCasePipe,
@@ -66,6 +70,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.totalCharges = 0;
     this.locationOption$ = new BehaviorSubject(false);
 
+    this.option = 'form';
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
@@ -79,7 +84,6 @@ export class FormComponent implements OnInit, OnDestroy {
 
   getTotal() {
     this.subs.sink = this.offerItems$.subscribe((offerItems) => {
-      console.log(offerItems);
       if (offerItems.length === 0) {
         this.onDismiss(true);
       }
@@ -119,6 +123,11 @@ export class FormComponent implements OnInit, OnDestroy {
       }),
       notes: new FormControl(null)
     });
+
+    this.initializedBookings();
+
+    // get booking listener from booking observables
+    this.bookings$ = this.bookingsService.getBookingListener();
   }
 
   get formCtrls() { return this.form.controls; }
@@ -285,6 +294,15 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
+  checkAvailability(event: any) {
+    // 2021-03-28T10:00:58.073+08:00
+    console.log(event.detail.value);
+  }
+
+  optionChanged(event: any) {
+    this.option = event.detail.value;
+  }
+
   increaseQuantity(selectedOffer: Offers) {
     from(this.offerItems$).pipe(
       map(offers => offers.find(offer => offer.id === selectedOffer.id))
@@ -320,6 +338,78 @@ export class FormComponent implements OnInit, OnDestroy {
   onDismiss(state: boolean) {
     this.modalController.dismiss({
       dismissed: state
+    });
+  }
+
+  // get user data to retrive names
+  getUser(bookingDetail: any, subCollectionForiegnKeyId: string) {
+    return this.userService.getOne(subCollectionForiegnKeyId).pipe(
+      map(usersCollection => ({ usersCollection, bookingDetail })),
+    );
+  }
+  // get auth user data to retrive photoUrl
+  getAuthUser(booking) {
+    return this.adminFunctionService.getById(booking.bookingSubCollection.userId).pipe(
+      map(admin => ({ booking, admin })),
+      // merge user collection to get common user intity object
+      mergeMap((bookingDetail) => {
+        return this.getUser(bookingDetail, booking.bookingSubCollection.userId);
+      })
+    );
+  }
+  // get sub collections
+  getSubCollectionDocument(bookingSubCollection: any, status: string) {
+    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
+      // map to combine user booking sub-collection to collection
+      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
+      // filter by status
+      filter(bookingStatus => bookingStatus.bookingCollection.status === status),
+      // merge the user auth data to get firebase.User object
+      mergeMap((booking) => {
+        return this.getAuthUser(booking);
+      })
+    );
+  }
+
+  getUnfilteredSubCollectionDocument(bookingSubCollection: any) {
+    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
+      // map to combine user booking sub-collection to collection
+      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
+      // merge the user auth data to get firebase.User object
+      mergeMap((booking) => {
+        return this.getAuthUser(booking);
+      })
+    );
+  }
+
+  // get Main Collection {bookings}
+  getCollection(booking: any[], status: string) {
+    return from(booking).pipe(
+      mergeMap((bookingSubCollection) => {
+        return (status !== '') ?
+        this.getSubCollectionDocument(bookingSubCollection, status) :
+        this.getUnfilteredSubCollectionDocument(bookingSubCollection);
+      }),
+      reduce((a, i) => [...a, i], [])
+    );
+  }
+
+  // get all sub collection bookings from user perspective
+  getSubCollection(documentRef: string, collectionRef: string, status: string) {
+    return this.userService.getSubCollection(documentRef, collectionRef).pipe(
+      // bookings response
+      mergeMap((bookingMap: any[]) => {
+        return this.getCollection(bookingMap, status);
+      })
+    );
+  }
+
+  // initialize
+  initializedBookings() {
+    this.getSubCollection(this.proId, 'bookings', 'accepted').subscribe((bookings) => {
+      this.bookingsService.setBookingListener(bookings);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 
