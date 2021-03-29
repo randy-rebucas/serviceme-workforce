@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.mob.cutsonwheel;
 
 import android.os.Bundle;
 

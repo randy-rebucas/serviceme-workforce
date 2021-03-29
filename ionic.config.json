@@ -1,7 +1,7 @@
 {
-  "name": "service-client",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular"
+    "name": "cutsonwheel",
+    "integrations": {
+        "capacitor": {}
+    },
+    "type": "angular"
 }

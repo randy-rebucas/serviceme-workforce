@@ -1,13 +1,13 @@
 {
-  "appId": "io.ionic.starter",
-  "appName": "service-client",
-  "bundledWebRuntime": false,
-  "npmClient": "npm",
-  "webDir": "www",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 0
-    }
-  },
-  "cordova": {}
+    "appId": "com.mob.cutsonwheel",
+    "appName": "cutsonwheel",
+    "bundledWebRuntime": false,
+    "npmClient": "npm",
+    "webDir": "www",
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 0
+        }
+    },
+    "cordova": {}
 }
