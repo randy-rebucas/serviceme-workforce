@@ -10,16 +10,6 @@ ion-header {
 }
 
 ion-content {
-    ion-card {
-        ion-item {
-            ion-label {
-                text-align: center;
-            }
-        }
-        ion-card-content {
-            padding-top: 0;
-        }
-    }
     ion-list {
         ion-item-sliding {
             ion-item {
@@ -59,6 +49,15 @@ ion-content {
             font-size: 50px;
             color: var(--ion-color-medium-shade);
             --ionicon-stroke-width: 16px;
+        }
+    }
+}
+
+ion-footer {
+    ion-toolbar {
+        ion-title {
+            font-size: 16px !important;
+            font-weight: normal;
         }
     }
 }

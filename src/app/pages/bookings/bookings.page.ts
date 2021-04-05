@@ -222,44 +222,6 @@ export class BookingsPage implements OnInit, OnDestroy {
 
   onChange(event: CustomEvent) {
     const searchKey = event.detail.value;
-
-    // this.authService.getUserState().pipe(
-    //   switchMap(
-    //     (user) =>
-    //     this.usersService.getSubCollection(user.uid, 'bookings').pipe(
-    //       map((bookings) => {
-    //         if (!searchKey) {
-    //           return bookings;
-    //         }
-    //         return bookings.filter((booking: any) => {
-    //           return booking.bookingId.toLowerCase().includes(searchKey);
-    //         });
-    //       }),
-    //       // bookings response
-    //       mergeMap((bookingMap: any[]) => {
-    //         return from(bookingMap).pipe(
-    //           // merge join collections bookings
-    //           mergeMap((bookingInfo) => {
-    //             return this.bookingsService.getOne(bookingInfo.bookingId).pipe(
-    //               // merge profissional user collections
-    //               mergeMap((booking) => {
-    //                 return this.usersService.getOne(booking.professionalId).pipe(
-    //                   map(profissional => ({ booking, profissional })),
-    //                 );
-    //               }),
-    //               reduce((a, i) => [...a, i], [])
-    //             );
-    //           }),
-    //         );
-    //       })
-    //     )
-    //   )
-    // ).subscribe((bookings) => {
-    //   console.log(bookings);
-    //   this.bookingListener.next(bookings);
-    // }, (error: any) => {
-    //   this.presentAlert(error.code, error.message);
-    // });
   }
 
   onClear() {

@@ -41,6 +41,7 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
@@ -76,6 +77,7 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
           ))
         )
       )
+    // tslint:disable-next-line: deprecation
     ).subscribe((transactions) => {
       this.transactionListener.next(transactions);
     });
@@ -84,6 +86,7 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
     this.transactions$ = this.getTransactionListener();
 
     // compute total transaction balances
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.transactions$).subscribe((transactions) => {
       let balance = 0;
       transactions.forEach(transaction => {

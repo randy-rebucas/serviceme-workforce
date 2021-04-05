@@ -227,6 +227,7 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   private setNotiticationCollection(userId: string, collection: string, customId: string, payload: any) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
       this.bookingsService.setOffers([]);
       this.presentAlert('Booking', 'Sevice offer was successfully accepted.');

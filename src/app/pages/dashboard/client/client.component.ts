@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 
-import { from, Observable, of, Subject} from 'rxjs';
-import { map, mergeMap, reduce } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable, of, Subject} from 'rxjs';
+import { map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 import { UsersService } from '../../users/users.service';
@@ -17,6 +17,7 @@ import { SubSink } from 'subsink';
 export class ClientComponent implements OnInit, OnDestroy {
   public users$: Observable<any>;
   private userUpdated = new Subject<any[]>();
+  private searchKey$: BehaviorSubject<string|null>;
   private subs = new SubSink();
 
   constructor(
@@ -25,24 +26,36 @@ export class ClientComponent implements OnInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
     private usersService: UsersService,
     private adminFunctionService: AdminFunctionService,
-  ) { }
+  ) {
+    this.searchKey$ = new BehaviorSubject(null);
+  }
 
   getUserListener() {
     return this.userUpdated.asObservable();
   }
 
   initialized() {
-    this.subs.sink = this.usersService.getAll().pipe(
-      mergeMap((usersMerge) => {
-        return from(usersMerge).pipe(
-          mergeMap((user) => {
-            return this.adminFunctionService.getById(user.id).pipe(
-              map(admin => ({ user, admin })),
-            );
-          }),
-          reduce((a, i) => [...a, i], [])
-        );
-      })
+    this.subs.sink = this.searchKey$.pipe(
+      switchMap(searchKey => this.usersService.getAll().pipe(
+        map((users) => {
+          if (!searchKey) {
+            return users;
+          }
+          return users.filter((filterUser) => {
+            return filterUser.name.firstname.toLowerCase().includes(searchKey);
+          });
+        }),
+        mergeMap((usersMerge) => {
+          return from(usersMerge).pipe(
+            mergeMap((user) => {
+              return this.adminFunctionService.getById(user.id).pipe(
+                map(admin => ({ user, admin })),
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        })
+      ))
     // tslint:disable-next-line: deprecation
     ).subscribe((users) => {
       const formatedUser = [];
@@ -50,13 +63,11 @@ export class ClientComponent implements OnInit, OnDestroy {
         formatedUser.push({...user.user, ...user.admin.user});
       });
       this.preFormedUser(formatedUser);
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
     });
   }
 
   preFormedUser(formatedUser: any[]) {
-    of(formatedUser).pipe(
+    this.subs.sink = of(formatedUser).pipe(
       map(users => users.filter(userClaims => userClaims.customClaims.pro === true)),
     // tslint:disable-next-line: deprecation
     ).subscribe((users) => {
@@ -74,36 +85,7 @@ export class ClientComponent implements OnInit, OnDestroy {
   }
 
   onChange(event: any) {
-    const searchKey = event.detail.value;
-    this.subs.sink = this.usersService.getAll().pipe(
-      map((users) => {
-        if (!searchKey) {
-          return users;
-        }
-        return users.filter((filterUser) => {
-          return filterUser.name.lastname.toLowerCase().includes(searchKey);
-        });
-      }),
-      mergeMap((usersMerge) => {
-        return from(usersMerge).pipe(
-          mergeMap((user) => {
-            return this.adminFunctionService.getById(user.id).pipe(
-              map(admin => ({ user, admin })),
-            );
-          }),
-          reduce((a, i) => [...a, i], [])
-        );
-      })
-    // tslint:disable-next-line: deprecation
-    ).subscribe((users) => {
-      const formatedUser = [];
-      users.forEach(user => {
-        formatedUser.push({...user.user, ...user.admin.user});
-      });
-      this.preFormedUser(formatedUser);
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
+    this.searchKey$.next(event.detail.value);
   }
 
   onDeail(userDetail: any, ionItemSliding: IonItemSliding) {

@@ -25,14 +25,6 @@
             <ion-title size="large">Transactions</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ion-card class="wallet ion-margin-bottom" *ngIf="status === 'completed'">
-        <ion-item lines="none">
-            <ion-label>Wallet Balance</ion-label>
-        </ion-item>
-        <ion-card-content class="ion-text-center">
-            <h1>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</h1>
-        </ion-card-content>
-    </ion-card>
     <ng-container *ngIf="transactions$ | async; let transactions; else loadingTransactions">
         <ion-list>
             <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
@@ -66,3 +58,11 @@
         </ion-item>
     </ng-template>
 </ion-content>
+
+<ion-footer *ngIf="status === 'completed'">
+    <ion-toolbar>
+        <ion-title>
+            Wallet Balance: <strong>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</strong>
+        </ion-title>
+    </ion-toolbar>
+</ion-footer>
