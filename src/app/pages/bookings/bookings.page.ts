@@ -165,6 +165,7 @@ export class BookingsPage implements OnInit, OnDestroy {
   onDelete(booking: Bookings, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.loadingController.create({
       message: 'Deleting...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doDelete(booking.id, ionItemSliding);
@@ -270,6 +271,7 @@ export class BookingsPage implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });
