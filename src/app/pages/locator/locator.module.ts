@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
-
+import { Clipboard } from '@ionic-native/clipboard/ngx';
 import { LocatorPageRoutingModule } from './locator-routing.module';
 
 import { LocatorPage } from './locator.page';
@@ -15,6 +15,9 @@ import { LocatorPage } from './locator.page';
     IonicModule,
     LocatorPageRoutingModule
   ],
-  declarations: [LocatorPage]
+  declarations: [LocatorPage],
+  providers: [
+    Clipboard
+  ]
 })
 export class LocatorPageModule {}

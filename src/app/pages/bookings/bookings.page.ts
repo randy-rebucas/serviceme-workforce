@@ -140,7 +140,7 @@ export class BookingsPage implements OnInit, OnDestroy {
       bookings.forEach(booking => {
         formatedBooking.push({
           bookingDetails: {...booking.bookingDetail.booking.bookingCollection, ...booking.bookingDetail.booking.bookingSubCollection},
-          proDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
+          userDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
         });
       });
       this.bookingListener.next(formatedBooking);

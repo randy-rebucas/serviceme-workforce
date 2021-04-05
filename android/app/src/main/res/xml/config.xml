@@ -10,6 +10,10 @@
     <param name="android-package" value="com.paypal.cordova.sdk.PayPalMobileCordovaPlugin"/>
   </feature>
 
+  <feature name="Clipboard">
+    <param name="android-package" value="com.verso.cordova.clipboard.Clipboard"/>
+  </feature>
+
   <feature name="Permissions">
     <param name="android-package" value="com.android.plugins.Permissions"/>
   </feature>

@@ -22,7 +22,7 @@
             <ion-card-header>
                 <ion-card-subtitle>Scheduled: {{booking.bookingData.scheduleDate.toDate() | date:'mediumDate'}} - {{booking.bookingData.scheduleTime.toDate() | date:'shortTime'}} : ({{booking.bookingData.status}})
                 </ion-card-subtitle>
-                <ion-card-title>{{ (booking.proDetails.name.firstname + ' ' + booking.proDetails.name.lastname) | titlecase }} - <small>{{ booking.proDetails.classification }}</small></ion-card-title>
+                <ion-card-title>{{ (booking.userDetail.name.firstname + ' ' + booking.userDetail.name.lastname) | titlecase }} - <small>{{ booking.userDetail.classification }}</small></ion-card-title>
             </ion-card-header>
             <ion-card-content>
                 {{ booking.bookingData.location }}

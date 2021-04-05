@@ -6,7 +6,7 @@ import { Plugins, Capacitor } from '@capacitor/core';
 import { BehaviorSubject, from } from 'rxjs';
 import { SubSink } from 'subsink';
 import { environment } from 'src/environments/environment';
-
+import { Clipboard } from '@ionic-native/clipboard/ngx';
 import { BookingsService } from '../bookings/bookings.service';
 import { Coordinates } from '../bookings/bookings';
 declare var google;
@@ -45,6 +45,7 @@ export class LocatorPage implements OnInit, OnDestroy {
     private bookingService: BookingsService,
     private renderer: Renderer2,
     private platform: Platform,
+    private clipboard: Clipboard,
     private router: Router
   ) {
     this.isStart = false;
@@ -191,6 +192,10 @@ export class LocatorPage implements OnInit, OnDestroy {
     })).subscribe(alertEl => {
         alertEl.present();
     });
+  }
+
+  onCopy() {
+    this.clipboard.copy(this.location);
   }
 
   ngOnDestroy() {

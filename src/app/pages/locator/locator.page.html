@@ -17,12 +17,15 @@
         <ion-label>
             {{location}}
         </ion-label>
-        <ion-button slot="end" *ngIf="!isStart" (click)="onStartLocate()">
+        <ion-button slot="end" (click)="onCopy()">
+            Copy
+        </ion-button>
+        <!-- <ion-button slot="end" *ngIf="!isStart" (click)="onStartLocate()">
             Start
         </ion-button>
         <ion-button slot="end" *ngIf="isStart" (click)="onStopLocate()">
             Stop
-        </ion-button>
+        </ion-button> -->
     </ion-item>
     <div class="map" id="map" #map></div>
 </ion-content>

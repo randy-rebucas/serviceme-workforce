@@ -61,7 +61,7 @@ export class PreviewComponent implements OnInit, OnDestroy {
     this.booking$ = of(this.navParams.data.bookingData).pipe(
       mergeMap((bookingData) => {
         return this.usersService.getOne(bookingData.userId).pipe(
-          map(proDetails => ({ bookingData, proDetails })),
+          map(userDetail => ({ bookingData, userDetail })),
         );
       })
     );

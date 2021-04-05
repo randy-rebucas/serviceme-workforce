@@ -65,7 +65,6 @@ export class ProComponent implements OnInit, OnDestroy {
 
     // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookingsService.getBookingStatus().subscribe((bookingStatus) => {
-      console.log(bookingStatus);
       this.bookingStatus = bookingStatus;
     });
 
@@ -145,14 +144,14 @@ export class ProComponent implements OnInit, OnDestroy {
       })
     // tslint:disable-next-line: deprecation
     ).subscribe((bookings) => {
+      console.log(bookings);
       const formatedBooking = [];
       bookings.forEach(booking => {
         formatedBooking.push({
           bookingDetails: {...booking.bookingDetail.booking.bookingCollection, ...booking.bookingDetail.booking.bookingSubCollection},
-          clientDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
+          userDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
         });
       });
-      console.log(formatedBooking);
       this.bookingsService.setBookingListener(formatedBooking);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
@@ -339,6 +338,9 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   onPreview(booking: any, ionItemSliding: IonItemSliding) {
+    console.log(booking);
+    // bookingDetails: {offers: Array(1), coordinates: {…}, status: "completed", notes: "try", charges: 420, …}
+    // clientDetail: {gender: "female", roles: {…}, address: {…}, name: {…}, uid: "QzPARCd9ZrMCY8FnGXu7yYnSnIN2", …}
     this.subs.sink = from(this.modalController.create({
       component: PreviewComponent,
       componentProps: {

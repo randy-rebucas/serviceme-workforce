@@ -29,15 +29,15 @@
             <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
                 <ion-item lines="none" button>
                     <ion-avatar slot="start">
-                        <ng-container *ngIf="booking.proDetail.photoURL; else elseDummy">
-                            <img [src]="booking.proDetail.photoURL" />
+                        <ng-container *ngIf="booking.userDetail.photoURL; else elseDummy">
+                            <img [src]="booking.userDetail.photoURL" />
                         </ng-container>
                         <ng-template #elseDummy>
                             <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
                         </ng-template>
                     </ion-avatar>
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ (booking.proDetail.name.firstname + ' ' + booking.proDetail.name.lastname) | titlecase }}</h2>
+                        <h2>{{ (booking.userDetail.name.firstname + ' ' + booking.userDetail.name.lastname) | titlecase }}</h2>
                         <!-- <p>{{ booking.bookingDetails.location }}</p> -->
                         <p>{{ booking.bookingDetails.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetails.scheduleTime.toDate() | date:'shortTime' }}
                             <span [ngClass]="booking.bookingDetails.status">{{ booking.bookingDetails.status | uppercase }}</span></p>
