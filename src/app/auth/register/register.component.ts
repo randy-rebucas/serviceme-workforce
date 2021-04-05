@@ -1,14 +1,17 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController } from '@ionic/angular';
+
 import { BehaviorSubject, from } from 'rxjs';
-import { SubSink } from 'subsink';
+
 import { AuthService } from '../auth.service';
-import firebase from 'firebase/app';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 import { TransactionsService } from 'src/app/pages/transactions/transactions.service';
 import { UsersService } from 'src/app/pages/users/users.service';
+
+import { SubSink } from 'subsink';
 import { environment } from 'src/environments/environment';
+import firebase from 'firebase/app';
 
 @Component({
   selector: 'app-register',
@@ -28,8 +31,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     private alertController: AlertController,
     private authService: AuthService,
     private transactionsService: TransactionsService,
-    private userService: UsersService,
-    private adminFunctionService: AdminFunctionService
+    private userService: UsersService
   ) {
     this.isChecked = false;
     this.enableSigningBonus = environment.enableSigningBonus;
@@ -37,6 +39,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // tslint:disable-next-line: deprecation
     this.selectedType$.subscribe((selectedType) => {
       this.selectedType = selectedType;
     });
@@ -107,6 +110,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   setSubCollection(user: firebase.User, transaction: any, amount: number) {
     this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: Number(amount) }))
+    // tslint:disable-next-line: deprecation
     .subscribe(() => {
       this.loadingController.dismiss();
       this.form.reset();
@@ -116,6 +120,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const transactionData  = {
         amount: Number(amount),
@@ -127,7 +132,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
         type: 'payment'
       };
 
-      this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
+      // tslint:disable-next-line: deprecation
+      this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
         this.setSubCollection(user, transaction, amount);
       }, (error: any) => {
         this.loadingController.dismiss();
@@ -137,14 +143,17 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   sendEmailVerification(userCredential: firebase.auth.UserCredential) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(userCredential.user.sendEmailVerification()).subscribe(() => {
       this.loadingController.dismiss();
+      if (this.enableSigningBonus) {
+        if (this.selectedType === 'pro') {
+          const referenceId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+          this.setTransactionData(100, referenceId, new Date(), 'completed');
+        }
+      }
       // tslint:disable-next-line: max-line-length
       this.presentAlert('Verify your email', 'One last step to continue your registration. Check ou email and click on the link to verify.');
-      if (this.enableSigningBonus) {
-        const referenceId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
-        this.setTransactionData(100, referenceId, new Date(), 'completed');
-      }
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
@@ -152,6 +161,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   setCustomClaims(userCredential: firebase.auth.UserCredential) {
+    // tslint:disable-next-line: deprecation
     this.authService.setCustomClaims(userCredential.user.email, this.selectedType).subscribe(() => {
       this.sendEmailVerification(userCredential);
     }, (error: any) => {
@@ -166,13 +176,10 @@ export class RegisterComponent implements OnInit, OnDestroy {
         firstname: this.form.value.firstname,
         lastname: this.form.value.lastname,
         middlename: null
-      },
-      roles: {
-        pro: (this.selectedType === 'pro') ? true : false,
-        client: (this.selectedType === 'client') ? true : false
       }
     };
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.setUserData(userCredential.user.uid, userData)).subscribe(() => {
       this.setCustomClaims(userCredential);
     }, (error: any) => {
@@ -182,6 +189,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   doSignup(email: string, password: string) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.signUpWithEmail( email, password )).subscribe((signupResponse) => {
       this.setUserData(signupResponse);
     }, (error: any) => {
@@ -194,6 +202,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.subs.sink = from(this.loadingController
     .create({
       message: 'Please wait...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doSignup(this.form.value.email, this.form.value.password);
@@ -215,6 +224,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

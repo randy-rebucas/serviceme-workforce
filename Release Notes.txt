@@ -1,0 +1,8 @@
+Release 2
+    Bug fixed
+        [Client]
+            dashboard
+            notifications
+            transactions
+            my bookings
+                details

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 
-import { from, Observable, Subject} from 'rxjs';
+import { from, Observable, of, Subject} from 'rxjs';
 import { map, mergeMap, reduce } from 'rxjs/operators';
 
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
@@ -33,11 +33,6 @@ export class ClientComponent implements OnInit, OnDestroy {
 
   initialized() {
     this.subs.sink = this.usersService.getAll().pipe(
-      map((users) => {
-        return users.filter((usersList) => {
-          return usersList.roles.pro === true;
-        });
-      }),
       mergeMap((usersMerge) => {
         return from(usersMerge).pipe(
           mergeMap((user) => {
@@ -48,10 +43,24 @@ export class ClientComponent implements OnInit, OnDestroy {
           reduce((a, i) => [...a, i], [])
         );
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((users) => {
-      this.userUpdated.next(users);
+      const formatedUser = [];
+      users.forEach(user => {
+        formatedUser.push({...user.user, ...user.admin.user});
+      });
+      this.preFormedUser(formatedUser);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
+    });
+  }
+
+  preFormedUser(formatedUser: any[]) {
+    of(formatedUser).pipe(
+      map(users => users.filter(userClaims => userClaims.customClaims.pro === true)),
+    // tslint:disable-next-line: deprecation
+    ).subscribe((users) => {
+      this.userUpdated.next(users);
     });
   }
 
@@ -67,11 +76,6 @@ export class ClientComponent implements OnInit, OnDestroy {
   onChange(event: any) {
     const searchKey = event.detail.value;
     this.subs.sink = this.usersService.getAll().pipe(
-      map((users) => {
-        return users.filter((usersList) => {
-          return usersList.roles.pro === true;
-        });
-      }),
       map((users) => {
         if (!searchKey) {
           return users;
@@ -90,8 +94,13 @@ export class ClientComponent implements OnInit, OnDestroy {
           reduce((a, i) => [...a, i], [])
         );
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((users) => {
-      this.userUpdated.next(users);
+      const formatedUser = [];
+      users.forEach(user => {
+        formatedUser.push({...user.user, ...user.admin.user});
+      });
+      this.preFormedUser(formatedUser);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
@@ -107,6 +116,7 @@ export class ClientComponent implements OnInit, OnDestroy {
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();
@@ -118,6 +128,7 @@ export class ClientComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

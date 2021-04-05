@@ -10,10 +10,12 @@ import { CounterPipe } from './pipes/counter.pipe';
 import { BookingCounterPipe } from './pipes/booking-counter.pipe';
 import { WeekDayPipe } from './pipes/week-day.pipe';
 import { MaskPipe } from './pipes/mask.pipe';
+import { AvatarComponent } from './components/avatar/avatar.component';
 
 @NgModule({
   declarations: [
     ListItemComponent,
+    AvatarComponent,
     NumberToTimePipe,
     CounterPipe,
     BookingCounterPipe,
@@ -27,6 +29,7 @@ import { MaskPipe } from './pipes/mask.pipe';
   ],
   exports: [
     ListItemComponent,
+    AvatarComponent,
     NumberToTimePipe,
     CounterPipe,
     BookingCounterPipe,

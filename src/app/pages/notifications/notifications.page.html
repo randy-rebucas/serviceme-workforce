@@ -18,10 +18,10 @@
             <ion-item-sliding *ngFor="let notification of notifications" #slidingItem>
                 <ion-item lines="full">
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ notification.notificationCollection.title }}</h2>
-                        <p>{{ notification.notificationCollection.content }}</p>
+                        <h2>{{ notification.title }}</h2>
+                        <p>{{ notification.content }}</p>
                     </ion-label>
-                    <ion-note slot="end">{{ notification.notificationCollection.timestamp.toDate() | date }}</ion-note>
+                    <ion-note slot="end">{{ notification.timestamp.toDate() | date }}</ion-note>
                 </ion-item>
                 <ion-item-options side="end">
                     <ion-item-option color="danger" (click)="onDelete(notification, slidingItem)">

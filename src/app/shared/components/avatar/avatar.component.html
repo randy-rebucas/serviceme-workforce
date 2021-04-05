@@ -1,0 +1,29 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>Preview</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="onDismiss(false)" color="danger">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <ion-card>
+        <img [src]="previewUrl" />
+    </ion-card>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="end">
+            <ion-button (click)="onDismiss(false)">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+            <ion-button color="primary" (click)="onChange()">
+                <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-footer>

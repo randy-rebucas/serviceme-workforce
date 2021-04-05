@@ -29,6 +29,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     private classificationsService: ClassificationsService
   ) {
     this.defaultCurrency$ = new BehaviorSubject('PHP');
+    // tslint:disable-next-line: deprecation
     this.defaultCurrency$.subscribe((defaultCurrency) => {
       this.defaultCurrency = defaultCurrency;
     });
@@ -39,6 +40,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
@@ -52,6 +54,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     const createdSettings = {
       currency: this.defaultCurrency
     };
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.settingsService.insert(userId, createdSettings)).subscribe(() => {
       this.loadingController.dismiss();
       this.presentAlert('Settings', 'Settings updated successfully!');
@@ -64,8 +67,10 @@ export class SettingsPage implements OnInit, OnDestroy {
   onUpdate() {
     this.subs.sink = from(this.loadingController.create({
       message: 'Please wait...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
+      // tslint:disable-next-line: deprecation
       from(this.authService.getCurrentUser()).subscribe((user) => {
         this.doUpdate(user.uid);
       });
@@ -77,6 +82,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

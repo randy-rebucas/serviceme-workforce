@@ -47,6 +47,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
@@ -59,26 +60,29 @@ export class DetailComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subs.sink = this.user$.pipe(
       map((res) => {
-        this.userId = res.user.id;
+        this.userId = res.id;
         return res;
       }),
       switchMap((r) =>
         this.offerOption$.pipe(
-          switchMap((option) => this.offersService.getAll(r.user.id, option))
+          switchMap((option) => this.offersService.getAll(r.id, option))
         )
       )
+    // tslint:disable-next-line: deprecation
     ).subscribe((offers) => {
       this.offersUpdated.next(offers);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.offerOption$.subscribe((offerOption) => {
       this.offerOption = offerOption;
     });
 
     this.offers$ = this.getOfferListener();
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookingsService.getOffers().subscribe((offers) => {
       this.offerItems = offers;
     }, (error: any) => {
@@ -126,6 +130,7 @@ export class DetailComponent implements OnInit, OnDestroy {
         title: 'Create booking',
         prof: userId
       }
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.onDidDismiss().then((modalDismissRes) => {
         if (modalDismissRes.data.dismissed) {
@@ -147,6 +152,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

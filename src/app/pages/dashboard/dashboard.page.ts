@@ -1,21 +1,23 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
-import { AuthService } from 'src/app/auth/auth.service';
-import { ActionSheetController, AlertController, ToastController } from '@ionic/angular';
-import { UsersService } from '../users/users.service';
-import { Users } from '../users/users';
-import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
-import { filter, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
-import { SubSink } from 'subsink';
 import { Router } from '@angular/router';
+import { ActionSheetController, AlertController } from '@ionic/angular';
+
+import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
+
+import { AuthService } from 'src/app/auth/auth.service';
+import { UsersService } from '../users/users.service';
+import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 import { PaymentsService } from '../payments/payments.service';
-import { MyTransactions, Transactions } from '../transactions/transactions';
 import { TransactionsService } from '../transactions/transactions.service';
 import { SettingsService } from '../settings/settings.service';
-import { environment } from 'src/environments/environment';
 import { BookingsService } from '../bookings/bookings.service';
-import firebase from 'firebase/app';
 import { NotificationsService } from '../notifications/notifications.service';
+
+import { Users } from '../users/users';
+import { environment } from 'src/environments/environment';
+import { SubSink } from 'subsink';
+import firebase from 'firebase/app';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,7 +48,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
-    private toastController: ToastController,
     private router: Router,
     private authService: AuthService,
     private adminFunctionService: AdminFunctionService,
@@ -66,6 +67,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
@@ -95,6 +97,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           );
         }),
       ))
+    // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
       this.notificationListener.next(notifications);
     });
@@ -168,6 +171,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           switchMap((user) => this.getSubCollection(user.uid, 'bookings', status))
         );
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((bookings) => {
       this.bookingListener.next(bookings);
     }, (error: any) => {
@@ -178,6 +182,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.currentUser$ = from(this.authService.getCurrentUser());
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.currentUser$.subscribe((user) => {
       user.getIdTokenResult().then((idTokenResult) => {
         this.isClient = idTokenResult.claims.client;
@@ -189,11 +194,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.lists$ = this.usersService.getAll().pipe(
-      map((users) => {
-        return users.filter((usersList) => {
-          return usersList.roles.pro === true;
-        });
-      }),
+      // map((users) => {
+      //   return users.filter((usersList) => {
+      //     return usersList.roles.pro === true;
+      //   });
+      // }),
       mergeMap((usersMerge) => {
         return from(usersMerge).pipe(
           mergeMap((user) => {
@@ -225,12 +230,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           );
         })
       ))
+    // tslint:disable-next-line: deprecation
     ).subscribe((transactions) => {
       this.transactionListener.next(transactions);
     });
 
     this.transactions$ = this.getTransactionListener();
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.transactions$).subscribe((transactions) => {
       let balance = 0;
       transactions.forEach(transaction => {
@@ -246,6 +253,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookings$.subscribe((bookingItems) => {
       let sum = 0;
       bookingItems.forEach(bookingItem => {
@@ -258,16 +266,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.getNotifications();
 
+    // tslint:disable-next-line: deprecation
     this.getNotificationListener().subscribe((notifications) => {
       this.notificationCount = notifications.length;
     });
   }
 
   ngAfterViewInit() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.transactionService.getBalance().subscribe((balance) => {
       this.currenctBalance = balance;
     });
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.currentUser$.subscribe((user) => {
       if (!user.emailVerified) {
         from(this.alertController.create(
@@ -288,6 +299,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
               }
             ]
           }
+        // tslint:disable-next-line: deprecation
         )).subscribe((alertEl) => {
           alertEl.present();
         });
@@ -300,6 +312,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });
@@ -337,6 +350,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           handler: () => {}
         }]
       }
+    // tslint:disable-next-line: deprecation
     )).subscribe(actionEl => {
       actionEl.present();
     });

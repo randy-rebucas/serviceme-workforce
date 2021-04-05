@@ -18,6 +18,7 @@ import { Notifications } from './notifications/notifications';
 import { BookingsService } from './bookings/bookings.service';
 import { TransactionsService } from './transactions/transactions.service';
 import { Coordinates } from './bookings/bookings';
+import { MyTransactions, Transactions } from './transactions/transactions';
 const { App } = Plugins;
 @Component({
   selector: 'app-pages',
@@ -30,8 +31,8 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
   public user$: Observable<firebase.User>;
   public currenctBalance: number;
   public notifications$: Observable<Notifications[]>;
-  private notificationListener = new Subject<any>();
-  private transactionListener = new Subject<any>();
+  private notificationListener = new Subject<Notifications[]>();
+  private transactionListener = new Subject<MyTransactions[]>();
   public subs = new SubSink();
   public isClient: boolean;
   public isPro: boolean;
@@ -54,20 +55,11 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
       // get all new notifications
       this.getNotifications();
 
+      // tslint:disable-next-line: deprecation
       this.localNotifications.on('click').subscribe((res) => {
         this.localNotifications.clear(res.id).then(() => {
           this.router.navigate(['/pages/notifications']);
         });
-      });
-
-      this.localNotifications.on('accept').subscribe((res) => {
-        // check wallet balance if greaterthan the offer continue else redirect payments
-        // this.subs.sink = from(this.bookingsService.update(res.data.refferenceId, { status: 'accepted' })).subscribe(() => {
-        //   this.bookingsService.setBookingStatus('');
-        //   this.router.navigate(['/pages']);
-        // }, (error: any) => {
-        //   this.presentAlert(error.code, error.message);
-        // });
       });
 
       this.getTransactions();
@@ -120,8 +112,14 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
           );
         }),
       ))
+    // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
-      this.notificationListener.next(notifications);
+      const formatedNotification = [];
+      notifications.forEach(notification => {
+        formatedNotification.push({...notification.notificationCollection, ...notification.notificationSubCollection});
+      });
+
+      this.notificationListener.next(formatedNotification);
     });
   }
 
@@ -146,6 +144,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.user$ = from(this.authService.getCurrentUser());
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.user$.subscribe((user) => {
       user.getIdTokenResult().then((idTokenResult) => {
         this.isClient = idTokenResult.claims.client;
@@ -155,17 +154,19 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
       this.getUserInfo(user.uid);
     });
 
+    // tslint:disable-next-line: deprecation
     this.getNotificationListener().subscribe((notifications) => {
       for (const notification of notifications) {
-        this.scheduleNotification(notification.notificationCollection.title, notification.notificationCollection.content, notification);
+        this.scheduleNotification(notification.title, notification.content, notification);
       }
     });
 
     // compute total transaction balances
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.getTransactionListener().subscribe((transactions) => {
       let balance = 0;
       transactions.forEach(transaction => {
-        balance += transaction.transactionSubCollection.balance;
+        balance += transaction.balance;
       });
       // set current balance observable value
       this.transactionsService.setBalance(balance);
@@ -192,39 +193,35 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
           );
         }),
       ))
+    // tslint:disable-next-line: deprecation
     ).subscribe((transactions) => {
-      this.transactionListener.next(transactions);
+      const formatedTransaction = [];
+      transactions.forEach(transaction => {
+        formatedTransaction.push({...transaction.transactionCollection, ...transaction.transactionSubCollection});
+      });
+
+      this.transactionListener.next(formatedTransaction);
     });
   }
 
   ngAfterViewInit() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.transactionsService.getBalance().subscribe((balance) => {
       this.currenctBalance = balance;
     });
   }
 
   scheduleNotification(notificationTitle: string, notificationText: string, data: any) {
-    const notificationActions = [];
-
-    this.bookingsService.getOne(data.notificationSubCollection.id).subscribe((r) => {
-      console.log(r);
-    });
-    // [
-    //   { id: 'accept', title: 'Accept'},
-    //   { id: 'decline', title: 'Decline'}
-    // ]
     this.localNotifications.schedule({
       id: Math.floor(Math.random() * 5),
       title: notificationTitle,
       text: notificationText,
       data: {
         page: '/pages/notifications',
-        refferenceId: data.notificationSubCollection.id
+        refferenceId: data.id
       },
       foreground: true,
-      vibrate: true,
-      // icon: "res:///not_icon",
-      actions: notificationActions
+      vibrate: true
     });
   }
 
@@ -248,12 +245,14 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
           }
         }
       ]
+    // tslint:disable-next-line: deprecation
     })).subscribe((alert) => {
       alert.present();
     });
   }
 
   private getUserInfo(userId: string) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.usersService.getOne(userId).subscribe((user) => {
       if (!user.address) {
         this.locateUser();
@@ -267,6 +266,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
     if (!Capacitor.isPluginAvailable('Geolocation')) {
       return;
     }
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).subscribe((geoPosition) => {
       this.pointLocation(geoPosition.coords);
     }, (error: any) => {
@@ -275,6 +275,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private pointLocation(coordinates: any) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.getAddress(coordinates.latitude, coordinates.longitude).subscribe(address => {
       this.updateLocation(address, coordinates);
     }, (error: any) => {
@@ -296,6 +297,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
       switchMap((user) => {
         return this.usersService.update(user.uid, { address: currentAddress });
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe(() => {}, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
@@ -311,6 +313,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
           if (!geoData || !geoData.results || geoData.results.length === 0) {
             return null;
           }
+
           const addressComponent = geoData.results[0].address_components;
           const address = {
             city: addressComponent[1].long_name,
@@ -341,6 +344,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
           }
         }
       ]
+    // tslint:disable-next-line: deprecation
     })).subscribe((alertEl) => {
       alertEl.present();
     });
@@ -351,6 +355,7 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

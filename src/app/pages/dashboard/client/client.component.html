@@ -7,29 +7,29 @@
         <ion-item-sliding *ngFor="let item of users" #slidingItem>
             <ion-item lines="none" button (click)="onDeail(item, slidingItem)" detail>
                 <ion-thumbnail slot="start">
-                    <ng-container *ngIf="item.admin.user.photoURL; else elseDummy">
-                        <img [src]="item.admin.user.photoURL" />
+                    <ng-container *ngIf="item.photoURL; else elseDummy">
+                        <img [src]="item.photoURL" />
                     </ng-container>
                     <ng-template #elseDummy>
                         <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
                     </ng-template>
                 </ion-thumbnail>
                 <ion-label>
-                    <h2>{{ (item.user.name.firstname + ' ' + item.user.name.lastname) | titlecase }} <small>- {{ item.user.classification }}</small></h2>
-                    <p>{{ item.user.address.country }}</p>
+                    <h2>{{ (item.name.firstname + ' ' + item.name.lastname) | titlecase }} <small>- {{ item.classification }}</small></h2>
+                    <!-- <p>{{ item.user.address.country }}</p> -->
                     <ion-chip outline>
-                        <ion-label>{{ item.user.id | counter:'single':'Service' | async}}</ion-label>
+                        <ion-label>{{ item.id | counter:'single':'Service' | async}}</ion-label>
                     </ion-chip>
                     <ion-chip outline>
-                        <ion-label>{{ item.user.id | counter:'package':'Package' | async}}</ion-label>
+                        <ion-label>{{ item.id | counter:'package':'Package' | async}}</ion-label>
                     </ion-chip>
                 </ion-label>
-                <ion-note slot="end" [ngClass]="{'available': item.user.availability | weekDay}"></ion-note>
+                <ion-note slot="end" [ngClass]="{'available': item.availability | weekDay}"></ion-note>
             </ion-item>
             <ion-item lines="full" class="ion-no-margin desc">
                 <ion-label class="ion-text-wrap">
-                    <p>{{item.user.id | bookingCounter:'completed':'job' | async | titlecase}}
-                        <span>{{item.user.id | bookingCounter:'completed':'earnings' | async}}</span>
+                    <p>{{item.id | bookingCounter:'completed':'job' | async | titlecase}}
+                        <span>{{item.id | bookingCounter:'completed':'earnings' | async}}</span>
                     </p>
                 </ion-label>
             </ion-item>

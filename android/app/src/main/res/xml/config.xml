@@ -26,6 +26,10 @@
     <param name="android-package" value="org.apache.cordova.camera.CameraLauncher"/>
   </feature>
 
+  <feature name="CropPlugin">
+    <param name="android-package" value="com.jeduan.crop.CropPlugin"/>
+  </feature>
+
   <feature name="Device">
     <param name="android-package" value="org.apache.cordova.device.Device"/>
   </feature>

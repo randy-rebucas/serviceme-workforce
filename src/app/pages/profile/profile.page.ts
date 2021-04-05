@@ -7,6 +7,7 @@ import { finalize, map, mergeMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { Camera, CameraOptions, PictureSourceType } from '@ionic-native/camera/ngx';
+import { Crop } from '@ionic-native/crop/ngx';
 
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
@@ -19,6 +20,8 @@ import { Router } from '@angular/router';
 import { ChangePhoneNumberComponent } from './change-phone-number/change-phone-number.component';
 import { ChangeEmailComponent } from './change-email/change-email.component';
 import { TitleCasePipe } from '@angular/common';
+import { AvatarComponent } from 'src/app/shared/components/avatar/avatar.component';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-profile',
@@ -29,12 +32,14 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   public user$: Observable<any>;
   public uploadPercent: Observable<number>;
   public showProgress: boolean;
-  private username$: BehaviorSubject<string|null>;
-  private user: firebase.User;
-  private username: string;
+  public imageUrl: any;
   public isClient: boolean;
   public isPro: boolean;
   public isAdmin: boolean;
+  private username$: BehaviorSubject<string|null>;
+  private imageUrl$: BehaviorSubject<string|null>;
+  private user: firebase.User;
+  private username: string;
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
   private subs = new SubSink();
@@ -50,14 +55,24 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
     private firestoreService: FirestoreService,
     private titlecasePipe: TitleCasePipe,
+    private sanitizer: DomSanitizer,
     private camera: Camera,
+    private crop: Crop
   ) {
     this.showProgress = false;
     this.username$ = new BehaviorSubject(null);
+    this.imageUrl$ = new BehaviorSubject(null);
   }
 
   ngOnInit() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      const initialImage = user.photoURL ? user.photoURL : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+';
+      this.imageUrl$.next(initialImage);
+    });
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      this.username$.next(user.displayName);
       user.getIdTokenResult().then((idTokenResult) => {
         this.isClient = idTokenResult.claims.client;
         this.isPro = idTokenResult.claims.pro;
@@ -127,8 +142,15 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.username$.subscribe((username) => {
+      console.log(username);
       this.username = username;
+    });
+
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.imageUrl$.subscribe((imageUrl) => {
+      this.imageUrl = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
     });
   }
 
@@ -140,6 +162,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
 
@@ -156,6 +179,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       component: ChangePasswordComponent,
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
 
@@ -172,6 +196,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       component: ChangeEmailComponent,
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
 
@@ -188,6 +213,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       component: ChangePhoneNumberComponent,
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
 
@@ -207,13 +233,13 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
         text: 'Library',
         icon: 'library-outline',
         handler: () => {
-          this.takePhoto(this.camera.PictureSourceType.PHOTOLIBRARY);
+          this.capture(this.camera.PictureSourceType.PHOTOLIBRARY);
         }
       }, {
         text: 'Camera',
         icon: 'camera-outline',
         handler: () => {
-          this.takePhoto(this.camera.PictureSourceType.CAMERA);
+          this.capture(this.camera.PictureSourceType.CAMERA);
         }
       }, {
         text: 'Cancel',
@@ -221,64 +247,60 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
         role: 'cancel',
         handler: () => {}
       }]
+    // tslint:disable-next-line: deprecation
     })).subscribe((actionSheetEl) => {
       actionSheetEl.present();
     });
   }
 
-  setUpdateData(imageUrl: any) {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((currentUser) => {
-      const updateProfile = {
-        displayName: this.username,
-        photoURL: imageUrl
-      };
-      currentUser.updateProfile(updateProfile);
-      this.loadingController.dismiss();
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
+  previewAvatar(imageLink: string) {
+    this.subs.sink = from(this.modalController.create({
+      component: AvatarComponent,
+      componentProps: {
+        imageUrl: imageLink
+      },
+      swipeToClose: true,
+      presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
+    })).subscribe((modalEl) => {
+      modalEl.present();
 
-  doUpload(imageUrl: any, userId: string) {
-    this.showProgress = true;
-    const file = new Base64().dataURItoBlob('data:image/jpeg;base64,' + imageUrl);
-    const filePath = `avatar/${userId}.jpg`;
-
-    this.angularFireStorageReference = this.firestoreService.ref(filePath);
-    this.angularFireUploadTask = this.firestoreService.put(filePath, file);
-    // observe percentage changes
-    this.uploadPercent = this.angularFireUploadTask.percentageChanges();
-
-    this.subs.sink = this.angularFireUploadTask.snapshotChanges().pipe(
-      finalize(() => {
-        this.subs.sink = this.angularFireStorageReference.getDownloadURL().subscribe((imageLink) => {
-          this.setUpdateData(imageLink);
-        });
-      })
-    ).subscribe();
-  }
-
-  getCurrentUser(imageData: any) {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      this.doUpload(imageData, user.uid);
+      modalEl.onDidDismiss().then((dataReturned) => {
+        if (dataReturned.data.dismissed) {
+          this.imageUrl$.next(dataReturned.data.imageUrl);
+        }
+      });
     });
   }
 
   onUpload(imageData: any) {
-    this.subs.sink = from(this.loadingController.create({
-      message: 'Please wait...'
-    })).subscribe(loadingEl => {
-      loadingEl.present();
-      this.getCurrentUser(imageData);
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+      this.showProgress = true;
+      const file = new Base64().dataURItoBlob('data:image/jpeg;base64,' + imageData);
+      const filePath = `avatar/${user.uid}.jpg`;
+
+      this.angularFireStorageReference = this.firestoreService.ref(filePath);
+      this.angularFireUploadTask = this.firestoreService.put(filePath, file);
+      // observe percentage changes
+      this.uploadPercent = this.angularFireUploadTask.percentageChanges();
+
+      this.subs.sink = this.angularFireUploadTask.snapshotChanges().pipe(
+        finalize(() => {
+          // tslint:disable-next-line: deprecation
+          this.subs.sink = this.angularFireStorageReference.getDownloadURL().subscribe((imageLink) => {
+            this.showProgress = false;
+            this.previewAvatar(imageLink);
+          });
+        })
+      // tslint:disable-next-line: deprecation
+      ).subscribe();
     });
   }
 
   capture(selectedSourceType: PictureSourceType) {
     const options: CameraOptions = {
       quality: 100,
-      targetHeight: 200,
-      targetWidth: 200,
       sourceType: selectedSourceType,
       destinationType: this.camera.DestinationType.DATA_URL,
       encodingType: this.camera.EncodingType.JPEG,
@@ -287,22 +309,13 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       cameraDirection: this.camera.Direction.FRONT
     };
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.camera.getPicture(options)).subscribe((imageData) => {
       this.onUpload(imageData);
     });
   }
 
-  takePhoto(selectedSourceType: PictureSourceType) {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      if (user.displayName === null || user.displayName === '') {
-        this.prompUsername(selectedSourceType);
-      } else {
-        this.capture(selectedSourceType);
-      }
-    });
-  }
-
-  prompUsername(selectedSourceType: PictureSourceType) {
+  onUpdateUsername() {
     // prompt for username
     this.subs.sink = from(this.alertController.create({
       cssClass: 'my-custom-class',
@@ -323,11 +336,18 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
         }, {
           text: 'Save',
           handler: (data) => {
-            this.username$.next(data.userName);
-            this.capture(selectedSourceType);
+            this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+              map(user => user.updateProfile({ displayName: data.userName }))
+            // tslint:disable-next-line: deprecation
+            ).subscribe(() => {
+                this.username$.next(data.userName);
+            }, (error: any) => {
+              this.presentAlert(error.code, error.message);
+            });
           }
         }
       ]
+    // tslint:disable-next-line: deprecation
     })).subscribe((promptEl) => {
       promptEl.present();
     });
@@ -338,6 +358,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

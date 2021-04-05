@@ -1,15 +1,19 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, forkJoin, from, Observable, Subject } from 'rxjs';
-import { filter, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
+
+import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
+
 import { AuthService } from 'src/app/auth/auth.service';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
-import { environment } from 'src/environments/environment';
-import { SubSink } from 'subsink';
 import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
-import { Bookings } from './bookings';
 import { BookingsService } from './bookings.service';
+
+import { environment } from 'src/environments/environment';
+import { SubSink } from 'subsink';
+import { Bookings } from './bookings';
+
 import { PreviewComponent } from './preview/preview.component';
 
 @Component({
@@ -37,6 +41,7 @@ export class BookingsPage implements OnInit, OnDestroy {
   ) {
     this.bookingStatus$ = new BehaviorSubject('');
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookingStatus$.subscribe((bookingStatus) => {
       this.bookingStatus = bookingStatus;
     });
@@ -45,6 +50,7 @@ export class BookingsPage implements OnInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
@@ -128,41 +134,20 @@ export class BookingsPage implements OnInit, OnDestroy {
           switchMap((user) => this.getSubCollection(user.uid, 'bookings', status))
         );
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((bookings) => {
-      this.bookingListener.next(bookings);
+      const formatedBooking = [];
+      bookings.forEach(booking => {
+        formatedBooking.push({
+          bookingDetails: {...booking.bookingDetail.booking.bookingCollection, ...booking.bookingDetail.booking.bookingSubCollection},
+          proDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
+        });
+      });
+      this.bookingListener.next(formatedBooking);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
   }
-  // initialized() {
-  //   from(this.authService.getCurrentUser()).pipe(
-  //     // get all bookings
-  //     switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
-  //       // bookings response
-  //       mergeMap((bookingMap: any[]) => {
-  //         return from(bookingMap).pipe(
-  //           // merge join collections bookings
-  //           mergeMap((bookingInfo) => {
-  //             console.log(bookingInfo);
-
-  //             return this.bookingsService.getOne(bookingInfo.id).pipe(
-  //               // merge profissional user collections
-  //               mergeMap((booking) => {
-  //                 return this.usersService.getOne(bookingInfo.userId).pipe(
-  //                   map(profissional => ({ booking, profissional })),
-  //                 );
-  //               }),
-  //               reduce((a, i) => [...a, i], [])
-  //             );
-  //           }),
-  //         );
-  //       })
-  //     ))
-  //   ).subscribe((bookings) => {
-  //     console.log(bookings);
-  //     this.bookingListener.next(bookings);
-  //   });
-  // }
 
   ngOnInit() {
     // initialize bookings
@@ -171,6 +156,7 @@ export class BookingsPage implements OnInit, OnDestroy {
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
 
+    // tslint:disable-next-line: deprecation
     this.bookings$.subscribe((r) => {
       console.log(r);
     });

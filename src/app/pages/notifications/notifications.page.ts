@@ -14,7 +14,7 @@ import { NotificationsService } from './notifications.service';
   styleUrls: ['./notifications.page.scss'],
 })
 export class NotificationsPage implements OnInit, OnDestroy {
-  public notifications$: Observable<any[]>;
+  public notifications$: Observable<Notifications[]>;
   private notificationListener = new Subject<any>();
   private subs = new SubSink();
 
@@ -32,6 +32,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
     this.notifications$ = this.getNotificationListener();
 
     // update all unread notification status
+    // tslint:disable-next-line: deprecation
     from(this.notificationListener).subscribe((notifications) => {
       for (const notification of notifications) {
         if (notification.notificationCollection.status === 'unread') {
@@ -60,8 +61,14 @@ export class NotificationsPage implements OnInit, OnDestroy {
           );
         }),
       ))
+    // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
-      this.notificationListener.next(notifications);
+      const formatedNotification = [];
+      notifications.forEach(notification => {
+        formatedNotification.push({...notification.notificationCollection, ...notification.notificationSubCollection});
+      });
+
+      this.notificationListener.next(formatedNotification);
     });
   }
 
@@ -72,9 +79,10 @@ export class NotificationsPage implements OnInit, OnDestroy {
   onDelete(notification: any, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.loadingController.create({
       message: 'Deleting...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
-      this.doDeleteSubCollection(notification.notificationSubCollection.id, ionItemSliding);
+      this.doDeleteSubCollection(notification.id, ionItemSliding);
     });
   }
 
@@ -83,6 +91,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
       switchMap((user) => {
         return from(this.usersService.deleteSubCollection(user.uid, 'notifications', notificationId));
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe(() => {
       this.doDeleteCollection(notificationId, ionItemSliding);
     }, (error: any) => {
@@ -92,6 +101,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
   }
 
   doDeleteCollection(notificationId: string, ionItemSliding: IonItemSliding) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.notificationsService.delete(notificationId)).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
@@ -106,6 +116,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

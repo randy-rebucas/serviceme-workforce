@@ -18,33 +18,33 @@
     <ion-card class="ion-no-padding ion-no-margin no-box-shadow detail" color="secondary">
         <ng-container *ngIf="user$ | async as user; else elseOffer">
             <ion-card-header>
-                <ion-card-subtitle>Joined: {{user.admin.user.metadata.creationTime | date}}</ion-card-subtitle>
-                <ion-card-title>{{user.user.name.firstname + ' ' + user.user.name.lastname}}</ion-card-title>
+                <ion-card-subtitle>Joined: {{user.metadata.creationTime | date}}</ion-card-subtitle>
+                <ion-card-title>{{user.name.firstname + ' ' + user.name.lastname}}</ion-card-title>
             </ion-card-header>
             <ion-card-content>
                 <ion-item lines="none" color="tertiary">
                     <ion-thumbnail slot="start">
-                        <ng-container *ngIf="user.admin.user.photoURL; else elseDummy">
-                            <img [src]="user.admin.user.photoURL" />
+                        <ng-container *ngIf="user.photoURL; else elseDummy">
+                            <img [src]="user.photoURL" />
                         </ng-container>
                         <ng-template #elseDummy>
                             <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
                         </ng-template>
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ user.admin.user.email | mask:7:'--'}}</h2>
-                        <p>{{ user.admin.user.phoneNumber | mask:7:'XXXXX'}}</p>
-                        <p>Classification: <strong>{{ user.user.classification }}</strong></p>
+                        <h2>{{ user.email | mask:7:'--'}}</h2>
+                        <p>{{ user.phoneNumber | mask:7:'XXXXX'}}</p>
+                        <p>Classification: <strong>{{ user.classification }}</strong></p>
                     </ion-label>
-                    <ion-icon [name]="user.admin.user.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
+                    <ion-icon [name]="user.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
                 </ion-item>
-                <ng-container *ngIf="user.user.availability">
+                <ng-container *ngIf="user.availability">
                     <ion-list-header>
                         <ion-label>Availability</ion-label>
                     </ion-list-header>
                     <ion-item lines="none" color="tertiary">
                         <ion-label class="ion-text-wrap">
-                            <ion-chip outline *ngFor="let availability of user.user.availability">
+                            <ion-chip outline *ngFor="let availability of user.availability">
                                 <ion-label>{{ availability.title }}</ion-label>
                             </ion-chip>
                         </ion-label>
@@ -99,8 +99,8 @@
         </ion-segment-button>
     </ion-segment>
 
-    <ng-container *ngIf="offers$ | async; let offers; else loadingOffers">
-        <ion-list>
+    <ion-list>
+        <ng-container *ngIf="offers$ | async; let offers; else loadingOffers">
             <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
                 <ion-item lines="none">
                     <ion-thumbnail slot="start">
@@ -126,36 +126,37 @@
                     <ion-checkbox slot="end" [checked]="checkOffer(offer, offerItems)" (ionChange)="onPickService($event, offer)"></ion-checkbox>
                 </ion-item>
             </ion-item-sliding>
-        </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="offers.length === 0">
-            <ion-icon name="list-outline"></ion-icon>
-            <p>No offers found</p>
-        </div>
-    </ng-container>
-    <ng-template #loadingOffers>
-        <ion-item lines="none" *ngFor="let item of [1,2,3]">
-            <ion-thumbnail slot="start">
-                <ion-skeleton-text animated></ion-skeleton-text>
-            </ion-thumbnail>
-            <ion-label>
-                <h2>
-                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
-                </h2>
-                <ion-chip outline>
-                    <ion-icon name="time-outline"></ion-icon>
-                    <ion-label>
-                        <ion-skeleton-text animated></ion-skeleton-text>
-                    </ion-label>
-                </ion-chip>
-                <ion-chip outline>
-                    <ion-icon name="cash-outline"></ion-icon>
-                    <ion-label>
-                        <ion-skeleton-text animated></ion-skeleton-text>
-                    </ion-label>
-                </ion-chip>
-            </ion-label>
-        </ion-item>
-    </ng-template>
+            <ion-item lines="none" color="secondary" class="ion-text-center" *ngIf="offers.length === 0">
+                <ion-label>
+                    <h2>No {{offerOption}} offers found</h2>
+                </ion-label>
+            </ion-item>
+        </ng-container>
+        <ng-template #loadingOffers>
+            <ion-item lines="none" *ngFor="let item of [1,2,3]">
+                <ion-thumbnail slot="start">
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-thumbnail>
+                <ion-label>
+                    <h2>
+                        <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                    </h2>
+                    <ion-chip outline>
+                        <ion-icon name="time-outline"></ion-icon>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
+                        </ion-label>
+                    </ion-chip>
+                    <ion-chip outline>
+                        <ion-icon name="cash-outline"></ion-icon>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
+                        </ion-label>
+                    </ion-chip>
+                </ion-label>
+            </ion-item>
+        </ng-template>
+    </ion-list>
 </ion-content>
 
 <ion-footer class="ion-no-border" *ngIf="offerItems.length">

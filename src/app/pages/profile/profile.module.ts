@@ -7,6 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { ProfilePageRoutingModule } from './profile-routing.module';
 import { File } from '@ionic-native/file/ngx';
 import { Camera } from '@ionic-native/camera/ngx';
+import { Crop } from '@ionic-native/crop/ngx';
+
 import { ProfilePage } from './profile.page';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { FormComponent } from './form/form.component';
@@ -39,6 +41,7 @@ import { ChangeEmailComponent } from './change-email/change-email.component';
   providers: [
     TitleCasePipe,
     Camera,
+    Crop,
     File
   ]
 })

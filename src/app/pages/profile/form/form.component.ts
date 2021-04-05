@@ -175,6 +175,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     };
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.userService.update(userId, patchdUser)).subscribe(() => {
       this.loadingController.dismiss();
       this.onDismiss(true);
@@ -185,6 +186,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getUser() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       this.doUpdate(user.uid);
     });
@@ -193,6 +195,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
   onUpdate() {
     this.subs.sink = from(this.loadingController.create({
       message: 'Updating Profile...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.getUser();
@@ -204,6 +207,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
       switchMap((user) => {
         return this.userService.update(user.uid, { classification: event.detail.value });
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe(() => {}, (error: any) => {
       this.presentAlert(error.code, error.message);
     });

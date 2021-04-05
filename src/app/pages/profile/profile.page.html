@@ -22,17 +22,12 @@
         <ion-card>
             <ion-card-content>
                 <ion-avatar (click)="onPickSource()">
-                    <ng-container *ngIf="user.photoURL; else elseDummy">
-                        <img [src]="user.photoURL" />
-                    </ng-container>
-                    <ng-template #elseDummy>
-                        <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
-                    </ng-template>
+                    <img [src]="imageUrl" />
                 </ion-avatar>
                 <ion-progress-bar [value]="uploadPercent | async" *ngIf="showProgress"></ion-progress-bar>
                 <ion-list>
-                    <ion-list-header>
-                        <ion-label>{{user.displayName ? user.displayName : '-- no displayname --'}}</ion-label>
+                    <ion-list-header (click)="onUpdateUsername()">
+                        <ion-label>{{username ? username : '-- no displayname --'}}</ion-label>
                     </ion-list-header>
                     <ion-item lines="full" button (click)="onChangeEmail()" detail>
                         <ion-icon name="mail-outline" slot="start"></ion-icon>
