@@ -6,3 +6,7 @@ Release 2
             transactions
             my bookings
                 details
+            account
+                uploading avatar
+                updating display name
+            

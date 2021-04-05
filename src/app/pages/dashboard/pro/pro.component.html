@@ -24,22 +24,22 @@
             <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
                 <ion-item lines="none" button>
                     <ion-avatar slot="start">
-                        <ng-container *ngIf="booking.bookingDetail.admin.user.photoURL; else elseDummy">
-                            <img [src]="booking.bookingDetail.admin.user.photoURL" />
+                        <ng-container *ngIf="booking.clientDetail.photoURL; else elseDummy">
+                            <img [src]="booking.clientDetail.photoURL" />
                         </ng-container>
                         <ng-template #elseDummy>
                             <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
                         </ng-template>
                     </ion-avatar>
                     <ion-label class="ion-text-wrap">
-                        <h2>{{ (booking.usersCollection.name.firstname + ' ' + booking.usersCollection.name.lastname) | titlecase }}</h2>
-                        <p>{{ booking.bookingDetail.booking.bookingCollection.location }}</p>
-                        <p>{{ booking.bookingDetail.booking.bookingCollection.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetail.booking.bookingCollection.scheduleTime.toDate() | date:'shortTime' }}
-                            <span [ngClass]="booking.bookingDetail.booking.bookingCollection.status">{{ booking.bookingDetail.booking.bookingCollection.status | uppercase }}</span></p>
+                        <h2>{{ (booking.clientDetail.name.firstname + ' ' + booking.clientDetail.name.lastname) | titlecase }}</h2>
+                        <p>{{ booking.bookingDetails.location }}</p>
+                        <p>{{ booking.bookingDetails.scheduleDate.toDate() | date:'mediumDate' }} - {{ booking.bookingDetails.scheduleTime.toDate() | date:'shortTime' }}
+                            <span [ngClass]="booking.bookingDetails.status">{{ booking.bookingDetails.status | uppercase }}</span></p>
                     </ion-label>
                     <!-- <ion-icon [name]="booking.usersCollection.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon> -->
                 </ion-item>
-                <ion-item-options side="end" [ngSwitch]="booking.bookingDetail.booking.bookingCollection.status">
+                <ion-item-options side="end" [ngSwitch]="booking.bookingDetails.status">
                     <ng-container *ngSwitchCase="'accepted'">
                         <ion-item-option color="primary" (click)="onLocate(booking, slidingItem)">
                             <ion-icon name="navigate-outline" slot="icon-only"></ion-icon>

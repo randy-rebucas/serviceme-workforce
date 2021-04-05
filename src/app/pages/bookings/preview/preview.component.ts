@@ -43,12 +43,12 @@ export class PreviewComponent implements OnInit, OnDestroy {
     private usersService: UsersService
   ) {
     this.title = this.navParams.data.title;
-    this.booking$ = of(this.navParams.data.bookingData);
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
@@ -58,6 +58,14 @@ export class PreviewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
 
+    this.booking$ = of(this.navParams.data.bookingData).pipe(
+      mergeMap((bookingData) => {
+        return this.usersService.getOne(bookingData.userId).pipe(
+          map(proDetails => ({ bookingData, proDetails })),
+        );
+      })
+    );
+
     this.form = new FormGroup({
       feedback: new FormControl(null, {
         updateOn: 'blur',
@@ -65,42 +73,12 @@ export class PreviewComponent implements OnInit, OnDestroy {
       })
     });
 
-      // initialized() {
-    // from(this.authService.getCurrentUser()).pipe(
-    //   // get all bookings
-    //   switchMap((user) => this.usersService.getSubCollection(user.uid, 'bookings').pipe(
-    //     // bookings response
-    //     mergeMap((bookingMap: any[]) => {
-    //       return from(bookingMap).pipe(
-    //         // merge join collections bookings
-    //         mergeMap((bookingInfo) => {
-    //           console.log(bookingInfo);
-
-    //           return this.bookingsService.getOne(bookingInfo.id).pipe(
-    //             // merge profissional user collections
-    //             mergeMap((booking) => {
-    //               return this.usersService.getOne(bookingInfo.userId).pipe(
-    //                 map(profissional => ({ booking, profissional })),
-    //               );
-    //             }),
-    //             reduce((a, i) => [...a, i], [])
-    //           );
-    //         }),
-    //       );
-    //     })
-    //   ))
-    // ).subscribe((bookings) => {
-    //   console.log(bookings);
-    //   this.bookingListener.next(bookings);
-    // });
-  // }
-
-    this.feedbacks$ = this.booking$.pipe(
+    this.feedbacks$ = of(this.navParams.data.bookingData).pipe(
       switchMap((booking) => {
-        return this.feedbacksService.getAll(booking.bookingDetail.booking.bookingSubCollection.id).pipe(
+        return this.feedbacksService.getAll(booking.bookingData.id).pipe(
           map((filterBooking) => {
             return filterBooking.filter((bookings) => {
-              return bookings.id === booking.bookingDetail.booking.bookingSubCollection.userId;
+              return bookings.id === booking.bookingData.userId;
             });
           }),
           mergeMap((feedbackMap: any[]) => {
@@ -128,12 +106,14 @@ export class PreviewComponent implements OnInit, OnDestroy {
   get formCtrls() { return this.form.controls; }
 
   onCreate(bookingId: string) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const feedbackData  = {
         feedback: this.form.value.feedback,
         timestamp: firebase.firestore.Timestamp.fromDate(new Date())
       };
 
+      // tslint:disable-next-line: deprecation
       this.subs.sink = from(this.feedbacksService.insert(bookingId, user.uid, feedbackData)).subscribe(() => {
         this.form.reset();
         this.feedbacks$ = this.feedbacksService.getAll(bookingId);
@@ -148,6 +128,7 @@ export class PreviewComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

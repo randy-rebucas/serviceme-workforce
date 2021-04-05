@@ -11,6 +11,19 @@ import { BookingsService } from '../bookings/bookings.service';
 import { Coordinates } from '../bookings/bookings';
 declare var google;
 
+  // 2 / minute
+  // 14 / succesding km
+  // 40 flagdown rate
+export interface Distance {
+  text: string;
+  value: number;
+}
+
+export interface Duration {
+  text: string;
+  value: number;
+}
+
 @Component({
   selector: 'app-locator',
   templateUrl: './locator.page.html',
@@ -20,7 +33,6 @@ export class LocatorPage implements OnInit, OnDestroy {
   @ViewChild('map', { static: false }) mapElementRef: ElementRef;
   public location: any;
   public isStart: boolean;
-
   private direction: Coordinates;
   private googleMaps: any;
   private directionsService: any;
@@ -40,14 +52,19 @@ export class LocatorPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookingService.getBooking().subscribe((direction) => {
-      this.location = direction.bookingDetail.booking.bookingCollection.location;
-      this.direction = direction.bookingDetail.booking.bookingCollection.coordinates;
+      if (Object.keys(direction).length === 0) {
+        this.router.navigate(['/pages']);
+      }
+      this.location = direction.bookingDetails.location;
+      this.direction = direction.bookingDetails.coordinates;
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
 
     this.platform.ready().then(() => {
+      // tslint:disable-next-line: deprecation
       this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).subscribe((geoPosition) => {
         const coordinates = {
           lat: +geoPosition.coords.latitude,
@@ -85,6 +102,7 @@ export class LocatorPage implements OnInit, OnDestroy {
   }
 
   startLocating(currentCoordinate: Coordinates) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.getGoogleMaps()).subscribe(googleMaps => {
       this.googleMaps = googleMaps;
       this.directionsService = new googleMaps.DirectionsService();
@@ -109,8 +127,10 @@ export class LocatorPage implements OnInit, OnDestroy {
         destination: this.direction,
         travelMode: 'DRIVING'
       }, (response: any, status: any) => {
+        console.log(response);
         if (status === 'OK') {
           this.directionsDisplay.setDirections(response);
+          // this.findRouteDistance(response.routes[0]);
         } else {
           window.alert('Directions request failed due to ' + status);
         }
@@ -120,7 +140,16 @@ export class LocatorPage implements OnInit, OnDestroy {
     });
   }
 
+  findRouteDistance(route: any) {
+    let totalDistance = 0;
+    for (const routeLeg of route.legs) {
+      totalDistance += routeLeg.distance.value;
+    }
+    return totalDistance;
+  }
+
   onLocate() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.coords$.subscribe((coordinates) => {
       this.startLocating(coordinates);
     }, (error: any) => {
@@ -158,6 +187,7 @@ export class LocatorPage implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

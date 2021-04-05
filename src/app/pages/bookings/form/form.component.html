@@ -128,7 +128,7 @@
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label class="ion-text-wrap">
-                                <p>(Check the box to use Current Address)</p>
+                                <p>(Check the box to use Home Address)</p>
                                 <h2>{{currentLocation}}</h2>
                             </ion-label>
                             <ion-checkbox slot="end" [checked]="locationOption$ | async" (ionChange)="onPickAddress($event)"></ion-checkbox>

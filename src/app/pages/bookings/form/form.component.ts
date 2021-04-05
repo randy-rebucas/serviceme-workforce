@@ -100,6 +100,11 @@ export class FormComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
 
+    // tslint:disable-next-line: deprecation
+    from(Plugins.Geolocation.requestPermissions()).subscribe(() => {
+      this.locateUser();
+    });
+
     this.offerItems$ = this.bookingsService.getOffers();
 
     this.getTotal();

@@ -54,17 +54,21 @@ export class ProComponent implements OnInit, OnDestroy {
   ) {
     this.commissionPercentage = environment.commissionPercentage;
 
-    this.subs.sink = this.bookingsService.getBookingStatus().subscribe((bookingStatus) => {
-      this.bookingStatus = bookingStatus;
-    });
-
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
+
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.bookingsService.getBookingStatus().subscribe((bookingStatus) => {
+      console.log(bookingStatus);
+      this.bookingStatus = bookingStatus;
+    });
+
   }
 
   // get user data to retrive names
@@ -139,8 +143,17 @@ export class ProComponent implements OnInit, OnDestroy {
           switchMap((user) => this.getSubCollection(user.uid, 'bookings', status))
         );
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((bookings) => {
-      this.bookingsService.setBookingListener(bookings);
+      const formatedBooking = [];
+      bookings.forEach(booking => {
+        formatedBooking.push({
+          bookingDetails: {...booking.bookingDetail.booking.bookingCollection, ...booking.bookingDetail.booking.bookingSubCollection},
+          clientDetail: {...booking.usersCollection, ...booking.bookingDetail.admin.user}
+        });
+      });
+      console.log(formatedBooking);
+      this.bookingsService.setBookingListener(formatedBooking);
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
@@ -155,10 +168,11 @@ export class ProComponent implements OnInit, OnDestroy {
     // get booking listener from booking observables
     this.bookings$ = this.bookingsService.getBookingListener();
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.bookings$.subscribe((bookingItems) => {
       let sum = 0;
       bookingItems.forEach(bookingItem => {
-        sum += Number(bookingItem.bookingDetail.booking.bookingCollection.charges);
+        sum += Number(bookingItem.bookingDetails.charges);
       });
       // this.serviceCharge = sum;
 
@@ -196,6 +210,7 @@ export class ProComponent implements OnInit, OnDestroy {
             }
           ]
         }
+      // tslint:disable-next-line: deprecation
       )).subscribe((alertEl) => {
         alertEl.present();
       });
@@ -223,6 +238,7 @@ export class ProComponent implements OnInit, OnDestroy {
       mergeMap((auhtUser) => {
         return this.userService.getOne(auhtUser.uid);
       }),
+    // tslint:disable-next-line: deprecation
     ).subscribe((userResponse) => {
       const notificationData  = {
         title: 'Booked Accepted!',
@@ -232,6 +248,7 @@ export class ProComponent implements OnInit, OnDestroy {
         type: 'booking'
       };
 
+      // tslint:disable-next-line: deprecation
       this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
         // set sub collection notification
         this.setNotiticationCollection(clientId, 'notifications', notification.id, {});
@@ -242,10 +259,11 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   onAccept(booking: any, ionItemSliding: IonItemSliding) {
-    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    const bookingId = booking.bookingDetails.id;
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'accepted' })).subscribe(() => {
       this.initialized();
-      this.setNotificationData(booking.bookingDetail.booking.bookingSubCollection.userId);
+      this.setNotificationData(booking.clientDetail.uid);
       ionItemSliding.closeOpened();
       this.bookingsService.setBookingStatus('');
     }, (error: any) => {
@@ -254,7 +272,8 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   onDecline(booking: any, ionItemSliding: IonItemSliding) {
-    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    const bookingId = booking.bookingDetails.id;
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'declined' })).subscribe(() => {
       this.initialized();
       ionItemSliding.closeOpened();
@@ -264,16 +283,19 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   setTransactionData() {
+    // tslint:disable-next-line: deprecation
     this.transactionsService.getBalance().subscribe((balance) => {
       this.balance = balance;
     });
   }
 
   private setTransactionSubCollection(collectionDocId: string, data: any, ionItemSliding: IonItemSliding) {
+    // tslint:disable-next-line: deprecation
     from(this.authService.getCurrentUser()).subscribe((user) => {
       const transactionData = {
         balance: -data.chargesAmount
       };
+      // tslint:disable-next-line: deprecation
       this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', collectionDocId, transactionData)).subscribe(() => {
         this.initialized();
         ionItemSliding.closeOpened();
@@ -284,8 +306,8 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   private setTransactionCollection(booking: any, ionItemSliding: IonItemSliding) {
-    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
-    const serviceCharge = Number(booking.bookingDetail.booking.bookingCollection.charges);
+    const bookingId = booking.bookingDetails.id;
+    const serviceCharge = Number(booking.bookingDetails.charges);
     const commissionCharge = (this.commissionPercentage / 100) * serviceCharge;
 
     const transactionData = {
@@ -297,6 +319,7 @@ export class ProComponent implements OnInit, OnDestroy {
       status: 'completed',
       type: 'payment'
     };
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
       this.setTransactionSubCollection(transaction.id, { chargesAmount: commissionCharge}, ionItemSliding);
     }, (error: any) => {
@@ -305,7 +328,8 @@ export class ProComponent implements OnInit, OnDestroy {
   }
 
   onComplete(booking: any, ionItemSliding: IonItemSliding) {
-    const bookingId = booking.bookingDetail.booking.bookingSubCollection.id;
+    const bookingId = booking.bookingDetails.id;
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'completed' })).subscribe(() => {
       this.setTransactionCollection(booking, ionItemSliding);
     }, (error: any) => {
@@ -322,6 +346,7 @@ export class ProComponent implements OnInit, OnDestroy {
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();
@@ -339,6 +364,7 @@ export class ProComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

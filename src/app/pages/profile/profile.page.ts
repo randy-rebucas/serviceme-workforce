@@ -144,7 +144,6 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     // tslint:disable-next-line: deprecation
     this.subs.sink = this.username$.subscribe((username) => {
-      console.log(username);
       this.username = username;
     });
 
@@ -324,6 +323,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
         {
           name: 'userName',
           type: 'text',
+          value: this.username,
           placeholder: 'username'
         }
       ],

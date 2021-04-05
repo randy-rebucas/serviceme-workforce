@@ -155,11 +155,6 @@ export class BookingsPage implements OnInit, OnDestroy {
 
     // get booking listener from booking observables
     this.bookings$ = this.getBookingListener();
-
-    // tslint:disable-next-line: deprecation
-    this.bookings$.subscribe((r) => {
-      console.log(r);
-    });
   }
 
   statusChanged(event: any) {
@@ -177,6 +172,7 @@ export class BookingsPage implements OnInit, OnDestroy {
   }
 
   doDelete(bookingId: string, ionItemSliding: IonItemSliding) {
+    // tslint:disable-next-line: deprecation
     from(this.bookingsService.delete(bookingId)).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
@@ -189,6 +185,7 @@ export class BookingsPage implements OnInit, OnDestroy {
   onCancel(booking: Bookings, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.loadingController.create({
       message: 'Canceling...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doCancel(booking.id, ionItemSliding);
@@ -196,7 +193,8 @@ export class BookingsPage implements OnInit, OnDestroy {
   }
 
   doCancel(bookingId: string, ionItemSliding: IonItemSliding) {
-    from(this.bookingsService.update(bookingId, { status: 'canceled' })).subscribe(() => {
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(this.bookingsService.update(bookingId, { status: 'canceled' })).subscribe(() => {
       this.loadingController.dismiss();
       ionItemSliding.closeOpened();
     }, (error: any) => {
@@ -214,6 +212,7 @@ export class BookingsPage implements OnInit, OnDestroy {
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();
