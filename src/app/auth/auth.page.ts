@@ -21,7 +21,7 @@ export class AuthPage implements OnInit, OnDestroy {
   public appVer: string;
   public isEnd: boolean;
   public slideOpts = {
-    initialSlide: 1,
+    initialSlide: 0,
     slidesPerView: 1,
     speed: 400
   };

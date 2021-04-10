@@ -88,9 +88,8 @@ export class AuthService {
     return this.angularFirestore.collection('users').doc(userId).set(userData);
   }
 
-  setCustomClaims(userEmail: string, claimRole: string) {
-    const selectedRole = (claimRole === 'client') ? 'addClientRole' : 'addProRole';
-    const setCustomClaim = this.angularFireFunctions.httpsCallable(selectedRole);
+  setCustomClaims(userEmail: string) {
+    const setCustomClaim = this.angularFireFunctions.httpsCallable('addClientRole');
     return setCustomClaim({ email: userEmail});
   }
 

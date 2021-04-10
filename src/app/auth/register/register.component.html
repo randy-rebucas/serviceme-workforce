@@ -9,7 +9,6 @@
     </ion-toolbar>
 </ion-header>
 
-
 <ion-content [fullscreen]="true" class="ion-padding">
     <ion-header collapse="condense">
         <ion-toolbar>
@@ -17,102 +16,76 @@
         </ion-toolbar>
     </ion-header>
     <form [formGroup]="form" (submit)="onSignUp()" class="register-form">
-        <ng-container *ngIf="!selectedType; else elseTemplate">
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-subtitle>Select what type of account you want.</ion-card-subtitle>
-                    <ion-card-title>I want to</ion-card-title>
-                </ion-card-header>
 
-                <ion-card-content>
-                    <ion-list>
-                        <ion-radio-group (ionChange)="onPick($event)">
-                            <ion-item>
-                                <ion-label>Book for a Service</ion-label>
-                                <ion-radio value="client"></ion-radio>
-                            </ion-item>
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Please fill the form.</ion-card-title>
+            </ion-card-header>
 
-                            <ion-item lines="none">
-                                <ion-label>Work as a Professional</ion-label>
-                                <ion-radio value="pro"></ion-radio>
-                            </ion-item>
-                        </ion-radio-group>
-                    </ion-list>
-                </ion-card-content>
-            </ion-card>
+            <ion-card-content>
+                <ion-item>
+                    <ion-label position="floating">Firstname</ion-label>
+                    <ion-input formControlName="firstname"></ion-input>
+                </ion-item>
+                <ion-item lines="none" *ngIf="formCtrls.firstname.errors && formCtrls.firstname.touched">
+                    <ion-label *ngIf="formCtrls.firstname.errors.required">
+                        <ion-note color="danger">Firstname is required!</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.firstname.errors.maxlength">
+                        <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                    </ion-label>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Lastname</ion-label>
+                    <ion-input formControlName="lastname"></ion-input>
+                </ion-item>
+                <ion-item lines="none" *ngIf="formCtrls.lastname.errors && formCtrls.lastname.touched">
+                    <ion-label *ngIf="formCtrls.lastname.errors.required">
+                        <ion-note color="danger">Lastname is required!</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.lastname.errors.maxlength">
+                        <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                    </ion-label>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Email</ion-label>
+                    <ion-input type="email" formControlName="email"></ion-input>
+                </ion-item>
+                <ion-item lines="none" *ngIf="formCtrls.email.errors && formCtrls.email.touched">
+                    <ion-label *ngIf="formCtrls.email.errors.required">
+                        <ion-note color="danger">Email is required!</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.email.errors.maxlength">
+                        <ion-note color="danger">Only 50 max characters allowed.</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.email.errors.email">
+                        <ion-note color="danger">Invalid email format.</ion-note>
+                    </ion-label>
+                </ion-item>
+                <ion-item>
+                    <ion-label position="floating">Password</ion-label>
+                    <ion-input type="password" formControlName="password"></ion-input>
+                </ion-item>
+                <ion-item lines="none" *ngIf="formCtrls.password.errors && formCtrls.password.touched">
+                    <ion-label *ngIf="formCtrls.password.errors.required">
+                        <ion-note color="danger">Password is required!</ion-note>
+                    </ion-label>
+                    <ion-label *ngIf="formCtrls.password.errors.maxlength">
+                        <ion-note color="danger">Only 12 max characters allowed.</ion-note>
+                    </ion-label>
+                </ion-item>
+                <ion-item lines="none">
+                    <ion-label class="ion-text-wrap">
+                        Yes, I understand and agree to the cutsonwheel terms of service, including the User Agreement and Privacy Policy
+                    </ion-label>
+                    <ion-checkbox slot="start" (ionChange)="onCheck($event)" [checked]="isChecked"></ion-checkbox>
+                </ion-item>
+                <ion-button expand="block" type="submit">
+                    Register
+                </ion-button>
+            </ion-card-content>
+        </ion-card>
 
-        </ng-container>
-        <ng-template #elseTemplate>
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-title>Complete your free account setup </ion-card-title>
-                    <ion-card-subtitle (click)="onReSelect()">as {{ selectedType | titlecase }} (click to change)</ion-card-subtitle>
-                </ion-card-header>
-
-                <ion-card-content>
-                    <ion-item>
-                        <ion-label position="floating">Firstname</ion-label>
-                        <ion-input formControlName="firstname"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.firstname.errors && formCtrls.firstname.touched">
-                        <ion-label *ngIf="formCtrls.firstname.errors.required">
-                            <ion-note color="danger">Firstname is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.firstname.errors.maxlength">
-                            <ion-note color="danger">Only 30 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Lastname</ion-label>
-                        <ion-input formControlName="lastname"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.lastname.errors && formCtrls.lastname.touched">
-                        <ion-label *ngIf="formCtrls.lastname.errors.required">
-                            <ion-note color="danger">Lastname is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.lastname.errors.maxlength">
-                            <ion-note color="danger">Only 30 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Email</ion-label>
-                        <ion-input type="email" formControlName="email"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.email.errors && formCtrls.email.touched">
-                        <ion-label *ngIf="formCtrls.email.errors.required">
-                            <ion-note color="danger">Email is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.email.errors.maxlength">
-                            <ion-note color="danger">Only 50 max characters allowed.</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.email.errors.email">
-                            <ion-note color="danger">Invalid email format.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="floating">Password</ion-label>
-                        <ion-input type="password" formControlName="password"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.password.errors && formCtrls.password.touched">
-                        <ion-label *ngIf="formCtrls.password.errors.required">
-                            <ion-note color="danger">Password is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.password.errors.maxlength">
-                            <ion-note color="danger">Only 12 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item lines="none">
-                        <ion-label class="ion-text-wrap">
-                            Yes, I understand and agree to the cutsonwheel terms of service, including the User Agreement and Privacy Policy
-                        </ion-label>
-                        <ion-checkbox slot="start" (ionChange)="onCheck($event)" [checked]="isChecked"></ion-checkbox>
-                    </ion-item>
-                    <ion-button expand="block" type="submit">
-                        Register
-                    </ion-button>
-                </ion-card-content>
-            </ion-card>
-        </ng-template>
 
     </form>
 </ion-content>

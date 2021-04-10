@@ -74,10 +74,5 @@
             <h1>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</h1>
         </ion-card-content>
     </ion-card>
-    <ng-container *ngIf="isClient">
-        <app-client></app-client>
-    </ng-container>
-    <ng-container *ngIf="isPro">
-        <app-pro></app-pro>
-    </ng-container>
+    <app-client></app-client>
 </ion-content>

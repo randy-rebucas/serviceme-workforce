@@ -35,13 +35,9 @@
                             </ion-label>
                         </ng-template>
                     </ion-item>
-                    <ion-item [routerLink]="['/pages/bookings']" *ngIf="isClient" routerLinkActive="active" lines="none" detail="false">
+                    <ion-item [routerLink]="['/pages/bookings']" routerLinkActive="active" lines="none" detail="false">
                         <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
                         <ion-label>My Bookings</ion-label>
-                    </ion-item>
-                    <ion-item [routerLink]="['/pages/offers']" *ngIf="isPro" routerLinkActive="active" lines="none" detail="false">
-                        <ion-icon slot="start" ios="folder-open-outline" md="folder-open-sharp"></ion-icon>
-                        <ion-label>My Offers</ion-label>
                     </ion-item>
                     <ion-item [routerLink]="['/pages/settings']" routerLinkActive="active" lines="none" detail="false">
                         <ion-icon slot="start" ios="settings-outline" md="settings-sharp"></ion-icon>

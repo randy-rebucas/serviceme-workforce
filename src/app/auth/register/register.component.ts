@@ -2,15 +2,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController } from '@ionic/angular';
 
-import { BehaviorSubject, from } from 'rxjs';
+import { from } from 'rxjs';
 
 import { AuthService } from '../auth.service';
-import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
-import { TransactionsService } from 'src/app/pages/transactions/transactions.service';
-import { UsersService } from 'src/app/pages/users/users.service';
 
 import { SubSink } from 'subsink';
-import { environment } from 'src/environments/environment';
 import firebase from 'firebase/app';
 
 @Component({
@@ -21,29 +17,18 @@ import firebase from 'firebase/app';
 export class RegisterComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public isChecked: boolean;
-  private enableSigningBonus: boolean;
   private subs = new SubSink();
-  private selectedType$: BehaviorSubject<string|null>;
-  public selectedType: string;
+
   constructor(
     private modalController: ModalController,
     private loadingController: LoadingController,
     private alertController: AlertController,
-    private authService: AuthService,
-    private transactionsService: TransactionsService,
-    private userService: UsersService
+    private authService: AuthService
   ) {
     this.isChecked = false;
-    this.enableSigningBonus = environment.enableSigningBonus;
-    this.selectedType$ = new BehaviorSubject(null);
   }
 
   ngOnInit() {
-    // tslint:disable-next-line: deprecation
-    this.selectedType$.subscribe((selectedType) => {
-      this.selectedType = selectedType;
-    });
-
     this.form = new FormGroup({
       firstname: new FormControl(null, {
         updateOn: 'blur',
@@ -100,58 +85,10 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return this.form.controls;
   }
 
-  onPick(event: any) {
-    this.selectedType$.next(event.detail.value);
-  }
-
-  onReSelect() {
-    this.selectedType$.next(null);
-  }
-
-  setSubCollection(user: firebase.User, transaction: any, amount: number) {
-    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: Number(amount) }))
-    // tslint:disable-next-line: deprecation
-    .subscribe(() => {
-      this.loadingController.dismiss();
-      this.form.reset();
-      this.onDismiss(true);
-      this.authService.signOut();
-    });
-  }
-
-  setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      const transactionData  = {
-        amount: Number(amount),
-        currency: 'PHP',
-        description: 'signing bonus.',
-        timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
-        ref: refId,
-        status: transactionStatus,
-        type: 'payment'
-      };
-
-      // tslint:disable-next-line: deprecation
-      this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
-        this.setSubCollection(user, transaction, amount);
-      }, (error: any) => {
-        this.loadingController.dismiss();
-        this.presentAlert(error.code, error.message);
-      });
-    });
-  }
-
   sendEmailVerification(userCredential: firebase.auth.UserCredential) {
     // tslint:disable-next-line: deprecation
     this.subs.sink = from(userCredential.user.sendEmailVerification()).subscribe(() => {
       this.loadingController.dismiss();
-      if (this.enableSigningBonus) {
-        if (this.selectedType === 'pro') {
-          const referenceId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
-          this.setTransactionData(100, referenceId, new Date(), 'completed');
-        }
-      }
       // tslint:disable-next-line: max-line-length
       this.presentAlert('Verify your email', 'One last step to continue your registration. Check ou email and click on the link to verify.');
     }, (error: any) => {
@@ -162,7 +99,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   setCustomClaims(userCredential: firebase.auth.UserCredential) {
     // tslint:disable-next-line: deprecation
-    this.authService.setCustomClaims(userCredential.user.email, this.selectedType).subscribe(() => {
+    this.subs.sink = this.authService.setCustomClaims(userCredential.user.email).subscribe(() => {
       this.sendEmailVerification(userCredential);
     }, (error: any) => {
       this.loadingController.dismiss();
