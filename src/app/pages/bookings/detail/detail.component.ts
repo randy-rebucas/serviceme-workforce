@@ -25,6 +25,8 @@ export class DetailComponent implements OnInit, OnDestroy {
   public offers$: Observable<Offers[]>;
   public offerOption: string;
   public userId: string;
+  public isExpandStats: boolean;
+  public isExpandAvilability: boolean;
   private offerOption$: BehaviorSubject<string|null>;
   private offersUpdated = new Subject<Offers[]>();
   private subs = new SubSink();
@@ -40,7 +42,8 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.title = this.navParams.data.title;
     this.user$ = of(this.navParams.data.userData);
     this.state = this.navParams.data.state;
-
+    this.isExpandStats = false;
+    this.isExpandAvilability = false;
     this.offerOption$ = new BehaviorSubject('single');
 
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
@@ -55,6 +58,14 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   getOfferListener() {
     return this.offersUpdated.asObservable();
+  }
+
+  onExpandStats() {
+    this.isExpandStats = !this.isExpandStats;
+  }
+
+  onExpandAvailability() {
+    this.isExpandAvilability = !this.isExpandAvilability;
   }
 
   ngOnInit() {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActionSheetController, AlertController } from '@ionic/angular';
 
@@ -18,7 +18,8 @@ import { Users } from '../users/users';
 import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
-
+import { Plugins } from '@capacitor/core';
+const { App } = Plugins;
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
@@ -56,7 +57,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private paymentsService: PaymentsService,
     private transactionService: TransactionsService,
     private notificationsService: NotificationsService,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private zone: NgZone
   ) {
     this.currenctBalance = 0;
     this.notificationCount = 0;
@@ -180,18 +182,42 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.currentUser$ = from(this.authService.getCurrentUser());
 
     // tslint:disable-next-line: deprecation
-    this.subs.sink = this.currentUser$.subscribe((user) => {
+    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       user.getIdTokenResult().then((idTokenResult) => {
-        this.isClient = idTokenResult.claims.client;
-        this.isPro = idTokenResult.claims.pro;
-        this.isAdmin = idTokenResult.claims.admin;
+        if (!idTokenResult.claims.client) {
+          from(this.alertController.create(
+            {
+              header: 'Account checking!',
+              message: 'This is not the app for Proffesional. Please contact supprt!',
+              buttons: [
+                {
+                  text: 'Exit',
+                  handler: () => {
+                    // tslint:disable-next-line: deprecation
+                    this.subs.sink = from(this.authService.signOut()).subscribe(() => {
+                      this.router.navigate(['auth']);
+                    });
+                  }
+                }
+              ],
+              backdropDismiss: false,
+              keyboardClose: false
+            }
+          // tslint:disable-next-line: deprecation
+          )).subscribe((alertEl) => {
+            alertEl.present();
+          });
+        }
       });
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
+
+    this.currentUser$ = from(this.authService.getCurrentUser());
+
+
 
     this.lists$ = this.usersService.getAll().pipe(
       // map((users) => {

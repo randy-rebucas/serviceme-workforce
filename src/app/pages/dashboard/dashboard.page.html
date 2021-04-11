@@ -58,21 +58,5 @@
             <ion-title size="large">Dashboard</ion-title>
         </ion-toolbar>
     </ion-header>
-    <ion-card class="wallet ion-margin-bottom" *ngIf="isPro">
-        <ion-item>
-            <ion-label>Wallet Balance</ion-label>
-            <ion-buttons slot="end">
-                <ion-button (click)="onPickMethods()">
-                    <ion-icon slot="icon-only" name="add-outline"></ion-icon>
-                </ion-button>
-                <ion-button (click)="onViewTransactions()">
-                    <ion-icon slot="icon-only" name="list-outline"></ion-icon>
-                </ion-button>
-            </ion-buttons>
-        </ion-item>
-        <ion-card-content class="ion-text-center">
-            <h1>{{ currenctBalance | currency:defaultCurrency:'symbol-narrow' }}</h1>
-        </ion-card-content>
-    </ion-card>
     <app-client></app-client>
 </ion-content>
