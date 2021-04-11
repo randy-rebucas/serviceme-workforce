@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+import { map, scan, take, tap } from 'rxjs/operators';
+
 import {
   AngularFirestore,
   AngularFirestoreCollection,
@@ -11,7 +13,8 @@ import {
 import { Users as useClass } from './users';
 import { Offers } from '../offers/offers';
 import { Feedbacks } from '../bookings/feedbacks';
-
+import firebase from 'firebase/app';
+import { QueryConfig } from '../dashboard/client/client.component';
 const collection = 'users';
 const bookingsSubCollection = 'bookings';
 const orderField = 'id';
@@ -21,10 +24,103 @@ const orderBy = 'asc';
 })
 export class UsersService {
 
+  // private infinatePos$: BehaviorSubject<any>;
+  // private infinatePos: any;
+
+  private done$ = new BehaviorSubject(false);
+  private loading$ = new BehaviorSubject(false);
+  private data$ = new BehaviorSubject([]);
+  private query: QueryConfig;
+
+   // Observable data
+  data: Observable<any>;
+  done: Observable<boolean> = this.done$.asObservable();
+  loading: Observable<boolean> = this.loading$.asObservable();
+
   constructor(
     private angularFirestore: AngularFirestore,
   ) {}
+  init(path: string, field: string, opts?: any) {
+    this.query = {
+      path,
+      field,
+      limit: 8,
+      reverse: false,
+      prepend: false,
+      ...opts
+    };
 
+    const first = this.angularFirestore.collection(this.query.path, ref => {
+      return ref
+              .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
+              .limit(this.query.limit);
+    });
+
+
+    this.mapAndUpdate(first);
+
+    return this.data$.asObservable().pipe(
+      scan( (acc, val) => {
+        return this.query.prepend ? val.concat(acc) : acc.concat(val);
+      })
+    // tslint:disable-next-line: deprecation
+    );
+
+  }
+  // Retrieves additional data from firestore
+  more() {
+    const cursor = this.getCursor();
+
+    const more = this.angularFirestore.collection(this.query.path, ref => {
+      return ref
+              .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
+              .limit(this.query.limit)
+              .startAfter(cursor);
+    });
+    this.mapAndUpdate(more);
+  }
+  // Determines the doc snapshot to paginate query
+  private getCursor() {
+    const current = this.data$.value;
+    if (current.length) {
+      return current[current.length - 1].doc;
+    }
+    return null;
+  }
+    // Maps the snapshot to usable format the updates source
+  private mapAndUpdate(col: AngularFirestoreCollection<any>) {
+
+    if (this.done$.value || this.loading$.value) { return; }
+
+    // loading
+    this.loading$.next(true);
+
+    // Map snapshot with doc ref (needed for cursor)
+    return col.snapshotChanges()
+    .pipe(
+      tap(actions => {
+          let values = actions.map(snap => {
+            const data = snap.payload.doc.data();
+            const doc = snap.payload.doc;
+            return { ...data, doc };
+          });
+          // If prepending, reverse the batch order
+          values = this.query.prepend ? values.reverse() : values;
+
+          // update source with new values, done loading
+          this.data$.next(values);
+          this.loading$.next(false);
+
+          // no more values, mark done
+          if (!values.length) {
+            this.done$.next(true);
+          }
+      }),
+      take(1)
+    );
+  }
+
+  // =====================
   private defaultCollection(): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(collection);
   }

@@ -38,6 +38,23 @@
                     </ion-label>
                     <ion-icon [name]="user.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
                 </ion-item>
+                <!-- font-size: 14px;
+                padding: 14px 0px;
+                color: initial;
+                font-weight: bold; -->
+                <ion-list-header>
+                    <ion-label>Stats</ion-label>
+                </ion-list-header>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label class="ion-text-wrap">
+                        Job Completed:{{user.id | bookingCounter:'completed':'job' | async | titlecase}}
+                    </ion-label>
+                </ion-item>
+                <ion-item lines="none" color="tertiary">
+                    <ion-label class="ion-text-wrap">
+                        Earnings: {{user.id | bookingCounter:'completed':'earnings' | async}}
+                    </ion-label>
+                </ion-item>
                 <ng-container *ngIf="user.availability">
                     <ion-list-header>
                         <ion-label>Availability</ion-label>

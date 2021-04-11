@@ -2,20 +2,36 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 
 import { BehaviorSubject, from, Observable, of, Subject} from 'rxjs';
-import { map, mergeMap, reduce, switchMap } from 'rxjs/operators';
+import { map, mergeMap, reduce, scan, switchMap, tap } from 'rxjs/operators';
 
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
 import { UsersService } from '../../users/users.service';
 import { DetailComponent } from '../../bookings/detail/detail.component';
 
 import { SubSink } from 'subsink';
+import { Users } from '../../users/users';
+
+export interface QueryConfig {
+  path: string; //  path to collection
+  field: string; // field to orderBy
+  limit: number; // limit per query
+  reverse: boolean; // reverse order?
+  prepend: boolean; // prepend to source?
+}
+
 @Component({
   selector: 'app-client',
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
 })
 export class ClientComponent implements OnInit, OnDestroy {
+  // list professional data
   public users$: Observable<any>;
+  // page num
+  public page: number;
+  // limit
+  public limit: number;
+
   private userUpdated = new Subject<any[]>();
   private searchKey$: BehaviorSubject<string|null>;
   private subs = new SubSink();
@@ -28,6 +44,8 @@ export class ClientComponent implements OnInit, OnDestroy {
     private adminFunctionService: AdminFunctionService,
   ) {
     this.searchKey$ = new BehaviorSubject(null);
+    this.page = 1;
+    this.limit = 8;
   }
 
   getUserListener() {
@@ -58,15 +76,15 @@ export class ClientComponent implements OnInit, OnDestroy {
       ))
     // tslint:disable-next-line: deprecation
     ).subscribe((users) => {
-      const formatedUser = [];
-      users.forEach(user => {
-        formatedUser.push({...user.user, ...user.admin.user});
-      });
-      this.preFormedUser(formatedUser);
+      this.preFormedUser(users);
     });
   }
 
-  preFormedUser(formatedUser: any[]) {
+  preFormedUser(usersArray: any[]) {
+    const formatedUser = [];
+    usersArray.forEach(user => {
+      formatedUser.push({...user.user, ...user.admin.user});
+    });
     this.subs.sink = of(formatedUser).pipe(
       map(users => users.filter(userClaims => userClaims.customClaims.pro === true)),
     // tslint:disable-next-line: deprecation
@@ -75,13 +93,42 @@ export class ClientComponent implements OnInit, OnDestroy {
     });
   }
 
+  private mergeUserAuth(usersMerge: any[])  {
+    return from(usersMerge)
+      .pipe(
+        mergeMap((user): any => {
+          return this.adminFunctionService.getById(user.id).pipe(
+            map(admin => ({ user, admin })),
+          );
+        }),
+        reduce((a, i) => [...a, i], [])
+      );
+  }
+
+  infinateData() {
+    this.usersService.init('users', 'name.firstname', { reverse: true, prepend: false }).pipe(
+      // mergeMap((usersMerge) => {
+      //   return this.mergeUserAuth(usersMerge);
+      // })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((r) => {
+      console.log(r);
+      this.userUpdated.next(r);
+    });
+  }
+
+  doInfinite(event: any) {
+    this.usersService.more();
+  }
+
   ngOnInit() {
     this.initialized();
+
     this.users$ = this.getUserListener();
   }
 
   onClear() {
-    this.initialized();
+    this.searchKey$.next('');
   }
 
   onChange(event: any) {

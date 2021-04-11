@@ -71,9 +71,9 @@ export class BookingCounterPipe implements PipeTransform {
 
         let observerVal = '';
         if (args[1] === 'job') {
-          observerVal = args[0] + ' job' + (bookings.length > 1 ? '(s)' : '') + ': ' + bookings.length;
+          observerVal = (bookings.length > 0 ? bookings.length : 0).toString();
         } else {
-          observerVal = (totalCharges > 0) ?  this.currencyPipe.transform(totalCharges, this.defaultCurrency, 'symbol-narrow') + ' earned' : '';
+          observerVal = this.currencyPipe.transform(totalCharges, this.defaultCurrency, 'symbol-narrow').toString();
         }
 
         observer.next(observerVal);
