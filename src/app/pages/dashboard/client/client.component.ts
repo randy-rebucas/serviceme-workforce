@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonItemSliding, IonRouterOutlet, ModalController } from '@ionic/angular';
 
-import { BehaviorSubject, from, Observable, of, Subject} from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, of, Subject} from 'rxjs';
 import { map, mergeMap, reduce, scan, switchMap, tap } from 'rxjs/operators';
 
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
@@ -10,6 +10,8 @@ import { DetailComponent } from '../../bookings/detail/detail.component';
 
 import { SubSink } from 'subsink';
 import { Users } from '../../users/users';
+import { ClassificationsService } from 'src/app/shared/services/classifications.service';
+import { Classification } from 'src/app/shared/classes/classification';
 
 export interface QueryConfig {
   path: string; //  path to collection
@@ -27,12 +29,9 @@ export interface QueryConfig {
 export class ClientComponent implements OnInit, OnDestroy {
   // list professional data
   public users$: Observable<any>;
-  // page num
-  public page: number;
-  // limit
-  public limit: number;
-
+  public classifications: Classification[];
   private userUpdated = new Subject<any[]>();
+  private classification$: BehaviorSubject<string|null>;
   private searchKey$: BehaviorSubject<string|null>;
   private subs = new SubSink();
 
@@ -42,42 +41,14 @@ export class ClientComponent implements OnInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
     private usersService: UsersService,
     private adminFunctionService: AdminFunctionService,
+    private classificationsService: ClassificationsService
   ) {
     this.searchKey$ = new BehaviorSubject(null);
-    this.page = 1;
-    this.limit = 8;
+    this.classification$ = new BehaviorSubject(null);
   }
 
   getUserListener() {
     return this.userUpdated.asObservable();
-  }
-
-  initialized() {
-    this.subs.sink = this.searchKey$.pipe(
-      switchMap(searchKey => this.usersService.getAll().pipe(
-        map((users) => {
-          if (!searchKey) {
-            return users;
-          }
-          return users.filter((filterUser) => {
-            return filterUser.name.firstname.toLowerCase().includes(searchKey);
-          });
-        }),
-        mergeMap((usersMerge) => {
-          return from(usersMerge).pipe(
-            mergeMap((user) => {
-              return this.adminFunctionService.getById(user.id).pipe(
-                map(admin => ({ user, admin })),
-              );
-            }),
-            reduce((a, i) => [...a, i], [])
-          );
-        })
-      ))
-    // tslint:disable-next-line: deprecation
-    ).subscribe((users) => {
-      this.preFormedUser(users);
-    });
   }
 
   preFormedUser(usersArray: any[]) {
@@ -122,9 +93,37 @@ export class ClientComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.initialized();
+    this.subs.sink = combineLatest([
+      this.searchKey$,
+      this.classification$
+    ]).pipe(
+      switchMap(([searchKey, classification]) => this.usersService.getAll(searchKey, classification).pipe(
+        mergeMap((usersMerge) => {
+          return from(usersMerge).pipe(
+            mergeMap((user) => {
+              return this.adminFunctionService.getById(user.id).pipe(
+                map(admin => ({ user, admin })),
+              );
+            }),
+            reduce((a, i) => [...a, i], [])
+          );
+        })
+      ))
+    // tslint:disable-next-line: deprecation
+    ).subscribe((users) => {
+      this.preFormedUser(users);
+    });
 
     this.users$ = this.getUserListener();
+
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
+      this.classifications = classifications;
+    });
+  }
+
+  filterClassification(searchKey: string) {
+    this.classification$.next(searchKey);
   }
 
   onClear() {

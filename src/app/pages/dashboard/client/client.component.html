@@ -1,7 +1,12 @@
 <ion-item lines="none">
-    <ion-label>Search</ion-label>
-    <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()"></ion-searchbar>
+    <ion-label>Search name</ion-label>
+    <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
 </ion-item>
+
+<ion-chip *ngFor="let classification of classifications" (click)="filterClassification(classification.name)">
+    <ion-label>{{classification.name}}</ion-label>
+</ion-chip>
+
 <ng-container *ngIf="users$ | async; let users; else loadingUsers">
     <ion-virtual-scroll [items]="users" approxItemHeight="320px">
         <ion-item-sliding *virtualItem="let item; let itemBounds = bounds;" #slidingItem>

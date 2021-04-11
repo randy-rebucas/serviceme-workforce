@@ -218,23 +218,23 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-    this.lists$ = this.usersService.getAll().pipe(
-      // map((users) => {
-      //   return users.filter((usersList) => {
-      //     return usersList.roles.pro === true;
-      //   });
-      // }),
-      mergeMap((usersMerge) => {
-        return from(usersMerge).pipe(
-          mergeMap((user) => {
-            return this.adminFunctionService.getById(user.id).pipe(
-              map(admin => ({ user, admin })),
-            );
-          }),
-          reduce((a, i) => [...a, i], []),
-        );
-      })
-    );
+    // this.lists$ = this.usersService.getAll().pipe(
+    //   // map((users) => {
+    //   //   return users.filter((usersList) => {
+    //   //     return usersList.roles.pro === true;
+    //   //   });
+    //   // }),
+    //   mergeMap((usersMerge) => {
+    //     return from(usersMerge).pipe(
+    //       mergeMap((user) => {
+    //         return this.adminFunctionService.getById(user.id).pipe(
+    //           map(admin => ({ user, admin })),
+    //         );
+    //       }),
+    //       reduce((a, i) => [...a, i], []),
+    //     );
+    //   })
+    // );
 
     from(this.authService.getCurrentUser()).pipe(
       // get all transactions

@@ -121,8 +121,16 @@ export class UsersService {
   }
 
   // =====================
-  private defaultCollection(): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection);
+  private defaultCollection(keystring: string = '', classification: string = null): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(collection, ref => {
+      let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
+      if (classification) {
+        query = query.where('classification', '==', classification);
+      }
+      if (keystring !== '') {
+        query = query.orderBy('name.firstname').startAt(keystring).endAt(keystring + '\uf8ff');
+      }
+      return query; });
   }
 
   private fetchData(col: AngularFirestoreCollection): Observable<any> {
@@ -137,8 +145,8 @@ export class UsersService {
       );
   }
 
-  getAll(): Observable<useClass[]> {
-    return this.fetchData(this.defaultCollection());
+  getAll(keystring: string, classification: string): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection(keystring, classification));
   }
 
   getSize(): Observable<QuerySnapshot<useClass>> {
