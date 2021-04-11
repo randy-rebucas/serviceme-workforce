@@ -40,7 +40,7 @@
                 </ion-item>
                 <ion-list-header>
                     <ion-label>Stats</ion-label>
-                    <ion-button (click)="onExpandStats($event)">View</ion-button>
+                    <ion-button (click)="onExpandStats()">View</ion-button>
                 </ion-list-header>
                 <ng-container *ngIf="isExpandStats">
 
@@ -58,7 +58,7 @@
 
                 <ion-list-header>
                     <ion-label>Availability</ion-label>
-                    <ion-button (click)="onExpandAvailability($event)">View</ion-button>
+                    <ion-button (click)="onExpandAvailability()">View</ion-button>
                 </ion-list-header>
                 <ng-container *ngIf="isExpandAvilability">
                     <ion-item lines="none" color="tertiary">

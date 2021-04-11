@@ -3,7 +3,7 @@ export class Notifications {
         public title: string,
         public content: string,
         public status: string,
-        public timestamp: Date,
+        public timestamp: any,
         public type: string,
         public id?: string
     ) {}

@@ -36,10 +36,10 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   public isClient: boolean;
   public isPro: boolean;
   public isAdmin: boolean;
+  public username: string;
   private username$: BehaviorSubject<string|null>;
   private imageUrl$: BehaviorSubject<string|null>;
   private user: firebase.User;
-  private username: string;
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
   private subs = new SubSink();

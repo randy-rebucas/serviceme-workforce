@@ -189,7 +189,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           from(this.alertController.create(
             {
               header: 'Account checking!',
-              message: 'This is not the app for Proffesional. Please contact supprt!',
+              message: 'This is not the app for Proffesional. Please contact our support team!',
               buttons: [
                 {
                   text: 'Exit',
