@@ -182,7 +182,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-
     // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       user.getIdTokenResult().then((idTokenResult) => {
