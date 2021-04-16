@@ -9,4 +9,11 @@ Release 2
             account
                 uploading avatar
                 updating display name
-            
+
+Release 3
+    Bug fixed
+        Verification check - Strict
+        Notifications
+        User Account check - Strict
+        Geolocation Permission check
+        Dashboard update - inifinate scroll for data

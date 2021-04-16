@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ActionSheetController, AlertController } from '@ionic/angular';
+import { ActionSheetController, AlertController, IonItemSliding, ModalController } from '@ionic/angular';
 
-import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, Observable, of, scheduled, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
@@ -19,6 +19,9 @@ import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
 import { Plugins } from '@capacitor/core';
+import { Classification } from 'src/app/shared/classes/classification';
+import { ClassificationsService } from 'src/app/shared/services/classifications.service';
+import { DetailComponent } from '../bookings/detail/detail.component';
 const { App } = Plugins;
 @Component({
   selector: 'app-dashboard',
@@ -26,46 +29,43 @@ const { App } = Plugins;
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
-  public isClient: boolean;
-  public isPro: boolean;
-  public isAdmin: boolean;
-  public currenctBalance: number;
   public currentUser$: Observable<firebase.User>;
-  public transactions$: Observable<any[]>;
-  public lists$: Observable<any>;
-  public bookings$: Observable<any[]>;
   public user: Users[];
   public defaultCurrency: string;
-  public commissionCharge: number;
-  public notificationCount: number;
+  public notificationCount$: Observable<number>;
+  public transactionBalance$: Observable<number>;
+  public classifications: Classification[];
+  public searchKey: string;
+  public classification: string;
+  public length$: Observable<number>;
+  public professionals$: Observable<Users[]>;
   private notificationListener = new Subject<any>();
-  private commissionPercentage: number;
-  private serviceCharge: number;
-  private bookingStatus$: BehaviorSubject<string|null>;
-  private bookingListener = new Subject<any>();
-  private transactionListener = new Subject<any>();
+
+  private classification$: BehaviorSubject<string|null>;
+  private searchKey$: BehaviorSubject<string|null>;
   private subs = new SubSink();
 
   constructor(
     private alertController: AlertController,
+    private modalController: ModalController,
     private actionSheetController: ActionSheetController,
     private router: Router,
     private authService: AuthService,
-    private adminFunctionService: AdminFunctionService,
     private usersService: UsersService,
-    private bookingsService: BookingsService,
     private paymentsService: PaymentsService,
-    private transactionService: TransactionsService,
+    private transactionsService: TransactionsService,
     private notificationsService: NotificationsService,
     private settingsService: SettingsService,
-    private zone: NgZone
+    private classificationsService: ClassificationsService
   ) {
-    this.currenctBalance = 0;
-    this.notificationCount = 0;
-    this.commissionPercentage = environment.commissionPercentage;
-    this.bookingStatus$ = new BehaviorSubject('pending');
+    this.searchKey$ = new BehaviorSubject(null);
+    this.classification$ = new BehaviorSubject(null);
+    this.length$ = of(0);
 
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+    // current user observable
+    this.currentUser$ = from(this.authService.getCurrentUser());
+
+    this.subs.sink = from(this.currentUser$).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
@@ -73,14 +73,29 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     });
-  }
 
-  onOpenNotifications() {
-    this.router.navigateByUrl('/pages/notifications');
-  }
+    // tslint:disable-next-line: deprecation
+    this.notificationCount$ = this.getNotificationListener().pipe(
+      map((notifications) => {
+        return notifications.length;
+      })
+    );
 
-  getNotifications() {
-    from(this.authService.getCurrentUser()).pipe(
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
+      console.log(classifications)
+      this.classifications = classifications;
+    });
+
+    this.length$ = this.usersService.getSize().pipe(
+      map((response) => {
+        return response.size;
+      })
+    );
+}
+
+  private getNotifications() {
+    from(this.currentUser$).pipe(
       // get all notifications
       switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
         // notifications response
@@ -105,85 +120,35 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getNotificationListener() {
+  private getNotificationListener() {
     return this.notificationListener.asObservable();
   }
 
-  getTransactionListener() {
-    return this.transactionListener.asObservable();
-  }
+  private getBalance() {
+    return from(this.currentUser$).pipe(
+      switchMap((user) => {
+        return this.transactionsService.getBySender(user.uid, 'completed').pipe(
+          map((trans) => {
+            let balance = 0;
+            for (const tran of trans) {
+              if (tran.sender === user.uid) {
+                balance -= Number(tran.amount);
+              }
 
-  getBookingListener() {
-    return this.bookingListener.asObservable();
-  }
-
-  // get user data to retrive names
-  getUser(bookingDetail: any, subCollectionForiegnKeyId: string) {
-    return this.usersService.getOne(subCollectionForiegnKeyId).pipe(
-      map(usersCollection => ({ usersCollection, bookingDetail })),
-    );
-  }
-  // get auth user data to retrive photoUrl
-  getAuthUser(booking) {
-    return this.adminFunctionService.getById(booking.bookingSubCollection.userId).pipe(
-      map(admin => ({ booking, admin })),
-      // merge user collection to get common user intity object
-      mergeMap((bookingDetail) => {
-        return this.getUser(bookingDetail, booking.bookingSubCollection.userId);
-      })
-    );
-  }
-  // get sub collections
-  getSubCollectionDocument(bookingSubCollection: any, status: string) {
-    return this.bookingsService.getOne(bookingSubCollection.id).pipe(
-      // map to combine user booking sub-collection to collection
-      map(bookingCollection => ({ bookingSubCollection, bookingCollection })),
-      // filter by status
-      filter(bookingStatus => bookingStatus.bookingCollection.status === status),
-      // merge the user auth data to get firebase.User object
-      mergeMap((booking) => {
-        return this.getAuthUser(booking);
-      })
-    );
-  }
-  // get Main Collection {bookings}
-  getCollection(booking: any[], status: string) {
-    return from(booking).pipe(
-      mergeMap((bookingSubCollection) => this.getSubCollectionDocument(bookingSubCollection, status)),
-      reduce((a, i) => [...a, i], [])
-    );
-  }
-
-  // get all sub collection bookings from user perspective
-  getSubCollection(documentRef: string, collectionRef: string, status: string) {
-    return this.usersService.getSubCollection(documentRef, collectionRef).pipe(
-      // bookings response
-      mergeMap((bookingMap: any[]) => {
-        return this.getCollection(bookingMap, status);
-      })
-    );
-  }
-
-  // initialize
-  initialized() {
-    this.subs.sink = this.bookingStatus$.pipe(
-      switchMap((status) => {
-        return from(this.authService.getCurrentUser()).pipe(
-          // get all bookings
-          switchMap((user) => this.getSubCollection(user.uid, 'bookings', status))
+              if (tran.receiver === user.uid) {
+                balance += Number(tran.amount);
+              }
+            }
+            return balance;
+          })
         );
       })
-    // tslint:disable-next-line: deprecation
-    ).subscribe((bookings) => {
-      this.bookingListener.next(bookings);
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
+    );
   }
 
-  ngOnInit() {
+  private checkRoles() {
     // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+    this.subs.sink = from(this.currentUser$).subscribe((user) => {
       user.getIdTokenResult().then((idTokenResult) => {
         if (!idTokenResult.claims.client) {
           from(this.alertController.create(
@@ -213,98 +178,68 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }, (error: any) => {
       this.presentAlert(error.code, error.message);
     });
+  }
 
-    this.currentUser$ = from(this.authService.getCurrentUser());
+  ngOnInit() {
+    // check roles
+    this.checkRoles();
 
-
-
-    // this.lists$ = this.usersService.getAll().pipe(
-    //   // map((users) => {
-    //   //   return users.filter((usersList) => {
-    //   //     return usersList.roles.pro === true;
-    //   //   });
-    //   // }),
-    //   mergeMap((usersMerge) => {
-    //     return from(usersMerge).pipe(
-    //       mergeMap((user) => {
-    //         return this.adminFunctionService.getById(user.id).pipe(
-    //           map(admin => ({ user, admin })),
-    //         );
-    //       }),
-    //       reduce((a, i) => [...a, i], []),
-    //     );
-    //   })
-    // );
-
-    from(this.authService.getCurrentUser()).pipe(
-      // get all transactions
-      switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
-        // transactions response
-        mergeMap((transactionMap: any[]) => {
-          // merge collection
-          return from(transactionMap).pipe(
-            mergeMap((transactionSubCollection) => {
-              return this.transactionService.getOne(transactionSubCollection.id.trim()).pipe(
-                // map to combine user transactions sub-collection to collection
-                map(transactionCollection => ({transactionSubCollection, transactionCollection})),
-                // filter by status
-                filter(transactionStatus => transactionStatus.transactionCollection.status === 'completed')
-              );
-            }),
-            reduce((a, i) => [...a, i], [])
-          );
-        })
-      ))
-    // tslint:disable-next-line: deprecation
-    ).subscribe((transactions) => {
-      this.transactionListener.next(transactions);
-    });
-
-    this.transactions$ = this.getTransactionListener();
-
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.transactions$).subscribe((transactions) => {
-      let balance = 0;
-      transactions.forEach(transaction => {
-        balance += transaction.transactionSubCollection.balance;
-      });
-      // set current balance observable value
-      this.transactionService.setBalance(balance);
-    });
-
-    // initialize bookings
-    this.initialized();
-
-    // get booking listener from booking observables
-    this.bookings$ = this.getBookingListener();
-
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.bookings$.subscribe((bookingItems) => {
-      let sum = 0;
-      bookingItems.forEach(bookingItem => {
-        sum += Number(bookingItem.bookingDetail.booking.bookingCollection.charges);
-      });
-      this.serviceCharge = sum;
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
-
+    // get all notifications
     this.getNotifications();
 
+    // load professionals
+    this.professionals$ = this.initProfessionals();
+
+    // get balance
+    this.transactionBalance$ = this.getBalance();
+  }
+
+  private initProfessionals() {
+    return combineLatest([
+      this.searchKey$,
+      this.classification$
+    ]).pipe(
+      switchMap(([searchKey, classification]) => {
+        return this.usersService.getAll(searchKey, classification)
+        .pipe(
+          map(users => {
+            return users.filter(userClaims => userClaims.roles?.pro === true);
+          })
+        );
+      })
+    );
+  }
+
+  filterClassification(searchKey: string) {
+    this.classification$.next(searchKey);
+  }
+
+  onClear() {
+    this.searchKey$.next('');
+  }
+
+  onChange(event: any) {
+    this.searchKey$.next(event.detail.value);
+  }
+
+  onDeail(userDetail: any, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.modalController.create({
+      component: DetailComponent,
+      componentProps: {
+        title: 'Detail',
+        userData: userDetail,
+        state: false
+      }
     // tslint:disable-next-line: deprecation
-    this.getNotificationListener().subscribe((notifications) => {
-      this.notificationCount = notifications.length;
+    })).subscribe((modalEl) => {
+      modalEl.present();
+      ionItemSliding.closeOpened();
     });
   }
 
   ngAfterViewInit() {
     // tslint:disable-next-line: deprecation
-    this.subs.sink = this.transactionService.getBalance().subscribe((balance) => {
-      this.currenctBalance = balance;
-    });
-
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.currentUser$.subscribe((user) => {
+    this.subs.sink = from(this.currentUser$).subscribe((user) => {
       if (!user.emailVerified) {
         from(this.alertController.create(
           {
@@ -332,20 +267,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  presentAlert(alertHeader: string, alertMessage: string) {
-    this.subs.sink = from(this.alertController.create({
-      header: alertHeader, // alert.code,
-      message: alertMessage, // alert.message,
-      buttons: ['OK']
-    // tslint:disable-next-line: deprecation
-    })).subscribe(alertEl => {
-        alertEl.present();
-    });
-  }
-
   onPickMethods() {
-    this.commissionCharge = (this.commissionPercentage / 100) * this.serviceCharge;
-
     this.subs.sink = from(this.actionSheetController.create(
       {
         header: 'Select Methods',
@@ -354,18 +276,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           text: 'Paypal',
           icon: 'logo-paypal',
           handler: () => {
-            this.paymentsService.setMethod('paypal', (this.commissionCharge < environment.initialDeposit) ?
-            environment.initialDeposit :
-            this.commissionCharge);
-            this.router.navigate(['/pages/payments']);
-          }
-        }, {
-          text: 'Remittance',
-          icon: 'cash',
-          handler: () => {
-            this.paymentsService.setMethod('remittance', (this.commissionCharge < environment.initialDeposit) ?
-            environment.initialDeposit :
-            this.commissionCharge);
+            this.paymentsService.setMethod('paypal', environment.initialDeposit);
             this.router.navigate(['/pages/payments']);
           }
         }, {
@@ -381,15 +292,26 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  navigateTo() {
-    this.router.navigate(['/pages/payments']);
-  }
-
-  onViewTransactions() {
-    this.router.navigate(['/pages/transactions']);
+  onViewReceipt() {
+    this.router.navigate(['/pages/receipt']);
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+  }
+
+  onOpenNotifications() {
+    this.router.navigateByUrl('/pages/notifications');
+  }
+
+  private presentAlert(alertHeader: string, alertMessage: string) {
+    this.subs.sink = from(this.alertController.create({
+      header: alertHeader, // alert.code,
+      message: alertMessage, // alert.message,
+      buttons: ['OK']
+    // tslint:disable-next-line: deprecation
+    })).subscribe(alertEl => {
+        alertEl.present();
+    });
   }
 }

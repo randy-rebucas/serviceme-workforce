@@ -8,6 +8,7 @@ import { AuthService } from '../auth.service';
 
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-register',
@@ -85,50 +86,40 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return this.form.controls;
   }
 
-  sendEmailVerification(userCredential: firebase.auth.UserCredential) {
+  doSignup(emailValue: string, password: string) {
     // tslint:disable-next-line: deprecation
-    this.subs.sink = from(userCredential.user.sendEmailVerification()).subscribe(() => {
+    this.subs.sink = from(this.authService.signUpWithEmail( emailValue, password )).pipe(
+      switchMap((response) => {
+        const userData = {
+          name: {
+            firstname: this.form.value.firstname,
+            lastname: this.form.value.lastname,
+            middlename: null
+          },
+          roles: {
+            admin: false,
+            client: true,
+            pro: false
+          },
+          email: response.user.email
+        };
+        return from(this.authService.setUserData(response.user.uid, userData)).pipe(
+          switchMap(() => {
+            return this.authService.setCustomClaims(response.user.email).pipe(
+              switchMap(() => {
+                return from(response.user.sendEmailVerification());
+              })
+            );
+          })
+        );
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe(() => {
       this.loadingController.dismiss();
+      this.form.reset();
+      this.onDismiss(true);
       // tslint:disable-next-line: max-line-length
       this.presentAlert('Verify your email', 'One last step to continue your registration. Check ou email and click on the link to verify.');
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  setCustomClaims(userCredential: firebase.auth.UserCredential) {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.authService.setCustomClaims(userCredential.user.email).subscribe(() => {
-      this.sendEmailVerification(userCredential);
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  setUserData(userCredential: firebase.auth.UserCredential) {
-    const userData = {
-      name: {
-        firstname: this.form.value.firstname,
-        lastname: this.form.value.lastname,
-        middlename: null
-      }
-    };
-
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.setUserData(userCredential.user.uid, userData)).subscribe(() => {
-      this.setCustomClaims(userCredential);
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  doSignup(email: string, password: string) {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.signUpWithEmail( email, password )).subscribe((signupResponse) => {
-      this.setUserData(signupResponse);
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);

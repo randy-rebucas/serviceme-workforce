@@ -18,7 +18,7 @@
     <ion-card class="ion-no-padding ion-no-margin no-box-shadow detail" color="secondary">
         <ng-container *ngIf="user$ | async as user; else elseOffer">
             <ion-card-header>
-                <ion-card-subtitle>Joined: {{user.metadata.creationTime | date}}</ion-card-subtitle>
+                <!-- <ion-card-subtitle>Joined: {{user.metadata.creationTime | date}}</ion-card-subtitle> -->
                 <ion-card-title>{{user.name.firstname + ' ' + user.name.lastname}}</ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -34,7 +34,7 @@
                     <ion-label class="ion-text-wrap">
                         <h2>{{ user.email | mask:7:'--'}}</h2>
                         <p>{{ user.phoneNumber | mask:7:'XXXXX'}}</p>
-                        <p>Classification: <strong>{{ user.classification }}</strong></p>
+                        <p>Classification: <strong>{{ user.classification ? user.classification : '--' }}</strong></p>
                     </ion-label>
                     <ion-icon [name]="user.gender === 'male' ? 'male-outline' : 'female-outline'" slot="end"></ion-icon>
                 </ion-item>
@@ -63,9 +63,14 @@
                 <ng-container *ngIf="isExpandAvilability">
                     <ion-item lines="none" color="tertiary">
                         <ion-label class="ion-text-wrap">
-                            <ion-chip outline *ngFor="let availability of user.availability">
-                                <ion-label>{{ availability.title }}</ion-label>
-                            </ion-chip>
+                            <ng-container *ngIf="user.availability.length; else elseEmpty">
+                                <ion-chip outline *ngFor="let availability of user.availability">
+                                    <ion-label>{{ availability.title }}</ion-label>
+                                </ion-chip>
+                            </ng-container>
+                            <ng-template #elseEmpty>
+                                Not available
+                            </ng-template>
                         </ion-label>
                     </ion-item>
 

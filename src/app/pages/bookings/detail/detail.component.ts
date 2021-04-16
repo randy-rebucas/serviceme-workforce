@@ -41,6 +41,9 @@ export class DetailComponent implements OnInit, OnDestroy {
   ) {
     this.title = this.navParams.data.title;
     this.user$ = of(this.navParams.data.userData);
+    from(this.user$).subscribe((r) => {
+      console.log(r)
+    })
     this.state = this.navParams.data.state;
     this.isExpandStats = false;
     this.isExpandAvilability = false;

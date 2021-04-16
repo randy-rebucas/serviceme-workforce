@@ -8,7 +8,7 @@
             <ion-button (click)="onOpenNotifications()">
                 <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
             </ion-button>
-            <ion-badge color="danger" *ngIf="notificationCount > 0">{{notificationCount}}</ion-badge>
+            <ion-badge color="danger" *ngIf="(notificationCount$ | async) > 0">{{notificationCount$ | async}}</ion-badge>
         </ion-buttons>
     </ion-toolbar>
     <ng-container *ngIf="currentUser$ | async as user; else elseUserLoading">
@@ -58,5 +58,77 @@
             <ion-title size="large">Dashboard</ion-title>
         </ion-toolbar>
     </ion-header>
-    <app-client></app-client>
+    <ion-card class="wallet ion-margin-bottom">
+        <ion-item>
+            <ion-label>Wallet Balance</ion-label>
+            <ion-buttons slot="end">
+                <ion-button (click)="onPickMethods()">
+                    <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+                </ion-button>
+                <ion-button (click)="onViewReceipt()">
+                    <ion-icon slot="icon-only" name="list-outline"></ion-icon>
+                </ion-button>
+            </ion-buttons>
+        </ion-item>
+        <ion-card-content class="ion-text-center">
+            <h1>{{ transactionBalance$ | async | currency:defaultCurrency:'symbol-narrow' }}</h1>
+        </ion-card-content>
+    </ion-card>
+    <ion-item lines="none">
+        <ion-label>Search name</ion-label>
+        <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
+    </ion-item>
+
+    <ion-chip *ngFor="let classification of classifications" (click)="filterClassification(classification.name)">
+        <ion-label>{{classification.name}}</ion-label>
+    </ion-chip>
+
+    <ng-container *ngIf="professionals$ | async; let professionals; else loadingUsers">
+        <ion-virtual-scroll [items]="professionals" approxItemHeight="320px">
+            <ion-item-sliding *virtualItem="let item; let itemBounds = bounds;" #slidingItem>
+                <ion-item lines="none" button (click)="onDeail(item, slidingItem)">
+                    <ion-thumbnail slot="start">
+                        <ng-container *ngIf="item.photoURL; else elseDummy">
+                            <img [src]="item.photoURL" />
+                        </ng-container>
+                        <ng-template #elseDummy>
+                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                        </ng-template>
+                    </ion-thumbnail>
+                    <ion-label>
+                        <h2>{{ (item.name.firstname + ' ' + item.name.lastname) | titlecase }} <small>- {{ item.classification }}</small></h2>
+                        <ion-chip outline>
+                            <ion-label>{{ item.id | counter:'single':'Service' | async}}</ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-label>{{ item.id | counter:'package':'Package' | async}}</ion-label>
+                        </ion-chip>
+                    </ion-label>
+                    <ion-note slot="end" [ngClass]="{'available': item.availability | weekDay}"></ion-note>
+                </ion-item>
+            </ion-item-sliding>
+        </ion-virtual-scroll>
+    </ng-container>
+    <ng-template #loadingUsers>
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7]">
+            <ion-thumbnail slot="start">
+                <ion-skeleton-text animated></ion-skeleton-text>
+            </ion-thumbnail>
+            <ion-label>
+                <h3>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </h3>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+            </ion-label>
+        </ion-item>
+    </ng-template>
 </ion-content>

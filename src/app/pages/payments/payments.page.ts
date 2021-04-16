@@ -71,7 +71,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
       // set method
       this.method = methodResponse.method;
       // set deposit amount
-      this.initialDeposit = (methodResponse.amount < environment.initialDeposit ) ? environment.initialDeposit : methodResponse.amount;
+      this.initialDeposit = environment.initialDeposit;
     });
 
     this.form = new FormGroup({

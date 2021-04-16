@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Plugins } from '@capacitor/core';
 
 import { AlertController, Platform } from '@ionic/angular';
@@ -15,7 +15,7 @@ const { App } = Plugins;
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private subs = new SubSink();
 
   constructor(
@@ -31,6 +31,8 @@ export class AppComponent {
   initializeApp() {
     this.platform.ready().then(() => {
       this.splashScreen.hide();
+      // check network if available.
+      // tslint:disable-next-line: deprecation
       this.subs.sink =  this.network.onDisconnect().subscribe(() => {
         this.alertController.create({
           cssClass: 'my-custom-class',
@@ -51,5 +53,9 @@ export class AppComponent {
         });
       });
     });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

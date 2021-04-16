@@ -9,7 +9,7 @@ import {
 } from '@angular/fire/firestore';
 import firebase from 'firebase/app';
 
-import { Transactions, MyTransactions as useClass } from './transactions';
+import { Transactions as useClass } from './transactions';
 
 const collection = 'transactions';
 const orderField = 'timestamp';
@@ -20,7 +20,6 @@ const orderBy = 'desc';
 export class TransactionsService {
 
   private totalBalance$ = new BehaviorSubject<number>(0);
-  private myTransactions$ = new BehaviorSubject<Transactions[]>([]);
 
   constructor(
     private angularFirestore: AngularFirestore
@@ -30,30 +29,23 @@ export class TransactionsService {
     this.totalBalance$.next(amount);
   }
 
-  myTransactions(transaction: Transactions[]) {
-    this.myTransactions$.next(transaction);
-  }
-
   getBalance() {
     return this.totalBalance$.asObservable();
   }
 
-  getMyTransactions() {
-    return this.myTransactions$.asObservable();
-  }
-
   private defaultCollection(): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection); // , ref => ref.orderBy(orderField, orderBy)
+    return this.angularFirestore.collection<useClass>(collection);
   }
 
-  public filterBySender(limit: number | null) {
+  public filterBySender(userId: string, status: string = null) {
     return this.angularFirestore.collection(collection, ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
-      if (limit) {
-        query = query.limit(limit);
+      if (status) {
+        query = query.where('status', '==', status);
       }
-      return query.where('status', '==', 'completed').orderBy(orderField, orderBy);
-    });
+      return query.orderBy(orderField, orderBy);
+      }
+    );
   }
 
   private fetchData(col: AngularFirestoreCollection): Observable<any> {
@@ -68,12 +60,12 @@ export class TransactionsService {
       );
   }
 
-  getAll(): Observable<useClass[]> {
-    return this.fetchData(this.defaultCollection());
+  getBySender(userId: string, status: string = null): Observable<useClass[]> {
+    return this.fetchData(this.filterBySender(userId, status));
   }
 
-  getBySender(limit: number| null): Observable<useClass[]> {
-    return this.fetchData(this.filterBySender(limit));
+  getAll(): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection());
   }
 
   getSize(): Observable<QuerySnapshot<useClass>> {

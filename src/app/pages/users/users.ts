@@ -7,22 +7,32 @@ export interface Name {
 }
 
 export interface Address {
-    city: string;
-    country: string;
-    state: string;
+    city?: string;
+    country?: string;
+    state?: string;
     address1?: string;
     address2?: string;
     postalCode?: string;
     coordinates?: Coordinates;
 }
 
+export interface Roles {
+    client?: boolean;
+    pro?: boolean;
+    admin?: boolean;
+}
+
 export class Users {
     constructor(
         public name: Name,
-        public address: Address,
-        public gender: string,
-        public classification?: string,
-        public availability?: any,
+        public email: string,
+        public roles: Roles,
+        public address?: Address,
+        public gender?: string,
+        public birthdate?: any,
+        public phoneNumber?: string,
+        public displayName?: string,
+        public photoURL?: string,
         public id?: string
     ) {}
 }

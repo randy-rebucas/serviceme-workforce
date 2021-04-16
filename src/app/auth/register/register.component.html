@@ -15,6 +15,7 @@
             <ion-title size="large">We are excited to welcome you!</ion-title>
         </ion-toolbar>
     </ion-header>
+    <img src="/assets/images/icon.png" />
     <form [formGroup]="form" (submit)="onSignUp()" class="register-form">
 
         <ion-card>
@@ -76,7 +77,7 @@
                 </ion-item>
                 <ion-item lines="none">
                     <ion-label class="ion-text-wrap">
-                        Yes, I understand and agree to the cutsonwheel terms of service, including the User Agreement and Privacy Policy
+                        Agree on User Agreement
                     </ion-label>
                     <ion-checkbox slot="start" (ionChange)="onCheck($event)" [checked]="isChecked"></ion-checkbox>
                 </ion-item>
