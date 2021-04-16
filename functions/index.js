@@ -49,8 +49,48 @@ exports.createUser = functions.https.onRequest((request, response, next) => {
         .createUser(request.body).then((userResponse) => {
             response
                 .set("Access-Control-Allow-Origin", "*")
+                // eslint-disable-next-line max-len
+                .set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+                // eslint-disable-next-line max-len
+                .set("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization")
+                // eslint-disable-next-line max-len
+                .set("Access-Control-Expose-Headers", "Content-Length,Content-Range")
                 .status(200).json({
                     userId: userResponse.uid,
+                });
+        }).catch((err) => {
+            response.status(500).json({
+                message: err.message,
+            });
+        });
+});
+
+// eslint-disable-next-line max-len
+exports.updateUser = functions.https.onRequest((request, response, next) => {
+    // create user
+    admin.auth()
+        .updateUser(request.query.uid, request.body).then((userResponse) => {
+            response
+                .set("Access-Control-Allow-Origin", "*")
+                .status(200).json({
+                    user: userResponse,
+                });
+        }).catch((err) => {
+            response.status(500).json({
+                message: err.message,
+            });
+        });
+});
+
+// eslint-disable-next-line max-len
+exports.deleteUser = functions.https.onRequest((request, response, next) => {
+    // create user
+    admin.auth()
+        .deleteUser(request.query.uid).then(() => {
+            response
+                .set("Access-Control-Allow-Origin", "*")
+                .status(200).json({
+                    message: "Successfully deleted user",
                 });
         }).catch((err) => {
             response.status(500).json({
