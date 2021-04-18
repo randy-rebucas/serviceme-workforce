@@ -2,8 +2,8 @@ import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { AngularFireStorageReference, AngularFireUploadTask } from '@angular/fire/storage';
 import { ActionSheetController, AlertController, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
 
-import { BehaviorSubject, from, Observable, of } from 'rxjs';
-import { finalize, map, mergeMap } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
+import { finalize, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { Camera, CameraOptions, PictureSourceType } from '@ionic-native/camera/ngx';
@@ -40,6 +40,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   private username$: BehaviorSubject<string|null>;
   private imageUrl$: BehaviorSubject<string|null>;
   private user: firebase.User;
+  private userUpdateListener = new Subject<any>();
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
   private subs = new SubSink();
@@ -64,89 +65,114 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
     this.imageUrl$ = new BehaviorSubject(null);
   }
 
+  private getUserUpdateListener() {
+    return this.userUpdateListener.asObservable();
+  }
+
   ngOnInit() {
+
+    this.username$.subscribe((username) => {
+      this.username = username;
+    });
+
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((auhtUser) => {
+        return this.userService.getOne(auhtUser.uid).pipe(
+          map((user) => {
+            return Object.keys(user).filter(key =>
+              key !== 'roles').reduce((obj, key) =>
+              {
+                  obj[key] = user[key];
+                  return obj;
+              }, {}
+            );
+          })
+        );
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((user) => {
+      this.preFormed(user);
+    });
+
     // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
       const initialImage = user.photoURL ? user.photoURL : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+';
       this.imageUrl$.next(initialImage);
     });
     // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      this.username$.next(user.displayName);
-      user.getIdTokenResult().then((idTokenResult) => {
-        this.isClient = idTokenResult.claims.client;
-        this.isPro = idTokenResult.claims.pro;
-        this.isAdmin = idTokenResult.claims.admin;
-      });
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      map((user) => {
+        return user.displayName;
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((username) => {
+      this.username$.next(username);
     });
 
-    this.user$ = from(this.authService.getCurrentUser()).pipe(
-        mergeMap((auhtUser) => {
-          this.user = auhtUser;
-          return this.userService.getOne(auhtUser.uid);
-        }),
-        map(userData => {
-          let completeName = '';
-          let addressLine1 = '';
-          let addressLine2 = '';
-          let addressLine3 = '';
-          const firstname = this.titlecasePipe.transform(userData.name.firstname);
-          const lastname = this.titlecasePipe.transform(userData.name.lastname);
-          const midlename = (userData.name.midlename) ? this.titlecasePipe.transform(userData.name.midlename) : null;
-          if (midlename) {
-            completeName = firstname.concat(' ', midlename);
-          }
-          completeName = completeName.concat(', ', lastname);
+    this.user$ = this.getUserUpdateListener();
+    from(this.user$).subscribe((r) => {
+      console.log(r);
+    })
+  }
 
-          const address1 = (userData.address) ? this.titlecasePipe.transform(userData.address.address1) : null;
-          const address2 = (userData.address) ? this.titlecasePipe.transform(userData.address.address2) : null;
-          const city = (userData.address) ? this.titlecasePipe.transform(userData.address.city) : null;
-          const country = (userData.address) ? this.titlecasePipe.transform(userData.address.country) : null;
-          const postalCode = (userData.address) ? this.titlecasePipe.transform(userData.address.postalCode) : null;
-          const state = (userData.address) ? this.titlecasePipe.transform(userData.address.state) : null;
-          // check address 1 Unit/Floor + House/Building Name
-          if (address1) {
-            addressLine1 = address1;
-          }
-          // check address 2 Street Number/Name
-          if (address2) {
-            addressLine1 = addressLine1.concat(', ', address2);
-          }
-          // check State/Brangay/District
-          if (state) {
-            addressLine2 = state;
-          }
-          // check City
-          if (city) {
-            addressLine2 = addressLine2.concat(', ', city);
-          }
-          // check PostalCode
-          if (postalCode) {
-            addressLine3 = postalCode;
-          }
-          // check Country
-          if (country) {
-            addressLine3 = addressLine3.concat(', ', country);
-          }
+  preFormed(userData: any) {
+      let completeName = '';
+      let addressLine1 = '';
+      let addressLine2 = '';
+      let addressLine3 = '';
+      const firstname = this.titlecasePipe.transform(userData.name.firstname);
+      const lastname = this.titlecasePipe.transform(userData.name.lastname);
+      const midlename = (userData.name.midlename) ? this.titlecasePipe.transform(userData.name.midlename) : null;
+      if (midlename) {
+        completeName = firstname.concat(' ', midlename);
+      }
+      completeName = completeName.concat(', ', lastname);
 
-          const customData = {
-            fullname: completeName,
-            line1: addressLine1,
-            line2: addressLine2,
-            line3: addressLine3
-          };
+      const address1 = (userData.address) ? this.titlecasePipe.transform(userData.address.address1) : null;
+      const address2 = (userData.address) ? this.titlecasePipe.transform(userData.address.address2) : null;
+      const city = (userData.address) ? this.titlecasePipe.transform(userData.address.city) : null;
+      const country = (userData.address) ? this.titlecasePipe.transform(userData.address.country) : null;
+      const postalCode = (userData.address) ? this.titlecasePipe.transform(userData.address.postalCode) : null;
+      const state = (userData.address) ? this.titlecasePipe.transform(userData.address.state) : null;
+      // check address 1 Unit/Floor + House/Building Name
+      if (address1) {
+        addressLine1 = address1;
+      }
+      // check address 2 Street Number/Name
+      if (address2) {
+        addressLine1 = addressLine1.concat(', ', address2);
+      }
+      // check State/Brangay/District
+      if (state) {
+        addressLine2 = state;
+      }
+      // check City
+      if (city) {
+        addressLine2 = addressLine2.concat(', ', city);
+      }
+      // check PostalCode
+      if (postalCode) {
+        addressLine3 = postalCode;
+      }
+      // check Country
+      if (country) {
+        addressLine3 = addressLine3.concat(', ', country);
+      }
 
-          return {...this.user, ...userData, ...customData};
-        })
-      );
+      const customData = {
+        fullname: completeName,
+        gender: userData.gender,
+        birthdate: userData.birthdate,
+        line1: addressLine1,
+        line2: addressLine2,
+        line3: addressLine3
+      };
+
+      this.username$.next(userData.displayName);
+      this.userUpdateListener.next(customData);
   }
 
   ngAfterViewInit() {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.username$.subscribe((username) => {
-      this.username = username;
-    });
-
     // tslint:disable-next-line: deprecation
     this.subs.sink = this.imageUrl$.subscribe((imageUrl) => {
       this.imageUrl = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
@@ -167,7 +193,8 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
 
       modalEl.onDidDismiss().then((dataReturned) => {
         if (dataReturned.data.dismissed) {
-          this.presentAlert('Profile updated', 'Profile successfully updated!');
+          // this.userUpdateListener.next(dataReturned.data.user);
+          this.preFormed(dataReturned.data.user);
         }
       });
     });
@@ -201,7 +228,14 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
 
       modalEl.onDidDismiss().then((dataReturned) => {
         if (dataReturned.data.dismissed) {
-          this.presentAlert('Profile updated', 'Email successfully updated!');
+          from(this.authService.getCurrentUser()).pipe(
+            switchMap((currenctUser) => {
+              return this.userService.update(currenctUser.uid, {email: dataReturned.data.email});
+            })
+          // tslint:disable-next-line: deprecation
+          ).subscribe(() => {
+            this.presentAlert('Profile updated', 'Email successfully updated!');
+          });
         }
       });
     });
@@ -218,7 +252,18 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
 
       modalEl.onDidDismiss().then((dataReturned) => {
         if (dataReturned.data.dismissed) {
-          this.presentAlert('Profile updated', 'Phone successfully updated!');
+          from(this.authService.getCurrentUser()).pipe(
+            switchMap((currenctUser) => {
+              return this.userService.update(currenctUser.uid, {phoneNumber: dataReturned.data.phone});
+            })
+          // tslint:disable-next-line: deprecation
+          ).subscribe(() => {
+            this.getUserUpdateListener().subscribe((user) => {
+              const appendedNumber = {...user, ...{phoneNumber: dataReturned.data.phone}};
+              this.userUpdateListener.next(appendedNumber);
+              this.presentAlert('Profile updated', 'Phone successfully updated!');
+            });
+          });
         }
       });
     });
@@ -339,8 +384,16 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
             this.subs.sink = from(this.authService.getCurrentUser()).pipe(
               map(user => user.updateProfile({ displayName: data.userName }))
             // tslint:disable-next-line: deprecation
-            ).subscribe(() => {
+            ).subscribe((r) => {
+              console.log(r)
+              from(this.authService.getCurrentUser()).pipe(
+                switchMap((currenctUser) => {
+                  return from(this.userService.update(currenctUser.uid, {displayName: data.userName}));
+                })
+              // tslint:disable-next-line: deprecation
+              ).subscribe(() => {
                 this.username$.next(data.userName);
+              });
             }, (error: any) => {
               this.presentAlert(error.code, error.message);
             });

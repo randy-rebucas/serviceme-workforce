@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, IonInput, LoadingController, ToastController } from '@ionic/angular';
-import { from } from 'rxjs';
+import { from, pipe } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
@@ -63,36 +63,13 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.paymentsService.getCurrentMethod().subscribe((methodResponse) => {
-      // check if method exist.
-      if (!methodResponse) {
-        this.router.navigate(['/pages']);
-      }
-      // set method
-      this.method = methodResponse.method;
-      // set deposit amount
-      this.initialDeposit = environment.initialDeposit;
-    });
+    // set deposit amount
+    this.initialDeposit = environment.initialDeposit;
 
     this.form = new FormGroup({
       amount: new FormControl(this.initialDeposit, {
         updateOn: 'blur',
         validators: [Validators.required, Validators.maxLength(8)]
-      })
-    });
-
-    this.formRequest = new FormGroup({
-      amount: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(8)]
-      }),
-      reference: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(15)]
-      }),
-      settlementDate: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required]
       })
     });
   }
@@ -107,57 +84,56 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     this.formCtrls.amount.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
   }
 
-  onCustomInput(value: any) {
-    let input = value.replace(/[\D\s\._\-]+/g, '');
-    input = input ? parseInt( input, 10 ) : 0;
-    this.formRequestCtrls.amount.setValue(( input === 0 ) ? '' : input.toLocaleString( 'en-US' ));
-  }
-
   get formCtrls() { return this.form.controls; }
 
-  get formRequestCtrls() { return this.formRequest.controls; }
-
-  setSubCollection(user: firebase.User, transaction: any, amount: number) {
-    this.subs.sink = from(this.userService.setSubCollection(user.uid, 'transactions', transaction.id, { balance: Number(amount) }))
-    .subscribe(() => {
-      if (this.method === 'remittance') {
-        this.toastController.create({
-          message: 'Please wait, while we confirm your payment.',
-          duration: 5000
-        }).then((toastEl) => {
-          toastEl.present();
-        });
-      }
-      this.formRequest.reset();
-      this.loadingController.dismiss();
+  setSubCollection(transaction: any) {
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      switchMap((currentUser) => {
+        return from(this.userService.setSubCollection(currentUser.uid, 'receipt', transaction.id, {}));
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe(() => {
+      this.toastController.create({
+        message: 'Please wait, while we confirm your payment.',
+        duration: 5000
+      }).then((toastEl) => {
+        toastEl.present();
+      });
     });
   }
 
   setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      const transactionData  = {
-        amount: Number(amount),
-        currency: this.defaultCurrency,
-        description: this.shortDescription,
-        timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
-        ref: refId,
-        status: transactionStatus,
-        type: 'payment'
-      };
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      switchMap((user) => {
+        const transactionData  = {
+          sender: refId,
+          receiver: user.uid,
+          amount: Number(amount),
+          currency: this.defaultCurrency,
+          description: this.shortDescription,
+          timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
+          ref: 'Paypal',
+          status: transactionStatus,
+          type: 'payment'
+        };
 
-      this.subs.sink = this.subs.sink = from(this.transactionsService.insert(transactionData)).subscribe((transaction) => {
-        this.setSubCollection(user, transaction, amount);
-      }, (error: any) => {
-        this.loadingController.dismiss();
-        this.presentAlert(error.code, error.message);
-      });
+        return from(this.transactionsService.insert(transactionData));
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((transaction) => {
+      this.setSubCollection(transaction);
+    }, (error: any) => {
+      this.loadingController.dismiss();
+      this.presentAlert(error.code, error.message);
     });
+
   }
 
   paypalPayment() {
     const amountValue = this.form.value.amount;
     const amount = amountValue.replace(/[^0-9.-]+/g, '');
     const payment = new PayPalPayment(amountValue, this.defaultCurrency, this.shortDescription, 'sale');
+    // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
       this.setTransactionData(amount, paypalResponse.response.id, new Date(), 'completed');
     }, (error: any) => {
@@ -170,6 +146,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.sink = from(this.payPal.prepareToRender(environment.payPalEnv, new PayPalConfiguration({
       // Only needed if you get an "Internal Service Error" after PayPal login!
       // payPalShippingAddressOption: 2 // PayPalShippingAddressOptionPayPal
+    // tslint:disable-next-line: deprecation
     }))).subscribe(() => {
       this.paypalPayment();
     }, (error: any) => {
@@ -196,22 +173,6 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doCashIn();
-    });
-  }
-
-  doRequestCashIn() {
-    const amountValue = this.formRequest.value.amount;
-    const dateValue = new Date(this.formRequest.value.settlementDate);
-    const amount = amountValue.replace(/[^0-9.-]+/g, '');
-    this.setTransactionData(amount, this.formRequest.value.reference, dateValue, 'pending');
-  }
-
-  onRequestCashIn() {
-    this.subs.sink = from(this.loadingController.create({
-      message: 'Please wait...'
-    })).subscribe(loadingEl => {
-      loadingEl.present();
-      this.doRequestCashIn();
     });
   }
 

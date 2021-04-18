@@ -10,77 +10,50 @@
 </ion-header>
 
 <ion-content>
-    <ng-container *ngIf="isPro">
-        <ion-card>
-            <!-- <ion-card-header>
-              <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
-              <ion-card-title>Card Title</ion-card-title>
-            </ion-card-header>
-           -->
-            <ion-card-content>
-                <ion-list>
-                    <ion-item>
-                        <ion-label>Calssification</ion-label>
-                        <ion-select [value]="currentClassification" (ionChange)="onSelectClassification($event)">
-                            <ion-select-option *ngFor="let classification of classifications" [value]="classification.name">{{classification.name}}</ion-select-option>
-                        </ion-select>
-                    </ion-item>
-                    <ion-item lines="none">
-                        <ion-label>Availability</ion-label>
-                        <ion-select multiple="true" [compareWith]="compareAvailablity" [value]="availablities" (ionChange)="onSelectAvailability($event)">
-                            <ion-select-option *ngFor="let availablity of availablityList" [value]="availablity">{{availablity.title}}</ion-select-option>
-                        </ion-select>
-                    </ion-item>
-                </ion-list>
-            </ion-card-content>
-        </ion-card>
-    </ng-container>
-
     <ion-card>
-        <!-- <ion-card-header>
-          <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
-          <ion-card-title>Card Title</ion-card-title>
-        </ion-card-header>
-       -->
         <ion-card-content>
             <form [formGroup]="form" (submit)="onUpdate()">
                 <ion-list>
-                    <ion-item>
-                        <ion-label position="floating">First name</ion-label>
-                        <ion-input formControlName="firstname"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.firstname.errors && formCtrls.firstname.touched">
-                        <ion-label *ngIf="formCtrls.firstname.errors.required">
-                            <ion-note color="danger">Firstname is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.firstname.errors.maxlength">
-                            <ion-note color="danger">Only 50 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">MI</ion-label>
-                        <ion-input formControlName="midlename"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.midlename.errors && formCtrls.midlename.touched">
-                        <ion-label *ngIf="formCtrls.midlename.errors.required">
-                            <ion-note color="danger">Middle Initial is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.midlename.errors.maxlength">
-                            <ion-note color="danger">Only 2 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">Last name</ion-label>
-                        <ion-input formControlName="lastname"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.lastname.errors && formCtrls.lastname.touched">
-                        <ion-label *ngIf="formCtrls.lastname.errors.required">
-                            <ion-note color="danger">Lastname is required!</ion-note>
-                        </ion-label>
-                        <ion-label *ngIf="formCtrls.lastname.errors.maxlength">
-                            <ion-note color="danger">Only 50 max characters allowed.</ion-note>
-                        </ion-label>
-                    </ion-item>
+                    <ng-container formGroupName="name">
+                        <ion-item>
+                            <ion-label position="floating">Firstname</ion-label>
+                            <ion-input formControlName="firstname"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formNameCtrls.controls['firstname'].errors && formNameCtrls.controls['firstname'].touched">
+                            <ion-label *ngIf="formNameCtrls.controls['firstname'].errors.required">
+                                <ion-note color="danger">Firstname is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formNameCtrls.controls['firstname'].errors.maxlength">
+                                <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">Midlename</ion-label>
+                            <ion-input formControlName="midlename"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formNameCtrls.controls['midlename'].errors && formNameCtrls.controls['midlename'].touched">
+                            <ion-label *ngIf="formNameCtrls.controls['middlename'].errors.required">
+                                <ion-note color="danger">Middlename is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formNameCtrls.controls['midlename'].errors.maxlength">
+                                <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">Lastname</ion-label>
+                            <ion-input formControlName="lastname"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formNameCtrls.controls['lastname'].errors && formNameCtrls.controls['lastname'].touched">
+                            <ion-label *ngIf="formNameCtrls.controls['lastname'].errors.required">
+                                <ion-note color="danger">Lastname is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formNameCtrls.controls['lastname'].errors.maxlength">
+                                <ion-note color="danger">Only 30 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ng-container>
                     <ion-item>
                         <ion-label position="stacked">Gender</ion-label>
                         <ion-select formControlName="gender">
@@ -94,61 +67,91 @@
                         </ion-label>
                     </ion-item>
                     <ion-item>
-                        <ion-label position="stacked">Unit/Floor + House/Building Name</ion-label>
-                        <ion-input formControlName="address1"></ion-input>
+                        <ion-label position="floating">Birthdate</ion-label>
+                        <ion-datetime formControlName="birthdate" displayFormat="YYYY/MM/DD" [max]="maxDate.toISOString()" placeholder="year/month/day">
+                        </ion-datetime>
                     </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.address1.errors && formCtrls.address1.touched">
-                        <ion-label *ngIf="formCtrls.address1.errors.required">
-                            <ion-note color="danger">Address line 1 is required!</ion-note>
+                    <ion-item lines="none" *ngIf="formCtrls.birthdate.errors && formCtrls.birthdate.touched">
+                        <ion-label *ngIf="formCtrls.birthdate.errors.required">
+                            <ion-note color="danger">Birthdate is required!</ion-note>
                         </ion-label>
                     </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">Street Number/Name</ion-label>
-                        <ion-input formControlName="address2"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.address2.errors && formCtrls.address2.touched">
-                        <ion-label *ngIf="formCtrls.address2.errors.required">
-                            <ion-note color="danger">Address line 2 is required!</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">City</ion-label>
-                        <ion-input formControlName="city"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.city.errors && formCtrls.city.touched">
-                        <ion-label *ngIf="formCtrls.city.errors.required">
-                            <ion-note color="danger">City is required!</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">State/Province</ion-label>
-                        <ion-input formControlName="state"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.state.errors && formCtrls.state.touched">
-                        <ion-label *ngIf="formCtrls.state.errors.required">
-                            <ion-note color="danger">State is required!</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-label position="stacked">Country</ion-label>
-                        <ion-select [value]="currentCountry" formControlName="country">
-                            <ion-select-option [value]="country.name" *ngFor="let country of countries">{{ country.name }}</ion-select-option>
-                        </ion-select>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.country.errors && formCtrls.country.touched">
-                        <ion-label *ngIf="formCtrls.country.errors.required">
-                            <ion-note color="danger">Country is required!</ion-note>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item lines="none">
-                        <ion-label position="stacked">Postal Code</ion-label>
-                        <ion-input formControlName="postalCode"></ion-input>
-                    </ion-item>
-                    <ion-item lines="none" *ngIf="formCtrls.postalCode.errors && formCtrls.postalCode.touched">
-                        <ion-label *ngIf="formCtrls.postalCode.errors.required">
-                            <ion-note color="danger">Postal Code is required!</ion-note>
-                        </ion-label>
-                    </ion-item>
+
+                    <ng-container formGroupName="address">
+                        <ion-item>
+                            <ion-label position="floating">Unit/Floor + House/Building Name</ion-label>
+                            <ion-input formControlName="address1"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['address1'].errors && formAddressCtrls.controls['address1'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['address1'].errors.required">
+                                <ion-note color="danger">Address line 1 is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formAddressCtrls.controls['address1'].errors.maxlength">
+                                <ion-note color="danger">Only 250 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">Street Number/Name</ion-label>
+                            <ion-input formControlName="address2"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['address2'].errors && formAddressCtrls.controls['address2'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['address2'].errors.maxlength">
+                                <ion-note color="danger">Only 250 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">City</ion-label>
+                            <ion-input formControlName="city"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['city'].errors && formAddressCtrls.controls['city'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['city'].errors.required">
+                                <ion-note color="danger">City is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formAddressCtrls.controls['city'].errors.maxlength">
+                                <ion-note color="danger">Only 150 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">State or Province</ion-label>
+                            <ion-input formControlName="state"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['state'].errors && formAddressCtrls.controls['state'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['state'].errors.required">
+                                <ion-note color="danger">State is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formAddressCtrls.controls['state'].errors.maxlength">
+                                <ion-note color="danger">Only 150 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">Zip or Postal Code</ion-label>
+                            <ion-input formControlName="postalCode"></ion-input>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['postalCode'].errors && formAddressCtrls.controls['postalCode'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['postalCode'].errors.required">
+                                <ion-note color="danger">Zip or Postal Code is required!</ion-note>
+                            </ion-label>
+                            <ion-label *ngIf="formAddressCtrls.controls['postalCode'].errors.maxlength">
+                                <ion-note color="danger">Only 6 max characters allowed.</ion-note>
+                            </ion-label>
+                        </ion-item>
+
+                        <ion-item>
+                            <ion-label position="floating">Country</ion-label>
+                            <ion-select formControlName="country" placeholder="Select One">
+                                <ion-select-option [value]="country.name" *ngFor="let country of countries">{{ country.name }}</ion-select-option>
+                            </ion-select>
+                        </ion-item>
+                        <ion-item lines="none" *ngIf="formAddressCtrls.controls['country'].errors && formAddressCtrls.controls['country'].touched">
+                            <ion-label *ngIf="formAddressCtrls.controls['country'].errors.required">
+                                <ion-note color="danger">Country Code is required!</ion-note>
+                            </ion-label>
+                        </ion-item>
+                    </ng-container>
                 </ion-list>
 
                 <ion-button expand="block" type="submit" [disabled]="!form.valid">

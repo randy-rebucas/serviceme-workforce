@@ -25,10 +25,10 @@
                 <ion-item lines="none" color="tertiary">
                     <ion-thumbnail slot="start">
                         <ng-container *ngIf="user.photoURL; else elseDummy">
-                            <img [src]="user.photoURL" />
+                            <img [src]="user.photoURL" (click)="onView(user.name.firstname + ' ' + user.name.lastname, user.photoURL)" />
                         </ng-container>
                         <ng-template #elseDummy>
-                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                            <ion-img (click)="onView('Dummy', '/assets/images/dummy-avatar.png')" src="/assets/images/dummy-avatar.png"></ion-img>
                         </ng-template>
                     </ion-thumbnail>
                     <ion-label class="ion-text-wrap">
@@ -129,10 +129,10 @@
                 <ion-item lines="none">
                     <ion-thumbnail slot="start">
                         <ng-container *ngIf="offer.imageUrl; else elseDummy">
-                            <img [src]="offer.imageUrl" />
+                            <img [src]="offer.imageUrl" (click)="onView(offer.title, offer.imageUrl)" />
                         </ng-container>
                         <ng-template #elseDummy>
-                            <ion-img src="/assets/images/icon-logo.png"></ion-img>
+                            <ion-img src="/assets/images/icon-logo.png" (click)="onView('Dummy', '/assets/images/icon-logo.png')"></ion-img>
                         </ng-template>
                     </ion-thumbnail>
                     <ion-label>

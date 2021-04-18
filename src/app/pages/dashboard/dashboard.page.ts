@@ -18,10 +18,11 @@ import { Users } from '../users/users';
 import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
-import { Plugins } from '@capacitor/core';
 import { Classification } from 'src/app/shared/classes/classification';
 import { ClassificationsService } from 'src/app/shared/services/classifications.service';
 import { DetailComponent } from '../bookings/detail/detail.component';
+import { Plugins, Capacitor } from '@capacitor/core';
+import { HttpClient } from '@angular/common/http';
 const { App } = Plugins;
 @Component({
   selector: 'app-dashboard',
@@ -39,6 +40,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   public classification: string;
   public length$: Observable<number>;
   public professionals$: Observable<Users[]>;
+  public currentPosition$: Observable<any>;
+  private currentLocation$: BehaviorSubject<string|null>;
+  private currentPoint$: BehaviorSubject<string>;
   private notificationListener = new Subject<any>();
 
   private classification$: BehaviorSubject<string|null>;
@@ -56,10 +60,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private transactionsService: TransactionsService,
     private notificationsService: NotificationsService,
     private settingsService: SettingsService,
-    private classificationsService: ClassificationsService
+    private classificationsService: ClassificationsService,
+    private bookingsService: BookingsService,
+    private http: HttpClient
   ) {
     this.searchKey$ = new BehaviorSubject(null);
     this.classification$ = new BehaviorSubject(null);
+    this.currentLocation$ = new BehaviorSubject(null);
+    this.currentPoint$ = new BehaviorSubject('more');
     this.length$ = of(0);
 
     // current user observable
@@ -83,7 +91,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     // tslint:disable-next-line: deprecation
     this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
-      console.log(classifications)
       this.classifications = classifications;
     });
 
@@ -92,7 +99,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         return response.size;
       })
     );
-}
+
+    // tslint:disable-next-line: deprecation
+    from(this.bookingsService.getCurrentPosition()).subscribe((currenctLocation) => {
+      this.currentLocation$.next(currenctLocation);
+    });
+  }
 
   private getNotifications() {
     from(this.currentUser$).pipe(
@@ -180,64 +192,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
-    // check roles
-    this.checkRoles();
-
-    // get all notifications
-    this.getNotifications();
-
-    // load professionals
-    this.professionals$ = this.initProfessionals();
-
-    // get balance
-    this.transactionBalance$ = this.getBalance();
-  }
-
-  private initProfessionals() {
-    return combineLatest([
-      this.searchKey$,
-      this.classification$
-    ]).pipe(
-      switchMap(([searchKey, classification]) => {
-        return this.usersService.getAll(searchKey, classification)
-        .pipe(
-          map(users => {
-            return users.filter(userClaims => userClaims.roles?.pro === true);
-          })
-        );
-      })
-    );
-  }
-
-  filterClassification(searchKey: string) {
-    this.classification$.next(searchKey);
-  }
-
-  onClear() {
-    this.searchKey$.next('');
-  }
-
-  onChange(event: any) {
-    this.searchKey$.next(event.detail.value);
-  }
-
-  onDeail(userDetail: any, ionItemSliding: IonItemSliding) {
-    this.subs.sink = from(this.modalController.create({
-      component: DetailComponent,
-      componentProps: {
-        title: 'Detail',
-        userData: userDetail,
-        state: false
-      }
-    // tslint:disable-next-line: deprecation
-    })).subscribe((modalEl) => {
-      modalEl.present();
-      ionItemSliding.closeOpened();
-    });
-  }
-
-  ngAfterViewInit() {
+  private verificationCheck() {
     // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.currentUser$).subscribe((user) => {
       if (!user.emailVerified) {
@@ -267,6 +222,161 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  ngOnInit() {
+    // check roles
+    this.checkRoles();
+
+    // get all notifications
+    this.getNotifications();
+
+    // load professionals
+    this.professionals$ = this.initProfessionals();
+
+    // get balance
+    this.transactionBalance$ = this.getBalance();
+    // city nearby
+    // state default
+  }
+
+  private initProfessionals() {
+    return combineLatest([
+      this.searchKey$,
+      this.classification$,
+      this.currentPoint$,
+      this.currentLocation$
+    ]).pipe(
+      switchMap(([searchKey, classification, point, location]) => {
+        return this.usersService.getAll(searchKey, classification, point, location)
+        .pipe(
+          map(users => {
+            return users.filter(userClaims => userClaims.roles?.pro === true);
+          })
+        );
+      })
+    );
+  }
+
+  onClear() {
+    this.searchKey$.next('');
+  }
+
+  onChange(event: any) {
+    this.searchKey$.next(event.detail.value);
+  }
+
+  onFilter() {
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
+      // this.classifications = classifications;
+      const customInput = [];
+      for (const classification of classifications) {
+        customInput.push({
+          name: 'classifications',
+          type: 'radio',
+          label: classification.name,
+          value: classification.name
+        });
+      }
+
+      from(this.alertController.create({
+        header: 'Filter',
+        subHeader: 'By Classifications',
+        inputs: customInput,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: () => {}
+          }, {
+            text: 'Filter',
+            handler: (data) => {
+              this.classification$.next(data);
+            }
+          }
+        ]
+      // tslint:disable-next-line: deprecation
+      })).subscribe((promptEl) => {
+        promptEl.present();
+      });
+    });
+  }
+
+  onDeail(userDetail: any, ionItemSliding: IonItemSliding) {
+    this.subs.sink = from(this.modalController.create({
+      component: DetailComponent,
+      componentProps: {
+        title: 'Detail',
+        userData: userDetail,
+        state: false
+      }
+    // tslint:disable-next-line: deprecation
+    })).subscribe((modalEl) => {
+      modalEl.present();
+      ionItemSliding.closeOpened();
+    });
+  }
+
+  ngAfterViewInit() {
+    // tslint:disable-next-line: deprecation
+    this.verificationCheck();
+
+    this.onReload();
+  }
+
+  private getAddress(lat: number, lng: number) {
+    return this.http.get<any>(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${
+          environment.googleMapsApiKey
+        }`
+      ).pipe(
+        map(geoData => {
+          if (!geoData || !geoData.results || geoData.results.length === 0) {
+            return null;
+          }
+          return geoData.results[0];
+        })
+      );
+  }
+
+  onNearby() {
+    if (!Capacitor.isPluginAvailable('Geolocation')) {
+      return;
+    }
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).pipe(
+      switchMap((currentPosition) => {
+        return this.getAddress(currentPosition.coords.latitude, currentPosition.coords.longitude);
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((geoPosition) => {
+      this.currentPoint$.next('nearby');
+      const targetLocation = {
+        city: geoPosition.address_components[1].long_name,
+        state: geoPosition.address_components[2].long_name
+      };
+      this.bookingsService.setCurrentPosition(targetLocation);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  onReload() {
+    this.currentPoint$.next('more');
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((currentUser) => {
+        return this.usersService.getOne(currentUser.uid);
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((user) => {
+      const targetLocation = {
+        city: user.address.city,
+        state: user.address.state
+      };
+      this.bookingsService.setCurrentPosition(targetLocation);
+    });
+  }
+
   onPickMethods() {
     this.subs.sink = from(this.actionSheetController.create(
       {
@@ -276,7 +386,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           text: 'Paypal',
           icon: 'logo-paypal',
           handler: () => {
-            this.paymentsService.setMethod('paypal', environment.initialDeposit);
             this.router.navigate(['/pages/payments']);
           }
         }, {

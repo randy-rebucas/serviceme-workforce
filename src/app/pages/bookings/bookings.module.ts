@@ -11,6 +11,7 @@ import { DetailComponent } from './detail/detail.component';
 import { FormComponent } from './form/form.component';
 import { PreviewComponent } from './preview/preview.component';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
 
 @NgModule({
   imports: [
@@ -31,6 +32,9 @@ import { SharedModule } from 'src/app/shared/shared.module';
     DetailComponent,
     FormComponent,
     PreviewComponent
+  ],
+  providers: [
+    PhotoViewer
   ]
 })
 export class BookingsPageModule {}

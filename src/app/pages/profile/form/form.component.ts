@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, LoadingController, ModalController, NavParams } from '@ionic/angular';
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
@@ -22,134 +22,111 @@ export class Availability {
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
-export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
-  public availablityList: Availability[] = [
-    {id: 1, title: 'Monday'},
-    {id: 2, title: 'Tuesday'},
-    {id: 3, title: 'Wednesday'},
-    {id: 4, title: 'Thursday'},
-    {id: 5, title: 'Friday'},
-    {id: 6, title: 'Saturday'},
-    {id: 7, title: 'Sunday'}
-  ];
-
-  public availablities: any[];
+export class FormComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public user$: Observable<any>;
   public subs = new SubSink();
   public countries: any[] = [];
-  public classifications: Classification[];
-  public isClient: boolean;
-  public isPro: boolean;
-  public isAdmin: boolean;
-  public currentClassification: string;
-  public currentCountry: string;
+  public maxDate: Date;
   constructor(
+    private formBuilder: FormBuilder,
     private navParams: NavParams,
     private alertController: AlertController,
     private modalController: ModalController,
     private loadingController: LoadingController,
     private country: CountriesService,
     private userService: UsersService,
-    private authService: AuthService,
-    private classificationsService: ClassificationsService
+    private authService: AuthService
   ) {
     this.user$ = from(this.navParams.data.user);
+
+    const now = new Date();
+    now.setFullYear(now.getFullYear() - 16);
+    this.maxDate = new Date(now.toISOString().slice(0, 10));
   }
 
   ngOnInit() {
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      user.getIdTokenResult().then((idTokenResult) => {
-        this.isClient = idTokenResult.claims.client;
-        this.isPro = idTokenResult.claims.pro;
-        this.isAdmin = idTokenResult.claims.admin;
-      });
-    });
-
-    this.subs.sink = this.classificationsService.getAll().subscribe((classifications) => {
-      this.classifications = classifications;
-    });
-
     this.subs.sink = this.country.allCountries().pipe(
       map((countryList) => {
         return Object.keys(countryList).map(k => countryList[k]);
       }),
+    // tslint:disable-next-line: deprecation
     ).subscribe((countryResponse) => {
       this.countries = countryResponse.filter(countries => countries.name === 'Philippines');
     });
 
-    this.form = new FormGroup({
-      firstname: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(50)]
-      }),
-      midlename: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(2)]
-      }),
-      lastname: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(50)]
-      }),
-      gender: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required]
-      }),
-      phoneNumber: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.maxLength(12)]
-      }),
-      address1: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(150)]
-      }),
-      address2: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.maxLength(150)]
-      }),
-      city: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(50)]
-      }),
-      state: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(50)]
-      }),
-      postalCode: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(6)]
-      }),
-      country: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required]
-      })
+    this.form = this.formBuilder.group({
+        name: this.formBuilder.group({
+          firstname: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(50)]
+          }),
+          midlename: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(50)]
+          }),
+          lastname: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(50)]
+          })
+        }),
+        gender: new FormControl(null, {
+          updateOn: 'blur',
+          validators: [Validators.required]
+        }),
+        birthdate: new FormControl(null, {
+          updateOn: 'blur',
+          validators: [Validators.required]
+        }),
+        address: this.formBuilder.group({
+          address1: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(250)]
+          }),
+          address2: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.maxLength(250)]
+          }),
+          city: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(150)]
+          }),
+          state: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(150)]
+          }),
+          postalCode: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required, Validators.maxLength(6)]
+          }),
+          country: new FormControl(null, {
+            updateOn: 'blur',
+            validators: [Validators.required]
+          })
+        })
     });
-  }
 
-  ngAfterViewInit() {
-    this.subs.sink = this.user$.subscribe((user) => {
-      this.currentClassification = user.classification;
-      this.availablities = user.availability;
-      this.currentCountry = user.address?.country;
-
+    // tslint:disable-next-line: deprecation
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((auhtUser) => {
+        return this.userService.getOne(auhtUser.uid);
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((user) => {
+      console.log(user);
       this.form.patchValue({
-        firstname: user.name.firstname,
-        midlename: user.name.midlename,
-        lastname: user.name.lastname,
+        name: user.name,
         gender: user.gender,
-        address1: user.address?.address1,
-        address2: user.address?.address2,
-        city: user.address?.city,
-        state: user.address?.state,
-        postalCode: user.address?.postalCode,
-        country:  user.address?.country
+        birthdate: user.birthdate,
+        address: user.address
       });
     });
   }
 
-  onDismiss(state: boolean) {
+  onDismiss(state: boolean, userData?: any) {
     this.modalController.dismiss({
-      dismissed: state
+      dismissed: state,
+      user: userData
     });
   }
 
@@ -157,40 +134,9 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.form.controls;
   }
 
-  doUpdate(userId: string) {
-    const patchdUser = {
-      name: {
-        firstname: this.form.value.firstname,
-        midlename: this.form.value.midlename,
-        lastname: this.form.value.lastname
-      },
-      gender: this.form.value.gender,
-      address: {
-        address1: this.form.value.address1,
-        address2: this.form.value.address2,
-        state: this.form.value.state,
-        city: this.form.value.city,
-        country: this.form.value.country,
-        postalCode: this.form.value.postalCode
-      }
-    };
+  get formNameCtrls() { return this.form.get('name') as FormGroup; }
 
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.userService.update(userId, patchdUser)).subscribe(() => {
-      this.loadingController.dismiss();
-      this.onDismiss(true);
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  getUser() {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      this.doUpdate(user.uid);
-    });
-  }
+  get formAddressCtrls() { return this.form.get('address') as FormGroup; }
 
   onUpdate() {
     this.subs.sink = from(this.loadingController.create({
@@ -198,40 +144,19 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
     // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
-      this.getUser();
-    });
-  }
-
-  onSelectClassification(event: any) {
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-      switchMap((user) => {
-        return this.userService.update(user.uid, { classification: event.detail.value });
-      })
-    // tslint:disable-next-line: deprecation
-    ).subscribe(() => {}, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  compareAvailablity(o1: Availability, o2: Availability | Availability[]) {
-    if (!o1 || !o2) {
-      return o1 === o2;
-    }
-
-    if (Array.isArray(o2)) {
-      return o2.some((u: Availability) => u.id === o1.id);
-    }
-
-    return o1.id === o2.id;
-  }
-
-  onSelectAvailability(event: any) {
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-      switchMap((user) => {
-        return this.userService.update(user.uid, { availability: event.detail.value });
-      })
-    ).subscribe(() => {}, (error: any) => {
-      this.presentAlert(error.code, error.message);
+      // this.getUser();
+      from(this.authService.getCurrentUser()).pipe(
+        switchMap((user) => {
+          return from(this.userService.update(user.uid, this.form.value));
+        })
+      // tslint:disable-next-line: deprecation
+      ).subscribe(() => {
+        this.loadingController.dismiss();
+        this.onDismiss(true, this.form.value);
+      }, (error: any) => {
+        this.loadingController.dismiss();
+        this.presentAlert(error.code, error.message);
+      });
     });
   }
 
@@ -240,6 +165,7 @@ export class FormComponent implements OnInit, AfterViewInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

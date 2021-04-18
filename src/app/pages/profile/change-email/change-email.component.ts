@@ -34,9 +34,10 @@ export class ChangeEmailComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDismiss(status: boolean) {
+  onDismiss(status: boolean, newEmail?: string) {
     this.modalController.dismiss({
-      dismissed: status // true
+      dismissed: status, // true
+      email: newEmail
     });
   }
 
@@ -59,7 +60,7 @@ export class ChangeEmailComponent implements OnInit, OnDestroy {
   doUpdateEmail() {
     this.subs.sink = from(this.authService.updateEmail(this.form.value.email)).subscribe(() => {
       this.loadingController.dismiss();
-      this.onDismiss(true);
+      this.onDismiss(true, this.form.value.email);
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);

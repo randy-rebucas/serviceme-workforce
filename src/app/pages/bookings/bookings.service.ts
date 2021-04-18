@@ -23,6 +23,8 @@ export class BookingsService {
   private bookingListener$ = new BehaviorSubject<any>([]);
   private bookingStatus$ = new BehaviorSubject<string>('pending');
 
+  private currentPosition$ = new BehaviorSubject<any>(null);
+
   constructor(
     private angularFirestore: AngularFirestore
   ) { }
@@ -59,8 +61,16 @@ export class BookingsService {
     this.bookingStatus$.next(status);
   }
 
+  setCurrentPosition(currentPosition: any) {
+    this.currentPosition$.next(currentPosition);
+  }
+
   getBookingStatus() {
     return this.bookingStatus$.asObservable();
+  }
+
+  getCurrentPosition() {
+    return this.currentPosition$.asObservable();
   }
 
   private defaultCollection(): AngularFirestoreCollection<useClass> {

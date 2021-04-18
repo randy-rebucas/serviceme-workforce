@@ -41,42 +41,33 @@ export class ChangePhoneNumberComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDismiss(status: boolean) {
+  onDismiss(status: boolean, phoneNumber?: string) {
     this.modalController.dismiss({
-      dismissed: status // true
+      dismissed: status, // true,
+      phone: phoneNumber
     });
   }
 
   onVerify(verificationId: any, verificationCode: any) {
     const phoneCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, verificationCode);
+    // tslint:disable-next-line: deprecation
     from(firebase.auth().currentUser.updatePhoneNumber(phoneCredential)).subscribe(() => {
-      this.loadingController.dismiss();
-      this.onDismiss(true);
+      this.onDismiss(true, this.form.value.phoneNumber);
     }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  doUpdate() {
-    const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size: 'invisible'});
-    const provider = new firebase.auth.PhoneAuthProvider();
-    this.subs.sink = from(provider.verifyPhoneNumber(this.form.value.phoneNumber, appVerifier)).subscribe((verificationId) => {
-        const verificationCode = window.prompt('Please enter the verification ' +
-            'code that was sent to your mobile device.');
-        this.onVerify(verificationId, verificationCode);
-    }, (error: any) => {
-      this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
     });
   }
 
   onUpdate() {
-    this.subs.sink = from(this.loadingController.create({
-      message: 'Please wait...'
-    })).subscribe(loadingEl => {
-      loadingEl.present();
-      this.doUpdate();
+    const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size: 'invisible'});
+    const provider = new firebase.auth.PhoneAuthProvider();
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(provider.verifyPhoneNumber(this.form.value.phoneNumber, appVerifier)).subscribe((verificationId) => {
+        const verificationCode = window.prompt('Please enter the verification ' +
+            'code that was sent to your mobile device.');
+        this.onVerify(verificationId, verificationCode);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
     });
   }
 

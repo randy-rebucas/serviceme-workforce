@@ -12,8 +12,11 @@ Release 2
 
 Release 3
     Bug fixed
+        Advance Filter
         Verification check - Strict
         Notifications
         User Account check - Strict
         Geolocation Permission check
         Dashboard update - inifinate scroll for data
+        Photo viewer
+        

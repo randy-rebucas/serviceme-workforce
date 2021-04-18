@@ -14,7 +14,7 @@ import { Users as useClass } from './users';
 import { Offers } from '../offers/offers';
 import { Feedbacks } from '../bookings/feedbacks';
 import firebase from 'firebase/app';
-import { QueryConfig } from '../dashboard/client/client.component';
+// import { QueryConfig } from '../dashboard/client/client.component';
 const collection = 'users';
 const bookingsSubCollection = 'bookings';
 const orderField = 'id';
@@ -30,7 +30,7 @@ export class UsersService {
   private done$ = new BehaviorSubject(false);
   private loading$ = new BehaviorSubject(false);
   private data$ = new BehaviorSubject([]);
-  private query: QueryConfig;
+  // private query: QueryConfig;
 
    // Observable data
   data: Observable<any>;
@@ -40,95 +40,106 @@ export class UsersService {
   constructor(
     private angularFirestore: AngularFirestore,
   ) {}
-  init(path: string, field: string, opts?: any) {
-    this.query = {
-      path,
-      field,
-      limit: 8,
-      reverse: false,
-      prepend: false,
-      ...opts
-    };
+  // init(path: string, field: string, opts?: any) {
+  //   this.query = {
+  //     path,
+  //     field,
+  //     limit: 8,
+  //     reverse: false,
+  //     prepend: false,
+  //     ...opts
+  //   };
 
-    const first = this.angularFirestore.collection(this.query.path, ref => {
-      return ref
-              .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
-              .limit(this.query.limit);
-    });
+  //   const first = this.angularFirestore.collection(this.query.path, ref => {
+  //     return ref
+  //             .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
+  //             .limit(this.query.limit);
+  //   });
 
 
-    this.mapAndUpdate(first);
+  //   this.mapAndUpdate(first);
 
-    return this.data$.asObservable().pipe(
-      scan( (acc, val) => {
-        return this.query.prepend ? val.concat(acc) : acc.concat(val);
-      })
-    // tslint:disable-next-line: deprecation
-    );
+  //   return this.data$.asObservable().pipe(
+  //     scan( (acc, val) => {
+  //       return this.query.prepend ? val.concat(acc) : acc.concat(val);
+  //     })
+  //   // tslint:disable-next-line: deprecation
+  //   );
 
-  }
-  // Retrieves additional data from firestore
-  more() {
-    const cursor = this.getCursor();
+  // }
+  // // Retrieves additional data from firestore
+  // more() {
+  //   const cursor = this.getCursor();
 
-    const more = this.angularFirestore.collection(this.query.path, ref => {
-      return ref
-              .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
-              .limit(this.query.limit)
-              .startAfter(cursor);
-    });
-    this.mapAndUpdate(more);
-  }
-  // Determines the doc snapshot to paginate query
-  private getCursor() {
-    const current = this.data$.value;
-    if (current.length) {
-      return current[current.length - 1].doc;
-    }
-    return null;
-  }
-    // Maps the snapshot to usable format the updates source
-  private mapAndUpdate(col: AngularFirestoreCollection<any>) {
+  //   const more = this.angularFirestore.collection(this.query.path, ref => {
+  //     return ref
+  //             .orderBy(this.query.field, this.query.reverse ? 'desc' : 'asc')
+  //             .limit(this.query.limit)
+  //             .startAfter(cursor);
+  //   });
+  //   this.mapAndUpdate(more);
+  // }
+  // // Determines the doc snapshot to paginate query
+  // private getCursor() {
+  //   const current = this.data$.value;
+  //   if (current.length) {
+  //     return current[current.length - 1].doc;
+  //   }
+  //   return null;
+  // }
+  //   // Maps the snapshot to usable format the updates source
+  // private mapAndUpdate(col: AngularFirestoreCollection<any>) {
 
-    if (this.done$.value || this.loading$.value) { return; }
+  //   if (this.done$.value || this.loading$.value) { return; }
 
-    // loading
-    this.loading$.next(true);
+  //   // loading
+  //   this.loading$.next(true);
 
-    // Map snapshot with doc ref (needed for cursor)
-    return col.snapshotChanges()
-    .pipe(
-      tap(actions => {
-          let values = actions.map(snap => {
-            const data = snap.payload.doc.data();
-            const doc = snap.payload.doc;
-            return { ...data, doc };
-          });
-          // If prepending, reverse the batch order
-          values = this.query.prepend ? values.reverse() : values;
+  //   // Map snapshot with doc ref (needed for cursor)
+  //   return col.snapshotChanges()
+  //   .pipe(
+  //     tap(actions => {
+  //         let values = actions.map(snap => {
+  //           const data = snap.payload.doc.data();
+  //           const doc = snap.payload.doc;
+  //           return { ...data, doc };
+  //         });
+  //         // If prepending, reverse the batch order
+  //         values = this.query.prepend ? values.reverse() : values;
 
-          // update source with new values, done loading
-          this.data$.next(values);
-          this.loading$.next(false);
+  //         // update source with new values, done loading
+  //         this.data$.next(values);
+  //         this.loading$.next(false);
 
-          // no more values, mark done
-          if (!values.length) {
-            this.done$.next(true);
-          }
-      }),
-      take(1)
-    );
-  }
+  //         // no more values, mark done
+  //         if (!values.length) {
+  //           this.done$.next(true);
+  //         }
+  //     }),
+  //     take(1)
+  //   );
+  // }
 
   // =====================
-  private defaultCollection(keystring: string = '', classification: string = null): AngularFirestoreCollection<useClass> {
+  // tslint:disable-next-line: max-line-length
+  private defaultCollection(keystring: string = '' , classification?: string, point?: string, location?: any): AngularFirestoreCollection<useClass> {
+    console.log(point)
+    console.log(location)
     return this.angularFirestore.collection<useClass>(collection, ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
+      query.where('roles.pro', '==', false);
       if (classification) {
         query = query.where('classification', '==', classification);
       }
       if (keystring !== '') {
         query = query.orderBy('name.firstname').startAt(keystring).endAt(keystring + '\uf8ff');
+      }
+      if (location != null) {
+        if (point === 'nearby') {
+          query = query.where('address.city', '==', location?.city);
+        } else {
+          query = query.where('address.state', '==', location?.state);
+        }
       }
       return query; });
   }
@@ -145,8 +156,8 @@ export class UsersService {
       );
   }
 
-  getAll(keystring: string, classification: string): Observable<useClass[]> {
-    return this.fetchData(this.defaultCollection(keystring, classification));
+  getAll(keystring: string = '' , classification?: string, point?: string, location?: any): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection(keystring, classification, point, location));
   }
 
   getSize(): Observable<QuerySnapshot<useClass>> {

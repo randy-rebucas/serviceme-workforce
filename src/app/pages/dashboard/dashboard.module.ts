@@ -8,9 +8,8 @@ import { DashboardPageRoutingModule } from './dashboard-routing.module';
 
 import { DashboardPage } from './dashboard.page';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { ClientComponent } from './client/client.component';
-import { ProComponent } from './pro/pro.component';
 import { Camera } from '@ionic-native/camera/ngx';
+import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
 
 @NgModule({
   imports: [
@@ -21,13 +20,12 @@ import { Camera } from '@ionic-native/camera/ngx';
     SharedModule
   ],
   declarations: [
-    DashboardPage,
-    ClientComponent,
-    ProComponent
+    DashboardPage
   ],
   providers: [
     Camera,
-    TitleCasePipe
+    TitleCasePipe,
+    PhotoViewer
   ]
 })
 export class DashboardPageModule {}

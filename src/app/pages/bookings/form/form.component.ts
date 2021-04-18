@@ -43,6 +43,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public maxDate: Date;
   public totalCharges: number;
   public defaultCurrency: string;
+  public currentPosition$: Observable<any>;
   private subs = new SubSink();
 
   constructor(
@@ -83,6 +84,7 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   getTotal() {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.offerItems$.subscribe((offerItems) => {
       if (offerItems.length === 0) {
         this.onDismiss(true);
@@ -99,21 +101,19 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
-    // tslint:disable-next-line: deprecation
-    from(Plugins.Geolocation.requestPermissions()).subscribe(() => {
-      this.locateUser();
-    });
-
     this.offerItems$ = this.bookingsService.getOffers();
 
     this.getTotal();
 
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.locationOption$.subscribe((locationOption) => {
       if (locationOption) {
         this.useMyLocation();
       } else {
-        this.locateUser();
+            // tslint:disable-next-line: deprecation
+        from(this.bookingsService.getCurrentPosition()).subscribe((currenctLocation) => {
+          this.currentLocation = currenctLocation.formatted_address;
+        });
       }
     });
 
@@ -185,44 +185,6 @@ export class FormComponent implements OnInit, OnDestroy {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
     });
-  }
-
-  private locateUser() {
-    if (!Capacitor.isPluginAvailable('Geolocation')) {
-      return;
-    }
-    this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).subscribe((geoPosition) => {
-      this.pointLocation(geoPosition.coords);
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  private pointLocation(coordinates: any) {
-    this.subs.sink = this.getAddress(coordinates.latitude, coordinates.longitude).subscribe(address => {
-      this.coord = {
-        lat: coordinates.latitude,
-        lng: coordinates.longitude
-      };
-      this.currentLocation = address.formatted_address;
-    }, (error: any) => {
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
-  private getAddress(lat: number, lng: number) {
-    return this.http.get<any>(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${
-          environment.googleMapsApiKey
-        }`
-      ).pipe(
-        map(geoData => {
-          if (!geoData || !geoData.results || geoData.results.length === 0) {
-            return null;
-          }
-          return geoData.results[0];
-        })
-      );
   }
 
   private setSubCollection(userId: string, collection: string, customId: string, payload: any) {

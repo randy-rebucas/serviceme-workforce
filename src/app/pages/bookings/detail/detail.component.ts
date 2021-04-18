@@ -10,6 +10,7 @@ import { OffersService } from '../../offers/offers.service';
 import { SettingsService } from '../../settings/settings.service';
 import { BookingsService } from '../bookings.service';
 import { FormComponent } from '../form/form.component';
+import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
 
 @Component({
   selector: 'app-detail',
@@ -37,13 +38,11 @@ export class DetailComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private settingsService: SettingsService,
     private offersService: OffersService,
-    private bookingsService: BookingsService
+    private bookingsService: BookingsService,
+    private photoViewer: PhotoViewer
   ) {
     this.title = this.navParams.data.title;
     this.user$ = of(this.navParams.data.userData);
-    from(this.user$).subscribe((r) => {
-      console.log(r)
-    })
     this.state = this.navParams.data.state;
     this.isExpandStats = false;
     this.isExpandAvilability = false;
@@ -61,6 +60,10 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   getOfferListener() {
     return this.offersUpdated.asObservable();
+  }
+
+  onView(title: string, imageSource: string) {
+    this.photoViewer.show(imageSource, title, {share: true});
   }
 
   onExpandStats() {

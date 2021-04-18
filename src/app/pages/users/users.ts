@@ -7,12 +7,12 @@ export interface Name {
 }
 
 export interface Address {
-    city?: string;
-    country?: string;
-    state?: string;
     address1?: string;
     address2?: string;
+    city?: string;
+    state?: string;
     postalCode?: string;
+    country?: string;
     coordinates?: Coordinates;
 }
 
@@ -27,9 +27,9 @@ export class Users {
         public name: Name,
         public email: string,
         public roles: Roles,
-        public address?: Address,
         public gender?: string,
         public birthdate?: any,
+        public address?: Address,
         public phoneNumber?: string,
         public displayName?: string,
         public photoURL?: string,
