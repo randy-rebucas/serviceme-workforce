@@ -24,9 +24,9 @@
                 <ion-item lines="full">
                     <ion-label>
                         <h2>Txns Date: {{ receipt.transactionCollection.timestamp.toDate() | date:'mediumDate' }}</h2>
-                        <p [ngClass]="receipt.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</p>
+                        <p [ngClass]="receipt.transactionCollection.status">{{ receipt.transactionCollection.status | titlecase }}</p>
                     </ion-label>
-                    <ion-note slot="end" [ngStyle]="{'color':receipt.transactionCollection.amount > 0 ? 'green' : 'red' }"><strong>{{ transaction.transactionCollection.amount | currency:defaultCurrency:'symbol-narrow' }}</strong></ion-note>
+                    <ion-note slot="end" [ngStyle]="{'color':receipt.transactionCollection.amount > 0 ? 'green' : 'red' }"><strong>{{ receipt.transactionCollection.amount | currency:defaultCurrency:'symbol-narrow' }}</strong></ion-note>
                 </ion-item>
             </ion-item-sliding>
             <ion-item lines="none" class="ion-text-center" *ngIf="receipts.length === 0">

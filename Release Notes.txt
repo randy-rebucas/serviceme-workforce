@@ -18,5 +18,6 @@ Release 3
         User Account check - Strict
         Geolocation Permission check
         Dashboard update - inifinate scroll for data
+        Geoposition filter
         Photo viewer
-        
+
