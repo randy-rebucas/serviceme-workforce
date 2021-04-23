@@ -7,6 +7,7 @@ export const environment = {
   commissionPercentage: 10,
   initialDeposit: 1000,
   defaultCurrency: 'PHP',
+  financialEncharge: 'ALF85zQI7PPvazgMdzkY4E5AqrH2',
   enableSigningBonus: true,
   firebase: {
     apiKey: 'AIzaSyC1P3bJSJZpzs7cd0QoizMEkkZqCqMCFCs',

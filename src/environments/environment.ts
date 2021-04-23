@@ -8,6 +8,7 @@ export const environment = {
   payPalProdClientId: 'AaDuaH-PFx9pvx_wAkKVXhUG1lFTJjpBf7Y7otcdph1k-_a0xsGgnxDWq3UT9i9W5LIghHp3342_CBjJ',
   payPalSandBoxClientId: 'AfIFZALGkJdcXCWWuqnwD-Z1JtNBsf913-X5UilLBhkDijCi-t17tJjFkzS_JtM5112HLLuheKQ12Ho4',
   payPalEnv: 'PayPalEnvironmentProduction',
+  financialEncharge: 'ALF85zQI7PPvazgMdzkY4E5AqrH2',
   commissionPercentage: 10,
   initialDeposit: 1000,
   defaultCurrency: 'PHP',
