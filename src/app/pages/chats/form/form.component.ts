@@ -31,7 +31,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public roomId: string;
   public form: FormGroup;
   public room$: Observable<any>;
-  public chatMessages$: Observable<Message[]>;
+  public chatMessages$: Observable<any[]>;
   public user: firebase.User;
   public uploadPercent: Observable<number>;
   private chatListener = new Subject<any[]>();
@@ -94,6 +94,7 @@ export class FormComponent implements OnInit, OnDestroy {
       }),
     // tslint:disable-next-line: deprecation
     ).subscribe((messages) => {
+      console.log(messages)
       const formatedMessage = [];
       messages.forEach(message => {
         formatedMessage.push({...message.chatSubCollection, ...message.userCollection});
@@ -115,6 +116,9 @@ export class FormComponent implements OnInit, OnDestroy {
       })
     );
 
+    from(this.chatMessages$).subscribe((r) => {
+      console.log(r)
+    })
     this.form = new FormGroup({
       message: new FormControl(null, {
         updateOn: 'blur',
