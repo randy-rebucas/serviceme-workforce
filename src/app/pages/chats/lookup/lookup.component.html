@@ -1,0 +1,85 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollEvents]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <!-- Default Searchbar -->
+    <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
+    <ng-container *ngIf="userItems$ | async; let userItems;">
+        <ion-chip outline *ngFor="let userItem of userItems" color="tertiary">
+            <ion-label>{{userItem.name.firstname}}</ion-label>
+            <ion-icon name="close-circle" (click)="onRemove(userItem)"></ion-icon>
+        </ion-chip>
+    </ng-container>
+    <ng-container *ngIf="(users$ | async) !== null; else loadingBlank">
+
+        <ng-container *ngIf="users$ | async; let users; else loadingRooms">
+            <ion-item lines="full" *ngFor="let user of users">
+                <ion-avatar slot="start">
+                    <ng-container *ngIf="user.photoURL; else elseDummy">
+                        <img [src]="user.photoURL" />
+                    </ng-container>
+                    <ng-template #elseDummy>
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+">
+                    </ng-template>
+                </ion-avatar>
+                <ion-label>
+                    {{ user.name.firstname + ' ' + user.name.lastname | titlecase }}
+                    <p>{{ user.classification}}</p>
+                </ion-label>
+                <ion-checkbox slot="end" [checked]="checkOffer(user, userItems)" (ionChange)="onSelect($event, user)"></ion-checkbox>
+            </ion-item>
+
+            <ion-item lines="none" class="ion-text-center" *ngIf="users.length === 0">
+                <ion-label>
+                    <p>No user found!</p>
+                </ion-label>
+            </ion-item>
+        </ng-container>
+        <ng-template #loadingRooms>
+            <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8]">
+                <ion-avatar slot="start">
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-avatar>
+                <ion-label>
+                    <h2>
+                        <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    </h2>
+                    <p>
+                        <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                    </p>
+                </ion-label>
+            </ion-item>
+        </ng-template>
+
+
+    </ng-container>
+    <ng-template #loadingBlank>
+        <ion-item lines="none" class="ion-text-center">
+            <ion-label>
+                <p>
+                    start by typing the name.
+                </p>
+            </ion-label>
+        </ion-item>
+
+    </ng-template>
+
+</ion-content>
+<ion-footer class="ion-no-border">
+    <ion-toolbar>
+        <ion-button shape="round" (click)="onDismiss(true)" expand="block">Select</ion-button>
+    </ion-toolbar>
+</ion-footer>

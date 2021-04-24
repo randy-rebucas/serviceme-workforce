@@ -5,7 +5,7 @@ export const environment = {
   payPalSandBoxClientId: 'AfIFZALGkJdcXCWWuqnwD-Z1JtNBsf913-X5UilLBhkDijCi-t17tJjFkzS_JtM5112HLLuheKQ12Ho4',
   payPalEnv: 'PayPalEnvironmentProduction',
   commissionPercentage: 10,
-  initialDeposit: 1000,
+  initialDeposit: 500,
   defaultCurrency: 'PHP',
   financialEncharge: 'ALF85zQI7PPvazgMdzkY4E5AqrH2',
   enableSigningBonus: true,

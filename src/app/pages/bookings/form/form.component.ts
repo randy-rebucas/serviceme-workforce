@@ -21,6 +21,7 @@ import firebase from 'firebase/app';
 import { DocumentReference } from '@angular/fire/firestore';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AdminFunctionService } from 'src/app/shared/services/admin-function.service';
+import { Notifications } from '../../notifications/notifications';
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
@@ -33,7 +34,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public currentLocation: any;
   public option: string;
   private proId: string;
-  private coord: object;
+  private coord: any;
   public bookings$: Observable<any[]>;
   public locationOption$: BehaviorSubject<boolean>;
   public offerItems$: Observable<Offers[]>;
@@ -76,6 +77,7 @@ export class FormComponent implements OnInit, OnDestroy {
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
@@ -100,22 +102,45 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
+  getCurrenctLocation() {
+    if (!Capacitor.isPluginAvailable('Geolocation')) {
+      return;
+    }
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(Plugins.Geolocation.getCurrentPosition()).pipe(
+      switchMap((currentPosition) => {
+        return this.getAddress(currentPosition.coords.latitude, currentPosition.coords.longitude);
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((geoPosition) => {
+      this.coord = geoPosition.geometry.location;
+      this.currentLocation = geoPosition.formatted_address;
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  private getAddress(lat: number, lng: number) {
+    return this.http.get<any>(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${
+          environment.googleMapsApiKey
+        }`
+      ).pipe(
+        map(geoData => {
+          if (!geoData || !geoData.results || geoData.results.length === 0) {
+            return null;
+          }
+          return geoData.results[0];
+        })
+      );
+  }
+
   ngOnInit() {
+    this.getCurrenctLocation();
+
     this.offerItems$ = this.bookingsService.getOffers();
 
     this.getTotal();
-
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.locationOption$.subscribe((locationOption) => {
-      if (locationOption) {
-        this.useMyLocation();
-      } else {
-            // tslint:disable-next-line: deprecation
-        from(this.bookingsService.getCurrentPosition()).subscribe((currenctLocation) => {
-          this.currentLocation = currenctLocation.formatted_address;
-        });
-      }
-    });
 
     this.form = new FormGroup({
       scheduleDate: new FormControl(null, {
@@ -141,57 +166,12 @@ export class FormComponent implements OnInit, OnDestroy {
     this.locationOption$.next(event.detail.checked);
   }
 
-  private useMyLocation() {
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-      switchMap((auhtUser) => {
-        return this.userService.getOne(auhtUser.uid);
-      })
-    ).subscribe((user) => {
-      let addressLine1 = '';
-      let addressLine2 = '';
-      let addressLine3 = '';
-      const address1 = (user.address) ? this.titlecasePipe.transform(user.address.address1) : null;
-      const address2 = (user.address) ? this.titlecasePipe.transform(user.address.address2) : null;
-      const city = (user.address) ? this.titlecasePipe.transform(user.address.city) : null;
-      const country = (user.address) ? this.titlecasePipe.transform(user.address.country) : null;
-      const postalCode = (user.address) ? this.titlecasePipe.transform(user.address.postalCode) : null;
-      const state = (user.address) ? this.titlecasePipe.transform(user.address.state) : null;
-      // check address 1 Unit/Floor + House/Building Name
-      if (address1) {
-        addressLine1 = address1;
-      }
-      // check address 2 Street Number/Name
-      if (address2) {
-        addressLine1 = addressLine1.concat(', ', address2);
-      }
-      // check State/Brangay/District
-      if (state) {
-        addressLine2 = state;
-      }
-      // check City
-      if (city) {
-        addressLine2 = addressLine2.concat(', ', city);
-      }
-      // check PostalCode
-      if (postalCode) {
-        addressLine3 = postalCode;
-      }
-      // check Country
-      if (country) {
-        addressLine3 = addressLine3.concat(', ', country);
-      }
-      this.currentLocation = addressLine1.concat(', ', addressLine2.concat(', ', addressLine3));
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
-    });
-  }
-
   private setSubCollection(userId: string, collection: string, customId: string, payload: any) {
     return from(this.userService.setSubCollection(userId, collection, customId, payload ));
   }
 
   private setClientBookingCollection(userId: string, collection: string, customId: string, payload: any) {
+    // tslint:disable-next-line: deprecation
     this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
       const clientId = userId;
       this.setProfessionalBookingCollection(payload.userId, collection, customId, { userId: clientId });
@@ -199,13 +179,24 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   private setProfessionalBookingCollection(userId: string, collection: string, customId: string, payload: any) {
-    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
-      this.setNotificationData(userId, payload);
-    });
-  }
-
-  private setNotiticationCollection(userId: string, collection: string, customId: string, payload: any) {
-    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).subscribe(() => {
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.setSubCollection(userId, collection, customId, payload).pipe(
+      switchMap(() => {
+        return this.userService.getOne(userId).pipe(
+          switchMap((userResponse) => {
+            const notificationData  = {
+              title: 'New Booking offer!',
+              content: 'You have received an offer from ' + userResponse.name.firstname + ' ' + userResponse.name.lastname,
+              status: 'unread',
+              timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+              type: 'booking'
+            };
+            return this.setNotificationData(userId, notificationData);
+          })
+        );
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe(() => {
       this.form.reset();
       this.onDismiss(true);
       this.bookingsService.setOffers([]);
@@ -213,25 +204,11 @@ export class FormComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setNotificationData(proId: string, payload: any) {
-    this.userService.getOne(payload.userId).subscribe((userResponse) => {
-      const notificationData  = {
-        title: 'New Booking offer!',
-        content: 'You have received an offer from ' + userResponse.name.firstname + ' ' + userResponse.name.lastname,
-        status: 'unread',
-        timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
-        type: 'booking'
-      };
-
-      this.subs.sink = from(this.notificationsService.insert(notificationData)).subscribe((notification) => {
-        // set sub collection notification
-        this.setNotiticationCollection(proId, 'notifications', notification.id, {});
-      }, (error: any) => {
-        this.loadingController.dismiss();
-        this.presentAlert(error.code, error.message);
-      });
-    });
+  private setNotificationData(clientId: string, notificationData: Notifications) {
+    const randId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+    return this.userService.setSubCollection(clientId, 'notifications', randId, notificationData );
   }
+
   /**
    *
    * @Todo
@@ -240,6 +217,7 @@ export class FormComponent implements OnInit, OnDestroy {
    */
   onSubmit(event: string, form: FormGroupDirective) {
     this.subs.sink = from(this.authService.getCurrentUser())
+    // tslint:disable-next-line: deprecation
     .subscribe((user) => {
       const bookingData  = {
         offers: this.offerItems,
@@ -252,6 +230,7 @@ export class FormComponent implements OnInit, OnDestroy {
         status: 'pending',
       };
 
+      // tslint:disable-next-line: deprecation
       this.subs.sink = from(this.bookingsService.insert(bookingData)).subscribe((booking) => {
         this.setClientBookingCollection(user.uid, 'bookings', booking.id, { userId: this.proId });
       }, (error: any) => {
@@ -273,6 +252,7 @@ export class FormComponent implements OnInit, OnDestroy {
   increaseQuantity(selectedOffer: Offers) {
     from(this.offerItems$).pipe(
       map(offers => offers.find(offer => offer.id === selectedOffer.id))
+    // tslint:disable-next-line: deprecation
     ).subscribe((existItem) => {
       existItem.quantity += 1;
       this.getTotal();
@@ -282,6 +262,7 @@ export class FormComponent implements OnInit, OnDestroy {
   decreaseQuantity(selectedOffer: Offers) {
     from(this.offerItems$).pipe(
       map(offers => offers.find(offer => offer.id === selectedOffer.id))
+    // tslint:disable-next-line: deprecation
     ).subscribe((existItem) => {
       existItem.quantity -= 1;
       if (existItem.quantity < 1) {
@@ -297,6 +278,7 @@ export class FormComponent implements OnInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });
@@ -373,6 +355,7 @@ export class FormComponent implements OnInit, OnDestroy {
 
   // initialize
   initializedBookings() {
+    // tslint:disable-next-line: deprecation
     this.getSubCollection(this.proId, 'bookings', 'accepted').subscribe((bookings) => {
       this.bookingsService.setBookingListener(bookings);
     }, (error: any) => {

@@ -8,6 +8,14 @@ ion-header {
 }
 
 ion-content {
+    ion-card {
+        img {
+            width: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-content: center;
+        }
+    }
     ion-item {
         ion-input {
             &.amount {

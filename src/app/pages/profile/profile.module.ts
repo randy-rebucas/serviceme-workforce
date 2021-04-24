@@ -15,6 +15,7 @@ import { FormComponent } from './form/form.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { ChangePhoneNumberComponent } from './change-phone-number/change-phone-number.component';
 import { ChangeEmailComponent } from './change-email/change-email.component';
+import { Base64 } from '@ionic-native/base64/ngx';
 
 @NgModule({
   imports: [
@@ -42,6 +43,7 @@ import { ChangeEmailComponent } from './change-email/change-email.component';
     TitleCasePipe,
     Camera,
     Crop,
+    Base64,
     File
   ]
 })

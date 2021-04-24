@@ -123,8 +123,6 @@ export class UsersService {
   // =====================
   // tslint:disable-next-line: max-line-length
   private defaultCollection(keystring: string = '' , classification?: string, point?: string, location?: any): AngularFirestoreCollection<useClass> {
-    console.log(point)
-    console.log(location)
     return this.angularFirestore.collection<useClass>(collection, ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
       query.where('roles.pro', '==', false);
@@ -158,6 +156,13 @@ export class UsersService {
 
   getAll(keystring: string = '' , classification?: string, point?: string, location?: any): Observable<useClass[]> {
     return this.fetchData(this.defaultCollection(keystring, classification, point, location));
+  }
+
+  getResults(keyword: string) {
+    if (!keyword) {
+      return null;
+    }
+    return this.fetchData(this.defaultCollection(keyword));
   }
 
   getSize(): Observable<QuerySnapshot<useClass>> {
@@ -203,6 +208,10 @@ export class UsersService {
 
   setSubCollection(document: string, targetCollection: string, documentId: string, data: any) {
     return this.childCollections(document, targetCollection).doc(documentId).set(data);
+  }
+
+  updateSubCollection(document: string, targetCollection: string, documentId: string, data: any) {
+    return this.childCollections(document, targetCollection).doc(documentId).update(data);
   }
 
   getSubCollection(document: string, targetCollection: string) {

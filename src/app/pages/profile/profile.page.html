@@ -22,12 +22,12 @@
         <ion-card>
             <ion-card-content>
                 <ion-avatar (click)="onPickSource()">
-                    <img [src]="imageUrl" />
+                    <img [src]="user.photoURL ? user.photoURL : '/assets/images/dummy-avatar.png'" />
                 </ion-avatar>
                 <ion-progress-bar [value]="uploadPercent | async" *ngIf="showProgress"></ion-progress-bar>
                 <ion-list>
                     <ion-list-header (click)="onUpdateUsername()">
-                        <ion-label>{{username ? username : '-- no displayname --'}}</ion-label>
+                        <ion-label>{{user.displayName ? user.displayName : '-- no displayname --'}}</ion-label>
                     </ion-list-header>
                     <ion-item lines="full" button (click)="onChangeEmail()" detail>
                         <ion-icon name="mail-outline" slot="start"></ion-icon>
@@ -35,13 +35,13 @@
                             Change Email
                         </ion-label>
                     </ion-item>
-                    <ion-item lines="none" button (click)="onChangePass()" detail>
+                    <ion-item lines="full" button (click)="onChangePass()" detail>
                         <ion-icon name="key-outline" slot="start"></ion-icon>
                         <ion-label>
                             Change Password
                         </ion-label>
                     </ion-item>
-                    <ion-item lines="full" button (click)="onChangePhone()" detail>
+                    <ion-item lines="none" button (click)="onChangePhone()" detail>
                         <ion-icon name="call-outline" slot="start"></ion-icon>
                         <ion-label>
                             {{(user.phoneNumber) ? user.phoneNumber : '--'}}
@@ -52,26 +52,29 @@
         </ion-card>
         <ion-card>
             <ion-card-header>
-                <ion-card-title>{{ user.fullname }}</ion-card-title>
+                <ion-card-title>{{ user.name.firstname }} {{ user.name.midlename }} {{ user.name.lastname }}</ion-card-title>
                 <!-- <ion-card-subtitle>Card Subtitle</ion-card-subtitle> -->
             </ion-card-header>
-            <ion-item>
+            <ion-item lines="full">
                 <ion-label>
                     <p>Gender</p>
                 </ion-label>
-                <ion-note slot="end">{{user.gender | uppercase}}</ion-note>
+                <ion-note slot="end">{{user.gender ? (user.gender | uppercase) : '--' }}</ion-note>
             </ion-item>
-            <ion-item>
+            <ion-item lines="full">
                 <ion-label>
                     <p>Birthdate</p>
                 </ion-label>
-                <ion-note slot="end">{{user.birthdate | date:'longDate'}}</ion-note>
+                <ion-note slot="end">{{user.birthdate ? (user.birthdate | date:'longDate') : '--'}}</ion-note>
             </ion-item>
-            <ion-item>
+            <ion-list-header color="secondary">
+                <ion-label>Address</ion-label>
+            </ion-list-header>
+            <ion-item lines="full">
                 <ion-label class="ion-text-wrap">
-                    <p>{{ user.line1 }}</p>
-                    <p>{{ user.line2 }}</p>
-                    <p>{{ user.line3 }}</p>
+                    <p>{{ user.address.address1 }} {{ user.address.address2 }}</p>
+                    <p>{{ user.address.city }} {{ user.address.state }}</p>
+                    <p>{{ user.address.postalCode }} {{ user.address.country }}</p>
                 </ion-label>
             </ion-item>
         </ion-card>

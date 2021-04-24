@@ -5,7 +5,7 @@ import { ActionSheetController, AlertController, IonItemSliding, LoadingControll
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
-import { Base64 } from 'src/app/helper/base64';
+import { CustomBase64 } from 'src/app/helper/base64';
 import { FirestoreService } from 'src/app/shared/services/firestore.service';
 import { environment } from 'src/environments/environment';
 import { SubSink } from 'subsink';
@@ -236,7 +236,7 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   doUpload(imageUrl: any) {
     this.showProgress = true;
-    const file = new Base64().dataURItoBlob('data:image/jpeg;base64,' + imageUrl);
+    const file = new CustomBase64().dataURItoBlob('data:image/jpeg;base64,' + imageUrl);
     const filePath = `offer/${this.offerId}.jpg`;
 
     this.angularFireStorageReference = this.firestoreService.ref(filePath);

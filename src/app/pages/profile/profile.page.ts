@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AngularFireStorageReference, AngularFireUploadTask } from '@angular/fire/storage';
 import { ActionSheetController, AlertController, IonRouterOutlet, LoadingController, ModalController } from '@ionic/angular';
 
-import { BehaviorSubject, from, Observable, of, Subject } from 'rxjs';
-import { finalize, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable, Subject } from 'rxjs';
+import { finalize, map, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/auth/auth.service';
 import { Camera, CameraOptions, PictureSourceType } from '@ionic-native/camera/ngx';
@@ -11,7 +11,7 @@ import { Crop } from '@ionic-native/crop/ngx';
 
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
-import { Base64 } from 'src/app/helper/base64';
+import { CustomBase64 } from 'src/app/helper/base64';
 import { FirestoreService } from 'src/app/shared/services/firestore.service';
 import { FormComponent } from './form/form.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
@@ -19,34 +19,23 @@ import { UsersService } from '../users/users.service';
 import { Router } from '@angular/router';
 import { ChangePhoneNumberComponent } from './change-phone-number/change-phone-number.component';
 import { ChangeEmailComponent } from './change-email/change-email.component';
-import { TitleCasePipe } from '@angular/common';
-import { AvatarComponent } from 'src/app/shared/components/avatar/avatar.component';
-import { DomSanitizer } from '@angular/platform-browser';
+import { Base64 } from '@ionic-native/base64/ngx';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
 })
-export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
+export class ProfilePage implements OnInit, OnDestroy {
   public user$: Observable<any>;
   public uploadPercent: Observable<number>;
   public showProgress: boolean;
-  public imageUrl: any;
-  public isClient: boolean;
-  public isPro: boolean;
-  public isAdmin: boolean;
-  public username: string;
-  private username$: BehaviorSubject<string|null>;
-  private imageUrl$: BehaviorSubject<string|null>;
-  private user: firebase.User;
   private userUpdateListener = new Subject<any>();
   private angularFireUploadTask: AngularFireUploadTask;
   private angularFireStorageReference: AngularFireStorageReference;
   private subs = new SubSink();
 
   constructor(
-    private router: Router,
     private alertController: AlertController,
     private authService: AuthService,
     private userService: UsersService,
@@ -55,14 +44,11 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
     private modalController: ModalController,
     private routerOutlet: IonRouterOutlet,
     private firestoreService: FirestoreService,
-    private titlecasePipe: TitleCasePipe,
-    private sanitizer: DomSanitizer,
     private camera: Camera,
-    private crop: Crop
+    private crop: Crop,
+    private base64: Base64
   ) {
     this.showProgress = false;
-    this.username$ = new BehaviorSubject(null);
-    this.imageUrl$ = new BehaviorSubject(null);
   }
 
   private getUserUpdateListener() {
@@ -70,11 +56,6 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-
-    this.username$.subscribe((username) => {
-      this.username = username;
-    });
-
     from(this.authService.getCurrentUser()).pipe(
       switchMap((auhtUser) => {
         return this.userService.getOne(auhtUser.uid).pipe(
@@ -94,89 +75,19 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
       this.preFormed(user);
     });
 
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      const initialImage = user.photoURL ? user.photoURL : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+';
-      this.imageUrl$.next(initialImage);
-    });
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-      map((user) => {
-        return user.displayName;
-      })
-    // tslint:disable-next-line: deprecation
-    ).subscribe((username) => {
-      this.username$.next(username);
-    });
-
     this.user$ = this.getUserUpdateListener();
-    from(this.user$).subscribe((r) => {
-      console.log(r);
-    })
   }
 
   preFormed(userData: any) {
-      let completeName = '';
-      let addressLine1 = '';
-      let addressLine2 = '';
-      let addressLine3 = '';
-      const firstname = this.titlecasePipe.transform(userData.name.firstname);
-      const lastname = this.titlecasePipe.transform(userData.name.lastname);
-      const midlename = (userData.name.midlename) ? this.titlecasePipe.transform(userData.name.midlename) : null;
-      if (midlename) {
-        completeName = firstname.concat(' ', midlename);
-      }
-      completeName = completeName.concat(', ', lastname);
-
-      const address1 = (userData.address) ? this.titlecasePipe.transform(userData.address.address1) : null;
-      const address2 = (userData.address) ? this.titlecasePipe.transform(userData.address.address2) : null;
-      const city = (userData.address) ? this.titlecasePipe.transform(userData.address.city) : null;
-      const country = (userData.address) ? this.titlecasePipe.transform(userData.address.country) : null;
-      const postalCode = (userData.address) ? this.titlecasePipe.transform(userData.address.postalCode) : null;
-      const state = (userData.address) ? this.titlecasePipe.transform(userData.address.state) : null;
-      // check address 1 Unit/Floor + House/Building Name
-      if (address1) {
-        addressLine1 = address1;
-      }
-      // check address 2 Street Number/Name
-      if (address2) {
-        addressLine1 = addressLine1.concat(', ', address2);
-      }
-      // check State/Brangay/District
-      if (state) {
-        addressLine2 = state;
-      }
-      // check City
-      if (city) {
-        addressLine2 = addressLine2.concat(', ', city);
-      }
-      // check PostalCode
-      if (postalCode) {
-        addressLine3 = postalCode;
-      }
-      // check Country
-      if (country) {
-        addressLine3 = addressLine3.concat(', ', country);
-      }
-
-      const customData = {
-        fullname: completeName,
-        gender: userData.gender,
-        birthdate: userData.birthdate,
-        line1: addressLine1,
-        line2: addressLine2,
-        line3: addressLine3
-      };
-
-      this.username$.next(userData.displayName);
-      this.userUpdateListener.next(customData);
-  }
-
-  ngAfterViewInit() {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = this.imageUrl$.subscribe((imageUrl) => {
-      this.imageUrl = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
-    });
+    const customData = {
+      name: userData.name,
+      gender: userData.gender,
+      birthdate: userData.birthdate,
+      displayName: userData.displayName,
+      photoURL: userData.photoURL,
+      address: userData.address
+    };
+    this.userUpdateListener.next(customData);
   }
 
   onEdit() {
@@ -258,6 +169,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
             })
           // tslint:disable-next-line: deprecation
           ).subscribe(() => {
+            // tslint:disable-next-line: deprecation
             this.getUserUpdateListener().subscribe((user) => {
               const appendedNumber = {...user, ...{phoneNumber: dataReturned.data.phone}};
               this.userUpdateListener.next(appendedNumber);
@@ -297,65 +209,84 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  previewAvatar(imageLink: string) {
-    this.subs.sink = from(this.modalController.create({
-      component: AvatarComponent,
-      componentProps: {
-        imageUrl: imageLink
-      },
-      swipeToClose: true,
-      presentingElement: this.routerOutlet.nativeEl
-    // tslint:disable-next-line: deprecation
-    })).subscribe((modalEl) => {
-      modalEl.present();
-
-      modalEl.onDidDismiss().then((dataReturned) => {
-        if (dataReturned.data.dismissed) {
-          this.imageUrl$.next(dataReturned.data.imageUrl);
-        }
-      });
-    });
-  }
-
-  onUpload(imageData: any) {
-    // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
-      this.showProgress = true;
-      const file = new Base64().dataURItoBlob('data:image/jpeg;base64,' + imageData);
-      const filePath = `avatar/${user.uid}.jpg`;
-
-      this.angularFireStorageReference = this.firestoreService.ref(filePath);
-      this.angularFireUploadTask = this.firestoreService.put(filePath, file);
-      // observe percentage changes
-      this.uploadPercent = this.angularFireUploadTask.percentageChanges();
-
-      this.subs.sink = this.angularFireUploadTask.snapshotChanges().pipe(
-        finalize(() => {
-          // tslint:disable-next-line: deprecation
-          this.subs.sink = this.angularFireStorageReference.getDownloadURL().subscribe((imageLink) => {
-            this.showProgress = false;
-            this.previewAvatar(imageLink);
-          });
-        })
-      // tslint:disable-next-line: deprecation
-      ).subscribe();
-    });
-  }
-
   capture(selectedSourceType: PictureSourceType) {
     const options: CameraOptions = {
       quality: 100,
       sourceType: selectedSourceType,
-      destinationType: this.camera.DestinationType.DATA_URL,
+      destinationType: this.camera.DestinationType.FILE_URI, // DATA_URL
       encodingType: this.camera.EncodingType.JPEG,
       mediaType: this.camera.MediaType.PICTURE,
-      correctOrientation: true,
-      cameraDirection: this.camera.Direction.FRONT
+      cameraDirection: this.camera.Direction.BACK,
+      targetHeight: 800,
+      targetWidth: 800,
+      correctOrientation: true
     };
 
     // tslint:disable-next-line: deprecation
     this.subs.sink = from(this.camera.getPicture(options)).subscribe((imageData) => {
-      this.onUpload(imageData);
+      this.doCrop(imageData);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+
+  doCrop(imageData: any) {
+    // tslint:disable-next-line: deprecation
+    from(this.crop.crop(imageData, {quality: 75})).pipe(
+      switchMap((cropedImage) => this.base64.encodeFile(cropedImage))
+    // tslint:disable-next-line: deprecation
+    ).subscribe((base64File) => {
+      this.doUpload(base64File);
+    }, (error: any) => {
+      this.presentAlert(error.code, error.message);
+    });
+  }
+  doUpload(imageUrl: any) {
+    this.subs.sink = from(this.loadingController.create({
+      cssClass: 'my-custom-class',
+      message: 'Please wait...',
+    // tslint:disable-next-line: deprecation
+    })).subscribe((loadingEl) => {
+      loadingEl.present();
+      // tslint:disable-next-line: deprecation
+      this.subs.sink = from(this.authService.getCurrentUser()).subscribe((user) => {
+        // data:image/*;charset=utf-8;base64,
+        // const file = new FileToBase64().dataURItoBlob('data:image/jpeg;base64,' + imageUrl);
+        const file = new CustomBase64().dataURItoBlob(imageUrl);
+        const filePath = `avatar/${user.uid}.jpg`;
+
+        this.angularFireStorageReference = this.firestoreService.ref(filePath);
+        this.angularFireUploadTask = this.firestoreService.put(filePath, file);
+        // observe percentage changes
+        this.uploadPercent = this.angularFireUploadTask.percentageChanges();
+
+        this.subs.sink = this.angularFireUploadTask.snapshotChanges().pipe(
+          finalize(() => {
+            // tslint:disable-next-line: deprecation
+            this.subs.sink = this.angularFireStorageReference.getDownloadURL().pipe(
+              switchMap((downloadableUrl) => {
+                return from(user.updateProfile({ photoURL: downloadableUrl })).pipe(
+                  switchMap(() => {
+                    return from(this.userService.update(user.uid, {photoURL: downloadableUrl})).pipe(
+                      switchMap(() => {
+                        return this.userService.getOne(user.uid).pipe(
+                          map((customData) => {
+                            return this.userUpdateListener.next(customData);
+                          })
+                        );
+                      })
+                    );
+                  })
+                );
+              })
+            // tslint:disable-next-line: deprecation
+            ).subscribe(() => {
+              this.loadingController.dismiss();
+            });
+          })
+        // tslint:disable-next-line: deprecation
+        ).subscribe();
+      });
     });
   }
 
@@ -368,7 +299,7 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
         {
           name: 'userName',
           type: 'text',
-          value: this.username,
+          value: '',
           placeholder: 'username'
         }
       ],
@@ -382,19 +313,19 @@ export class ProfilePage implements OnInit, AfterViewInit, OnDestroy {
           text: 'Save',
           handler: (data) => {
             this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-              map(user => user.updateProfile({ displayName: data.userName }))
+              map((user) => {
+                return from(user.updateProfile({ displayName: data.userName })).pipe(
+                  switchMap(() => {
+                    return from(this.userService.update(user.uid, {displayName: data.userName})).pipe(
+                      map((customData) => {
+                        return this.userUpdateListener.next(customData);
+                      })
+                    );
+                  })
+                )
+              })
             // tslint:disable-next-line: deprecation
-            ).subscribe((r) => {
-              console.log(r)
-              from(this.authService.getCurrentUser()).pipe(
-                switchMap((currenctUser) => {
-                  return from(this.userService.update(currenctUser.uid, {displayName: data.userName}));
-                })
-              // tslint:disable-next-line: deprecation
-              ).subscribe(() => {
-                this.username$.next(data.userName);
-              });
-            }, (error: any) => {
+            ).subscribe(() => {}, (error: any) => {
               this.presentAlert(error.code, error.message);
             });
           }

@@ -107,24 +107,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getNotifications() {
-    from(this.currentUser$).pipe(
+    from(this.authService.getCurrentUser()).pipe(
       // get all notifications
       switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
-        // notifications response
-        mergeMap((notificationMap: any[]) => {
-          // merge collection
-          return from(notificationMap).pipe(
-            mergeMap((notificationSubCollection) => {
-              return this.notificationsService.getOne(notificationSubCollection.id).pipe(
-                // map to combine user notifications sub-collection to collection
-                map(notificationCollection => ({notificationSubCollection, notificationCollection})),
-                // filter by status
-                filter(notificationStatus => notificationStatus.notificationCollection.status === 'unread')
-              );
-            }),
-            reduce((a, i) => [...a, i], [])
-          );
-        }),
+        map((notifications) => {
+          return notifications.filter(notificationStatus => notificationStatus.status === 'unread');
+        })
       ))
     // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
@@ -137,20 +125,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getBalance() {
-    return from(this.currentUser$).pipe(
+    return from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
-        return this.transactionsService.getBySender(user.uid, 'completed').pipe(
-          map((trans) => {
+        return this.usersService.getSubCollection(user.uid, 'receipts').pipe(
+          map((receipts) => {
             let balance = 0;
-            for (const tran of trans) {
-              if (tran.sender === user.uid) {
-                balance -= Number(tran.amount);
-              }
-
-              if (tran.receiver === user.uid) {
-                balance += Number(tran.amount);
-              }
-            }
+            receipts.forEach(receipt => {
+              balance += receipt.amount;
+            });
             return balance;
           })
         );
@@ -166,7 +148,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           from(this.alertController.create(
             {
               header: 'Account checking!',
-              message: 'This is not the app for Proffesional. Please contact our support team!',
+              message: 'This is for Client App only. Please contact our support team!',
               buttons: [
                 {
                   text: 'Exit',
@@ -185,6 +167,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           )).subscribe((alertEl) => {
             alertEl.present();
           });
+        } else {
+          // check verification
+          this.verificationCheck();
         }
       });
     }, (error: any) => {
@@ -234,8 +219,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     // get balance
     this.transactionBalance$ = this.getBalance();
-    // city nearby
-    // state default
   }
 
   private initProfessionals() {
@@ -254,6 +237,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         );
       })
     );
+  }
+
+  ngAfterViewInit() {
+    // refresh list
+    this.onReload();
+
   }
 
   onClear() {
@@ -317,12 +306,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit() {
-    // tslint:disable-next-line: deprecation
-    this.verificationCheck();
-
-    this.onReload();
-  }
 
   private getAddress(lat: number, lng: number) {
     return this.http.get<any>(
@@ -402,11 +385,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onViewReceipt() {
-    this.router.navigate(['/pages/receipt']);
-  }
-
-  ngOnDestroy() {
-    this.subs.unsubscribe();
+    this.router.navigate(['/pages/receipts']);
   }
 
   onOpenNotifications() {
@@ -422,5 +401,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     })).subscribe(alertEl => {
         alertEl.present();
     });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
   }
 }

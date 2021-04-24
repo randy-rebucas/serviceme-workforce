@@ -57,59 +57,23 @@
                         </ng-template>
                     </ion-thumbnail>
                 </ion-item>
+                <ng-container *ngIf="booking.bookingData.status === 'accepted'">
+                    <ion-list-header>
+                        <ion-label>Assessment</ion-label>
+                    </ion-list-header>
+                    <ion-item lines="none" color="tertiary">
+                        <ion-label class="ion-text-wrap">
+                            <p>Communicate with your client.</p>
+                        </ion-label>
+                        <ion-buttons slot="end">
+                            <ion-button (click)="onChat(booking.bookingData.id)">
+                                <ion-icon slot="icon-only" name="chatbox-outline"></ion-icon>
+                            </ion-button>
+                        </ion-buttons>
+                    </ion-item>
+                </ng-container>
             </ion-card-content>
         </ion-card>
-
-        <ng-container *ngIf="booking.status === 'completed'">
-            <ng-container *ngIf="feedbacks$ | async; let feedbacks; else loadingFeedbacks">
-                <ion-card class="ion-no-padding no-box-shadow ion-no-border">
-                    <ion-card-header>
-                        <ion-card-subtitle>You can ask to change the feedback if its inappropriate anytime.</ion-card-subtitle>
-                        <ion-card-title>Feedbacks</ion-card-title>
-                    </ion-card-header>
-
-                    <ion-card-content>
-                        <ion-item lines="none" *ngFor="let feedback of feedbacks">
-                            <ion-label class="ion-text-wrap">
-                                <p>{{feedback.feedback.feedback}} <br/>
-                                    <span>- {{feedback.profissional.name.firstname}}, {{feedback.profissional.name.lastname}}</span>
-                                </p>
-                            </ion-label>
-                            <ion-note slot="end">{{feedback.feedback.timestamp.toDate() | date}}</ion-note>
-                        </ion-item>
-                        <ng-container *ngIf="feedbacks.length === 0">
-                            <ion-item lines="none">
-                                <ion-label>
-                                    No feedback given.
-                                </ion-label>
-                            </ion-item>
-                        </ng-container>
-                    </ion-card-content>
-                </ion-card>
-            </ng-container>
-            <ng-template #loadingFeedbacks>
-                <ion-item lines="none">
-                    <ion-label>
-                        <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
-                    </ion-label>
-                </ion-item>
-            </ng-template>
-            <form [formGroup]="form" (submit)="onCreate(booking.id)">
-                <ion-card class="ion-no-padding no-box-shadow ion-no-border">
-                    <ion-card-header>
-                        <ion-card-subtitle>Please be honest to leave a feedback.</ion-card-subtitle>
-                    </ion-card-header>
-                    <ion-card-content>
-                        <ion-item lines="none">
-                            <ion-label position="floating">Comments</ion-label>
-                            <ion-textarea rows="3" formControlName="feedback"></ion-textarea>
-                        </ion-item>
-                        <ion-button expand="block" type="submit">Submit</ion-button>
-                    </ion-card-content>
-                </ion-card>
-            </form>
-        </ng-container>
-
     </ng-container>
     <ng-template #elseBooking>
         <ion-card color="secondary">

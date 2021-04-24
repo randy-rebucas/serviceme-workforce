@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AlertController, IonInput, LoadingController, ToastController } from '@ionic/angular';
-import { from, pipe } from 'rxjs';
+import { from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
@@ -9,11 +9,9 @@ import { SettingsService } from '../settings/settings.service';
 import firebase from 'firebase/app';
 import { TransactionsService } from '../transactions/transactions.service';
 import { UsersService } from '../users/users.service';
-import { PaymentsService } from './payments.service';
 import { PayPal, PayPalConfiguration, PayPalPayment } from '@ionic-native/paypal/ngx';
 import { environment } from 'src/environments/environment';
-import { Transactions } from '../transactions/transactions';
-import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-payments',
@@ -21,15 +19,14 @@ import { Router } from '@angular/router';
   styleUrls: ['./payments.page.scss'],
 })
 export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('box', {static: false}) inputEl: IonInput;
   public form: FormGroup;
-  public formRequest: FormGroup;
   public currentDate: Date;
   public method: string;
   private defaultCurrency: string;
   private initialDeposit: number;
   private shortDescription: string;
   private subs = new SubSink();
-  @ViewChild('box', {static: false}) inputEl: IonInput;
   constructor(
     private authService: AuthService,
     private loadingController: LoadingController,
@@ -38,14 +35,13 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     private settingsService: SettingsService,
     private transactionsService: TransactionsService,
     private userService: UsersService,
-    private paymentsService: PaymentsService,
-    private router: Router,
     private payPal: PayPal,
   ) {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       switchMap((user) => {
         return this.settingsService.getOne(user.uid);
       })
+    // tslint:disable-next-line: deprecation
     ).subscribe((settings) => {
       this.defaultCurrency = (settings) ? settings.currency : environment.defaultCurrency;
     }, (error: any) => {
@@ -87,9 +83,9 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   get formCtrls() { return this.form.controls; }
 
   setSubCollection(transaction: any) {
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+    from(this.authService.getCurrentUser()).pipe(
       switchMap((currentUser) => {
-        return from(this.userService.setSubCollection(currentUser.uid, 'receipt', transaction.id, {}));
+        return from(this.userService.setSubCollection(currentUser.uid, 'receipts', transaction.id, {}));
       })
     // tslint:disable-next-line: deprecation
     ).subscribe(() => {
@@ -99,34 +95,9 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
       }).then((toastEl) => {
         toastEl.present();
       });
-    });
-  }
-
-  setTransactionData(amount: number, refId: string, transactionDate: Date, transactionStatus: string) {
-    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-      switchMap((user) => {
-        const transactionData  = {
-          sender: refId,
-          receiver: user.uid,
-          amount: Number(amount),
-          currency: this.defaultCurrency,
-          description: this.shortDescription,
-          timestamp: firebase.firestore.Timestamp.fromDate(transactionDate),
-          ref: 'Paypal',
-          status: transactionStatus,
-          type: 'payment'
-        };
-
-        return from(this.transactionsService.insert(transactionData));
-      })
-    // tslint:disable-next-line: deprecation
-    ).subscribe((transaction) => {
-      this.setSubCollection(transaction);
-    }, (error: any) => {
+      this.form.reset();
       this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
     });
-
   }
 
   paypalPayment() {
@@ -134,9 +105,44 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     const amount = amountValue.replace(/[^0-9.-]+/g, '');
     const payment = new PayPalPayment(amountValue, this.defaultCurrency, this.shortDescription, 'sale');
     // tslint:disable-next-line: deprecation
-    this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment)).subscribe((paypalResponse) => {
-      this.setTransactionData(amount, paypalResponse.response.id, new Date(), 'completed');
-    }, (error: any) => {
+    this.subs.sink = from(this.payPal.renderSinglePaymentUI(payment))
+    .pipe(
+      switchMap((paypalResponse) => {
+        if (paypalResponse.response.state === 'approved') {
+          return from(this.authService.getCurrentUser()).pipe(
+            switchMap((currentUser) => {
+              const transactionData = {
+                userId: currentUser.uid,
+                refference: paypalResponse.response.id,
+                transactionDate: firebase.database.ServerValue.TIMESTAMP,
+                description: this.shortDescription,
+                entries: [
+                  {
+                    account: 'Cash',
+                    debit: Number(amount),
+                    credit: 0
+                  },
+                  {
+                    account: 'Accounts receivable',
+                    debit: 0,
+                    credit: Number(amount)
+                  }
+                ],
+              };
+
+              return from(this.transactionsService.insert(transactionData)).pipe(
+                switchMap((transaction) => {
+                  return this.userService.setSubCollection(currentUser.uid, 'receipts', transaction.id, {amount: Number(amount)});
+                })
+              );
+            })
+          );
+        } else {
+          this.presentAlert('Paypal response', 'Your paypal payment was ' + paypalResponse.response.state);
+        }
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe(() => {}, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
     });
@@ -159,6 +165,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.sink = from(this.payPal.init({
       PayPalEnvironmentProduction: environment.payPalProdClientId,
       PayPalEnvironmentSandbox: environment.payPalSandBoxClientId
+    // tslint:disable-next-line: deprecation
     })).subscribe(() => {
       this.paypalRender();
     }, (error: any) => {
@@ -170,6 +177,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
   onCashIn() {
     this.subs.sink = from(this.loadingController.create({
       message: 'Please wait...'
+    // tslint:disable-next-line: deprecation
     })).subscribe(loadingEl => {
       loadingEl.present();
       this.doCashIn();
@@ -181,6 +189,7 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
       header: alertHeader, // alert.code,
       message: alertMessage, // alert.message,
       buttons: ['OK']
+    // tslint:disable-next-line: deprecation
     })).subscribe(alertEl => {
         alertEl.present();
     });

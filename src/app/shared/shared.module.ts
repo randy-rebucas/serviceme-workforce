@@ -11,6 +11,7 @@ import { BookingCounterPipe } from './pipes/booking-counter.pipe';
 import { WeekDayPipe } from './pipes/week-day.pipe';
 import { MaskPipe } from './pipes/mask.pipe';
 import { AvatarComponent } from './components/avatar/avatar.component';
+import { IntlPhoneValidationDirective } from './directives/intl-phone-validation.directive';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { AvatarComponent } from './components/avatar/avatar.component';
     CounterPipe,
     BookingCounterPipe,
     WeekDayPipe,
-    MaskPipe
+    MaskPipe,
+    IntlPhoneValidationDirective
   ],
   imports: [
     CommonModule,

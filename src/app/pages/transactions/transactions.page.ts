@@ -53,34 +53,34 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.status$.pipe(
-      switchMap(status =>
-        from(this.authService.getCurrentUser()).pipe(
-          // get all transactions
-          switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
-            // transactions response
-            mergeMap((transactionMap: any[]) => {
-              this.status = status;
-              // merge collection
-              return from(transactionMap).pipe(
-                mergeMap((transactionSubCollection) => {
-                  return this.transactionsService.getOne(transactionSubCollection.id.trim()).pipe(
-                    // map to combine user transactions sub-collection to collection
-                    map(transactionCollection => ({transactionSubCollection, transactionCollection})),
-                    // filter by status
-                    filter(bookingStatus => bookingStatus.transactionCollection.status === status),
-                  );
-                }),
-                reduce((a, i) => [...a, i], [])
-              );
-            }),
-          ))
-        )
-      )
-    // tslint:disable-next-line: deprecation
-    ).subscribe((transactions) => {
-      this.transactionListener.next(transactions);
-    });
+    // this.status$.pipe(
+    //   switchMap(status =>
+    //     from(this.authService.getCurrentUser()).pipe(
+    //       // get all transactions
+    //       switchMap((user) => this.usersService.getSubCollection(user.uid, 'transactions').pipe(
+    //         // transactions response
+    //         mergeMap((transactionMap: any[]) => {
+    //           this.status = status;
+    //           // merge collection
+    //           return from(transactionMap).pipe(
+    //             mergeMap((transactionSubCollection) => {
+    //               return this.transactionsService.getOne(transactionSubCollection.id.trim()).pipe(
+    //                 // map to combine user transactions sub-collection to collection
+    //                 map(transactionCollection => ({transactionSubCollection, transactionCollection})),
+    //                 // filter by status
+    //                 filter(bookingStatus => bookingStatus.transactionCollection.status === status),
+    //               );
+    //             }),
+    //             reduce((a, i) => [...a, i], [])
+    //           );
+    //         }),
+    //       ))
+    //     )
+    //   )
+    // // tslint:disable-next-line: deprecation
+    // ).subscribe((transactions) => {
+    //   this.transactionListener.next(transactions);
+    // });
 
     // get onservable transactions
     this.transactions$ = this.getTransactionListener();
@@ -108,7 +108,7 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
     this.status$.next(event.detail.value);
   }
 
-  onDeail(transactionDetail: any, ionItemSliding: IonItemSliding) {
+  onDetail(transactionDetail: any, ionItemSliding: IonItemSliding) {
     this.subs.sink = from(this.modalController.create({
       component: DetailComponent,
       componentProps: {
@@ -117,6 +117,7 @@ export class TransactionsPage implements OnInit, AfterViewInit, OnDestroy {
       },
       swipeToClose: true,
       presentingElement: this.routerOutlet.nativeEl
+    // tslint:disable-next-line: deprecation
     })).subscribe((modalEl) => {
       modalEl.present();
       ionItemSliding.closeOpened();

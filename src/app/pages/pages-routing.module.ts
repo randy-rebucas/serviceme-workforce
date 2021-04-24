@@ -69,16 +69,20 @@ const routes: Routes = [
         canActivate: [AngularFireAuthGuard],
         data: { authGuardPipe: proOnly },
         loadChildren: () => import('./locator/locator.module').then( m => m.LocatorPageModule)
+      },
+      {
+        path: 'notifications',
+        loadChildren: () => import('./notifications/notifications.module').then( m => m.NotificationsPageModule)
+      },
+      {
+        path: 'receipts',
+        loadChildren: () => import('./receipts/receipts.module').then( m => m.ReceiptsPageModule)
+      },
+      {
+        path: 'chats',
+        loadChildren: () => import('./chats/chats.module').then( m => m.ChatsPageModule)
       }
     ]
-  },
-  {
-    path: 'notifications',
-    loadChildren: () => import('./notifications/notifications.module').then( m => m.NotificationsPageModule)
-  },
-  {
-    path: 'receipt',
-    loadChildren: () => import('./receipt/receipt.module').then( m => m.ReceiptPageModule)
   },
 ];
 

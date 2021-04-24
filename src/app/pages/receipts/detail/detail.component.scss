@@ -1,0 +1,18 @@
+ion-header {
+    ion-toolbar {
+        --color: var(--ion-color-primary);
+    }
+}
+
+ion-content {
+    ion-card {
+        ion-card-content {
+            ion-item {
+                ion-note {
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+}

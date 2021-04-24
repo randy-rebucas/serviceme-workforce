@@ -10,7 +10,7 @@ export const environment = {
   payPalEnv: 'PayPalEnvironmentProduction',
   financialEncharge: 'ALF85zQI7PPvazgMdzkY4E5AqrH2',
   commissionPercentage: 10,
-  initialDeposit: 1000,
+  initialDeposit: 500,
   defaultCurrency: 'PHP',
   enableSigningBonus: true,
   firebase: {

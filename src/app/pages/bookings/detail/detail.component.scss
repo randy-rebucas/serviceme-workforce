@@ -1,5 +1,8 @@
 ion-header {
     ion-toolbar {
         --color: var(--ion-color-primary);
+        ion-card {
+            border-radius: 0;
+        }
     }
 }

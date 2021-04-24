@@ -28,7 +28,7 @@
     <ng-container *ngIf="transactions$ | async; let transactions; else loadingTransactions">
         <ion-list>
             <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
-                <ion-item lines="full" button (click)="onDeail(transaction, slidingItem)" detail>
+                <ion-item lines="full" button (click)="onDetail(transaction, slidingItem)" detail>
                     <ion-label>
                         <h2>Txns Date: {{ transaction.transactionCollection.timestamp.toDate() | date:'mediumDate' }}</h2>
                         <p [ngClass]="transaction.transactionCollection.status">{{ transaction.transactionCollection.status | titlecase }}</p>

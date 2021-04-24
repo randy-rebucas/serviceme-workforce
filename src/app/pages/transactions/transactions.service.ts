@@ -33,12 +33,8 @@ export class TransactionsService {
     return this.totalBalance$.asObservable();
   }
 
-  private defaultCollection(): AngularFirestoreCollection<useClass> {
-    return this.angularFirestore.collection<useClass>(collection);
-  }
-
-  public filterBySender(userId: string, status: string = null) {
-    return this.angularFirestore.collection(collection, ref => {
+  private defaultCollection(status?: string): AngularFirestoreCollection<useClass> {
+    return this.angularFirestore.collection<useClass>(collection, ref => {
       let query: firebase.firestore.CollectionReference | firebase.firestore.Query = ref;
       if (status) {
         query = query.where('status', '==', status);
@@ -60,12 +56,8 @@ export class TransactionsService {
       );
   }
 
-  getBySender(userId: string, status: string = null): Observable<useClass[]> {
-    return this.fetchData(this.filterBySender(userId, status));
-  }
-
-  getAll(): Observable<useClass[]> {
-    return this.fetchData(this.defaultCollection());
+  getAll(status?: string): Observable<useClass[]> {
+    return this.fetchData(this.defaultCollection(status));
   }
 
   getSize(): Observable<QuerySnapshot<useClass>> {

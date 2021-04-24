@@ -1,4 +1,4 @@
-export class Base64 {
+export class CustomBase64 {
 
     dataURItoBlob(dataURI: any) {
         const binary = atob(dataURI.split(',')[1]);

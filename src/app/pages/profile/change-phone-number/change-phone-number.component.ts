@@ -5,6 +5,8 @@ import { from } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { SubSink } from 'subsink';
 import firebase from 'firebase/app';
+import { PhoneNumberValidator } from 'src/app/shared/directives/intl-phone-validation.directive';
+
 @Component({
   selector: 'app-change-phone-number',
   templateUrl: './change-phone-number.component.html',
@@ -12,7 +14,6 @@ import firebase from 'firebase/app';
 })
 export class ChangePhoneNumberComponent implements OnInit, OnDestroy {
   public form: FormGroup;
-  public codeForm: FormGroup;
   public windowRef: any;
   public formSubmited: boolean;
   private subs = new SubSink();
@@ -29,17 +30,16 @@ export class ChangePhoneNumberComponent implements OnInit, OnDestroy {
     this.form = new FormGroup({
       phoneNumber: new FormControl(null, {
         updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(13)]
-      })
-    });
-
-    this.codeForm = new FormGroup({
-      code: new FormControl(null, {
-        updateOn: 'blur',
-        validators: [Validators.required, Validators.maxLength(8)]
+        validators: [
+          Validators.required,
+          Validators.maxLength(13),
+          // PhoneNumberValidator('PH')
+        ]
       })
     });
   }
+
+  get formCtrls() { return this.form.controls; }
 
   onDismiss(status: boolean, phoneNumber?: string) {
     this.modalController.dismiss({
@@ -50,24 +50,34 @@ export class ChangePhoneNumberComponent implements OnInit, OnDestroy {
 
   onVerify(verificationId: any, verificationCode: any) {
     const phoneCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, verificationCode);
-    // tslint:disable-next-line: deprecation
     from(firebase.auth().currentUser.updatePhoneNumber(phoneCredential)).subscribe(() => {
+      this.loadingController.dismiss();
       this.onDismiss(true, this.form.value.phoneNumber);
     }, (error: any) => {
+      this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
     });
   }
 
-  onUpdate() {
+  doUpdate() {
     const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size: 'invisible'});
     const provider = new firebase.auth.PhoneAuthProvider();
-    // tslint:disable-next-line: deprecation
     this.subs.sink = from(provider.verifyPhoneNumber(this.form.value.phoneNumber, appVerifier)).subscribe((verificationId) => {
         const verificationCode = window.prompt('Please enter the verification ' +
             'code that was sent to your mobile device.');
         this.onVerify(verificationId, verificationCode);
     }, (error: any) => {
+      this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
+    });
+  }
+
+  onUpdate() {
+    this.subs.sink = from(this.loadingController.create({
+      message: 'Please wait...'
+    })).subscribe(loadingEl => {
+      loadingEl.present();
+      this.doUpdate();
     });
   }
 

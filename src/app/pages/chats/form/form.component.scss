@@ -1,0 +1,80 @@
+ion-header {
+    ion-toolbar {
+        --color: var(--ion-color-primary);
+        ion-grid {
+            ion-row {
+                ion-col {
+                    ion-button {
+                        padding: 0 5px;
+                    }
+                }
+            }
+        }
+        &.profile {
+            ion-item {
+                --background: var(--ion-color-secondary);
+            }
+        }
+    }
+}
+
+ion-content {
+    ion-item {
+        &.chats {
+            width: 80%;
+            ion-label {
+                border: 1px solid var(--ion-color-secondary);
+                margin: 10px;
+                border-radius: 10px;
+            }
+        }
+    }
+    .chatMessage {
+        padding: 10px !important;
+        border-radius: 10px !important;
+        margin-bottom: 4px !important;
+        white-space: pre-wrap;
+    }
+    .my-message {
+        background: var(--ion-color-tertiary);
+        color: var(--ion-color-primary-contrast);
+    }
+    .other-message {
+        background: var(--ion-color-medium);
+        color: var(--ion-color-success-contrast);
+    }
+    .time {
+        float: right;
+        font-size: small;
+    }
+    .chat-actions {
+        position: absolute;
+        top: 0;
+        right: 0;
+        ion-button {
+            width: 32px;
+            height: 32px;
+            --padding-top: 6px;
+            --padding-end: 6px;
+            --padding-bottom: 6px;
+            --padding-start: 6px;
+        }
+    }
+}
+
+ion-footer {
+    ion-toolbar {
+        ion-item {
+            ion-textarea {
+                border: 1px solid #db9200;
+                margin-top: 3px;
+                border-radius: 5px;
+                --padding-top: 10px;
+                --padding-start: 8px;
+            }
+            ion-buttons {
+                margin-left: 0 !important;
+            }
+        }
+    }
+}

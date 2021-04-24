@@ -151,7 +151,7 @@ export class FormComponent implements OnInit, OnDestroy {
         })
       // tslint:disable-next-line: deprecation
       ).subscribe(() => {
-        this.loadingController.dismiss();
+        loadingEl.dismiss();
         this.onDismiss(true, this.form.value);
       }, (error: any) => {
         this.loadingController.dismiss();

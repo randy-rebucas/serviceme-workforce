@@ -1,0 +1,110 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+    <ion-toolbar class="profile">
+        <ng-container *ngIf="room$ | async; let room; else elseLoading">
+            <ion-item lines="none">
+                <ion-avatar slot="start">
+                    <ng-container *ngIf="room.photoURL; else elseDummy">
+                        <img [src]="room.photoURL" />
+                    </ng-container>
+                    <ng-template #elseDummy>
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+">
+                    </ng-template>
+                </ion-avatar>
+                <ion-label>
+                    Created by: {{ room.displayName ? room.displayName : room.name.firstname }}
+                    <p>Members: {{ room.members.length}}</p>
+                </ion-label>
+                <ion-note slot="end">Created: {{ room.createdAt.toDate() | date }}</ion-note>
+            </ion-item>
+        </ng-container>
+        <ng-template #elseLoading>
+            <ion-item lines="none">
+                <ion-avatar slot="start">
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-avatar>
+                <ion-label>
+                    <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                    <p>
+                        <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                    </p>
+                </ion-label>
+            </ion-item>
+        </ng-template>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollEvents]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ng-container *ngIf="chatMessages$ | async; let chatMessages; else loadingMessgages">
+        <ion-grid>
+            <ion-row *ngFor="let chatMessage of chatMessages">
+                <ion-col size="10" class="chatMessage" [offset]="chatMessage.from === user.uid ? 2 : 0" [ngClass]="{ 'my-message': chatMessage.from === user.uid, 'other-message': chatMessage.from !== user.uid }">
+                    <b>{{ chatMessage.name.firstname }}</b><br>
+                    <ng-container *ngIf="chatMessage.type === 'image'; else elseTemplate">
+                        <img [src]="chatMessage.message" (click)="onPreview(chatMessage.message)" />
+                    </ng-container>
+                    <ng-template #elseTemplate>
+                        <span>{{ chatMessage.message }}</span>
+                    </ng-template>
+                    <ion-buttons class="chat-actions">
+                        <ion-button size="small" type="button" color="danger" (click)="onDelete(chatMessage.id)">
+                            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                    <div class="time ion-text-right"><br>{{ chatMessage.createdAt.toMillis() | date:'short' }}</div>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+
+        <div class="ion-text-center ion-justify-content-center ion-align-items-center" *ngIf="chatMessages.length === 0">
+            <p>You may start the conversation.</p>
+        </div>
+    </ng-container>
+    <ng-template #loadingMessgages>
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8]">
+            <ion-avatar slot="start">
+                <ion-skeleton-text animated></ion-skeleton-text>
+            </ion-avatar>
+            <ion-label>
+                <h2>
+                    <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+                </h2>
+                <p>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </p>
+            </ion-label>
+        </ion-item>
+    </ng-template>
+
+
+</ion-content>
+<ion-footer>
+    <ion-toolbar color="light">
+        <form [formGroup]="form" (submit)="onSent()" class="chat-form">
+            <ion-item lines="none">
+                <ion-textarea formControlName="message" autoGrow="true" class="message-input" rows="1" maxLength="500">
+                </ion-textarea>
+                <ion-buttons slot="end">
+                    <ion-button type="button" slot="end" (click)="onPickSource()">
+                        <ion-icon slot="icon-only" name="image-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button type="submit" slot="end" color="primary">
+                        <ion-icon slot="icon-only" name="send-outline"></ion-icon>
+                    </ion-button>
+                </ion-buttons>
+            </ion-item>
+        </form>
+    </ion-toolbar>
+</ion-footer>

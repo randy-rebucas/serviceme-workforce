@@ -17,14 +17,15 @@
     <form [formGroup]="form" (submit)="onCashIn()">
         <ion-card>
             <ion-card-header>
-                <ion-card-title>Cash In</ion-card-title>
-                <ion-card-subtitle>Please enter amount.</ion-card-subtitle>
+                <ion-card-title>Paypal payment method.</ion-card-title>
+                <ion-card-subtitle>Minimum cashin amount is 200php. </ion-card-subtitle>
             </ion-card-header>
 
             <ion-card-content>
+                <p>Please maintain balance in your wallet to accept bookings.</p>
                 <ion-list>
                     <ion-item>
-                        <ion-label position="floating">Amount</ion-label>
+                        <ion-label position="floating">Please enter amount</ion-label>
                         <ion-input formControlName="amount" #box (keyup)="onInput(box.value)" (ionFocus)="onFocus(box.value)" class="ion-text-center amount"></ion-input>
                     </ion-item>
                     <ion-item lines="none" *ngIf="formCtrls.amount.errors && formCtrls.amount.touched">
@@ -40,6 +41,15 @@
             </ion-card-content>
         </ion-card>
 
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Other payment method.</ion-card-title>
+                <ion-card-subtitle>Accept Gcash</ion-card-subtitle>
+            </ion-card-header>
+            <img src="assets/qr.jpg" />
+            <ion-card-content>
+                <p>For other payment method like gcash. You can pay using the QR code found in this screen. <br/> After the payment send us the details such the refference and the settlement date.</p>
+            </ion-card-content>
+        </ion-card>
     </form>
-
 </ion-content>

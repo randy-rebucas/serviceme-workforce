@@ -7,6 +7,84 @@
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
+    <ion-toolbar>
+        <ng-container *ngIf="offerItems$ | async; let offerItems; else loadingOffers">
+            <ion-card class="ion-no-padding ion-no-margin no-box-shadow detail" color="secondary">
+                <ion-card-header>
+                    <ion-card-subtitle></ion-card-subtitle>
+                    <ion-card-title>Selected Services</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+
+                    <!-- Sliding item with text options on both sides -->
+                    <ion-item-sliding *ngFor="let offerItem of offerItems">
+                        <ion-item lines="none" color="tertiary" detail>
+                            <ion-thumbnail slot="start">
+                                <ng-container *ngIf="offerItem.imageUrl; else elseDummy">
+                                    <img [src]="offerItem.imageUrl" />
+                                </ng-container>
+                                <ng-template #elseDummy>
+                                    <ion-img src="/assets/images/icon-logo.png"></ion-img>
+                                </ng-template>
+                            </ion-thumbnail>
+                            <ion-label>
+                                <h2>{{ offerItem.title }}</h2>
+                                <ion-chip outline>
+                                    <ion-icon name="cash-outline"></ion-icon>
+                                    <ion-label>{{ (offerItem.charges * offerItem.quantity) | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
+                                </ion-chip>
+                                <ion-chip outline>
+                                    <ion-icon [name]="offerItem.quantity > 1 ? 'people-outline' : 'person-outline'"></ion-icon>
+                                    <ion-label>{{ offerItem.quantity }}</ion-label>
+                                </ion-chip>
+                            </ion-label>
+                        </ion-item>
+                        <ion-item-options side="end">
+                            <ion-item-option color="danger" (click)="decreaseQuantity(offerItem)">
+                                <ion-icon name="remove-outline" size="small"></ion-icon>
+                            </ion-item-option>
+                            <ion-item-option (click)="increaseQuantity(offerItem)">
+                                <ion-icon name="add-outline" size="small"></ion-icon>
+                            </ion-item-option>
+                        </ion-item-options>
+                    </ion-item-sliding>
+
+                </ion-card-content>
+            </ion-card>
+        </ng-container>
+        <ng-template #loadingOffers>
+            <ion-item lines="none" *ngFor="let item of [1,2,3]">
+                <ion-thumbnail slot="start">
+                    <ion-skeleton-text animated></ion-skeleton-text>
+                </ion-thumbnail>
+                <ion-label>
+                    <h2>
+                        <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+                    </h2>
+                    <ion-chip outline>
+                        <ion-icon name="time-outline"></ion-icon>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
+                        </ion-label>
+                    </ion-chip>
+                    <ion-chip outline>
+                        <ion-icon name="cash-outline"></ion-icon>
+                        <ion-label>
+                            <ion-skeleton-text animated></ion-skeleton-text>
+                        </ion-label>
+                    </ion-chip>
+                </ion-label>
+            </ion-item>
+        </ng-template>
+        <ion-segment value="form" (ionChange)="optionChanged($event)">
+            <ion-segment-button value="form">
+                <ion-label>Form</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="bookings">
+                <ion-label>Active Bookings</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -16,82 +94,7 @@
         </ion-toolbar>
     </ion-header>
 
-    <ng-container *ngIf="offerItems$ | async; let offerItems; else loadingOffers">
-        <ion-card class="ion-no-padding ion-no-margin no-box-shadow detail" color="secondary">
-            <ion-card-header>
-                <ion-card-subtitle></ion-card-subtitle>
-                <ion-card-title>Selected Services</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
 
-                <!-- Sliding item with text options on both sides -->
-                <ion-item-sliding *ngFor="let offerItem of offerItems">
-                    <ion-item lines="none" color="tertiary" detail>
-                        <ion-thumbnail slot="start">
-                            <ng-container *ngIf="offerItem.imageUrl; else elseDummy">
-                                <img [src]="offerItem.imageUrl" />
-                            </ng-container>
-                            <ng-template #elseDummy>
-                                <ion-img src="/assets/images/icon-logo.png"></ion-img>
-                            </ng-template>
-                        </ion-thumbnail>
-                        <ion-label>
-                            <h2>{{ offerItem.title }}</h2>
-                            <ion-chip outline>
-                                <ion-icon name="cash-outline"></ion-icon>
-                                <ion-label>{{ (offerItem.charges * offerItem.quantity) | currency:defaultCurrency:'symbol-narrow' }}</ion-label>
-                            </ion-chip>
-                            <ion-chip outline>
-                                <ion-icon [name]="offerItem.quantity > 1 ? 'people-outline' : 'person-outline'"></ion-icon>
-                                <ion-label>{{ offerItem.quantity }}</ion-label>
-                            </ion-chip>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item-options side="end">
-                        <ion-item-option color="danger" (click)="decreaseQuantity(offerItem)">
-                            <ion-icon name="remove-outline" size="small"></ion-icon>
-                        </ion-item-option>
-                        <ion-item-option (click)="increaseQuantity(offerItem)">
-                            <ion-icon name="add-outline" size="small"></ion-icon>
-                        </ion-item-option>
-                    </ion-item-options>
-                </ion-item-sliding>
-
-            </ion-card-content>
-        </ion-card>
-    </ng-container>
-    <ng-template #loadingOffers>
-        <ion-item lines="none" *ngFor="let item of [1,2,3]">
-            <ion-thumbnail slot="start">
-                <ion-skeleton-text animated></ion-skeleton-text>
-            </ion-thumbnail>
-            <ion-label>
-                <h2>
-                    <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
-                </h2>
-                <ion-chip outline>
-                    <ion-icon name="time-outline"></ion-icon>
-                    <ion-label>
-                        <ion-skeleton-text animated></ion-skeleton-text>
-                    </ion-label>
-                </ion-chip>
-                <ion-chip outline>
-                    <ion-icon name="cash-outline"></ion-icon>
-                    <ion-label>
-                        <ion-skeleton-text animated></ion-skeleton-text>
-                    </ion-label>
-                </ion-chip>
-            </ion-label>
-        </ion-item>
-    </ng-template>
-    <ion-segment value="form" (ionChange)="optionChanged($event)">
-        <ion-segment-button value="form">
-            <ion-label>Form</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="bookings">
-            <ion-label>Active Bookings</ion-label>
-        </ion-segment-button>
-    </ion-segment>
     <ng-container *ngIf="option === 'form'; else elseOption">
         <form [formGroup]="form" (ngSubmit)="onSubmit($event, bookingForm)" id="ngForm" #bookingForm="ngForm" class="booking-form">
             <ion-card class="ion-no-padding ion-no-margin no-box-shadow ion-no-border">
@@ -128,10 +131,10 @@
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label class="ion-text-wrap">
-                                <p>(Check the box to use Home Address)</p>
+                                <!--<p>(Check the box to use Home Address)</p>-->
                                 <h2>{{currentLocation}}</h2>
                             </ion-label>
-                            <ion-checkbox slot="end" [checked]="locationOption$ | async" (ionChange)="onPickAddress($event)"></ion-checkbox>
+                            <!--<ion-checkbox slot="end" [checked]="locationOption$ | async" (ionChange)="onPickAddress($event)"></ion-checkbox>-->
                         </ion-item>
                     </ion-list>
                 </ion-card-content>

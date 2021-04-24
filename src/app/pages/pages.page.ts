@@ -1,15 +1,14 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, IonRouterOutlet, LoadingController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { Plugins, Capacitor } from '@capacitor/core';
+import { Plugins } from '@capacitor/core';
 import { from, Observable, Subject } from 'rxjs';
 import { SubSink } from 'subsink';
 import { AuthService } from '../auth/auth.service';
-import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { UsersService } from './users/users.service';
 import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
-import { NotificationsService } from './notifications/notifications.service';
 import { Notifications } from './notifications/notifications';
 import firebase from 'firebase/app';
 const { App } = Plugins;
@@ -19,7 +18,7 @@ const { App } = Plugins;
   templateUrl: './pages.page.html',
   styleUrls: ['./pages.page.scss'],
 })
-export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
+export class PagesPage implements OnInit, OnDestroy {
   @ViewChild(IonRouterOutlet, { static : true }) routerOutlet: IonRouterOutlet;
 
   public user$: Observable<firebase.User>;
@@ -35,7 +34,6 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
     private usersService: UsersService,
     private platform: Platform,
     private location: Location,
-    private notificationsService: NotificationsService,
     private localNotifications: LocalNotifications,
   ) {
     this.platform.ready().then(() => {
@@ -48,31 +46,38 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private checkUserVerification(user: firebase.User) {
-    if (!user.emailVerified) {
-      this.subs.sink = from(this.alertController.create(
-        {
-          header: 'Verification!',
-          message: 'Your account is not yet verified! Please check your email.',
-          buttons: [
-            {
-              text: 'Exit',
-              handler: () => {
-                // tslint:disable-next-line: deprecation
-                this.subs.sink = from(this.authService.signOut()).subscribe(() => {
-                  this.router.navigate(['auth']);
-                });
-              }
-            }
-          ],
-          backdropDismiss: false,
-          keyboardClose: false
-        }
-      // tslint:disable-next-line: deprecation
-      )).subscribe((alertEl) => {
-        alertEl.present();
-      });
-    }
+  ngOnInit() {
+    // get all new notifications
+    this.getNotifications();
+
+    // back event listener
+    this.platform.backButton.subscribeWithPriority(10, (processNextHandler) => {
+      if (this.location.isCurrentPathEqualTo('/pages')) {
+        // Show Exit Alert!
+        this.showExitConfirm();
+        processNextHandler();
+      } else {
+        this.loadingController.getTop().then(v => v ? this.loadingController.dismiss() : null);
+        // Navigate to back page
+        this.location.back();
+      }
+    });
+
+    // force exit on back
+    this.platform.backButton.subscribeWithPriority(-1, () => {
+      if (!this.routerOutlet.canGoBack()) {
+        App.exitApp();
+      }
+    });
+
+    this.user$ = from(this.authService.getCurrentUser());
+
+    // tslint:disable-next-line: deprecation
+    this.getNotificationListener().subscribe((notifications) => {
+      for (const notification of notifications) {
+        this.scheduleNotification(notification.title, notification.content, notification);
+      }
+    });
   }
 
   private getNotificationListener() {
@@ -80,33 +85,16 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getNotifications() {
-    from(this.authService.getCurrentUser()).pipe(
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       // get all notifications
       switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
-        // notifications response
-        mergeMap((notificationMap: any[]) => {
-          // merge collection
-          return from(notificationMap).pipe(
-            mergeMap((notificationSubCollection) => {
-              return this.notificationsService.getOne(notificationSubCollection.id).pipe(
-                // map to combine user notifications sub-collection to collection
-                map(notificationCollection => ({notificationSubCollection, notificationCollection})),
-                // filter by status
-                filter(notificationStatus => notificationStatus.notificationCollection.status === 'unread')
-              );
-            }),
-            reduce((a, i) => [...a, i], [])
-          );
-        }),
+        map((notifications) => {
+          return notifications.filter(notificationStatus => notificationStatus.status === 'unread');
+        })
       ))
     // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
-      const formatedNotification = [];
-      notifications.forEach(notification => {
-        formatedNotification.push({...notification.notificationCollection, ...notification.notificationSubCollection});
-      });
-
-      this.notificationListener.next(formatedNotification);
+      this.notificationListener.next(notifications);
     });
   }
 
@@ -148,55 +136,6 @@ export class PagesPage implements OnInit, AfterViewInit, OnDestroy {
     })).subscribe((alert) => {
       alert.present();
     });
-  }
-
-  ngOnInit() {
-    this.user$ = from(this.authService.getCurrentUser());
-
-    // tslint:disable-next-line: deprecation
-    from(this.user$).subscribe((user) => {
-      this.checkUserVerification(user);
-    });
-
-    // get all new notifications
-    this.getNotifications();
-
-    // back event listener
-    this.platform.backButton.subscribeWithPriority(10, (processNextHandler) => {
-      if (this.location.isCurrentPathEqualTo('/pages')) {
-        // Show Exit Alert!
-        this.showExitConfirm();
-        processNextHandler();
-      } else {
-        this.loadingController.getTop().then(v => v ? this.loadingController.dismiss() : null);
-        // Navigate to back page
-        this.location.back();
-      }
-    });
-
-    // force exit on back
-    this.platform.backButton.subscribeWithPriority(-1, () => {
-      if (!this.routerOutlet.canGoBack()) {
-        App.exitApp();
-      }
-    });
-
-    // tslint:disable-next-line: deprecation
-    this.getNotificationListener().subscribe((notifications) => {
-      for (const notification of notifications) {
-        this.scheduleNotification(notification.title, notification.content, notification);
-      }
-    });
-  }
-
-  ngAfterViewInit() {
-    if (!Capacitor.isPluginAvailable('Geolocation')) {
-      return;
-    }
-
-    if (!Capacitor.Plugins.Geolocation.requestPermissions) {
-      Capacitor.Plugins.Geolocation.requestPermissions();
-    }
   }
 
   onLogout() {

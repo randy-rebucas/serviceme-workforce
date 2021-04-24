@@ -12,6 +12,9 @@ import { FormComponent } from './form/form.component';
 import { PreviewComponent } from './preview/preview.component';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { Camera } from '@ionic-native/camera/ngx';
+import { Crop } from '@ionic-native/crop/ngx';
+import { Base64 } from '@ionic-native/base64/ngx';
 
 @NgModule({
   imports: [
@@ -34,7 +37,10 @@ import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
     PreviewComponent
   ],
   providers: [
-    PhotoViewer
+    PhotoViewer,
+    Camera,
+    Crop,
+    Base64
   ]
 })
 export class BookingsPageModule {}
