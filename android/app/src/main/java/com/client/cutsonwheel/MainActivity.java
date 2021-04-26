@@ -1,4 +1,4 @@
-package com.mob.cutsonwheel;
+package com.client.cutsonwheel;
 
 import android.os.Bundle;
 

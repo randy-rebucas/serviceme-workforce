@@ -30,7 +30,9 @@ export class AppComponent implements OnDestroy {
 
   initializeApp() {
     this.platform.ready().then(() => {
-      this.splashScreen.hide();
+      setTimeout(() => {
+        this.splashScreen.hide();
+      }, 150);
       // check network if available.
       // tslint:disable-next-line: deprecation
       this.subs.sink =  this.network.onDisconnect().subscribe(() => {
