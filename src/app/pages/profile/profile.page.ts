@@ -78,6 +78,14 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.user$ = this.getUserUpdateListener();
   }
 
+  initUser() {
+    return from(this.authService.getCurrentUser()).pipe(
+      switchMap((auhtUser) => {
+        return this.userService.getOne(auhtUser.uid);
+      })
+    );
+  }
+
   preFormed(userData: any) {
     const customData = {
       name: userData.name,
@@ -85,6 +93,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       birthdate: userData.birthdate,
       displayName: userData.displayName,
       photoURL: userData.photoURL,
+      phoneNumber: userData.phoneNumber,
       address: userData.address
     };
     this.userUpdateListener.next(customData);
@@ -170,10 +179,9 @@ export class ProfilePage implements OnInit, OnDestroy {
           // tslint:disable-next-line: deprecation
           ).subscribe(() => {
             // tslint:disable-next-line: deprecation
-            this.getUserUpdateListener().subscribe((user) => {
-              const appendedNumber = {...user, ...{phoneNumber: dataReturned.data.phone}};
-              this.userUpdateListener.next(appendedNumber);
+            this.initUser().subscribe((customData) => {
               this.presentAlert('Profile updated', 'Phone successfully updated!');
+              this.userUpdateListener.next(customData);
             });
           });
         }
@@ -269,19 +277,16 @@ export class ProfilePage implements OnInit, OnDestroy {
                   switchMap(() => {
                     return from(this.userService.update(user.uid, {photoURL: downloadableUrl})).pipe(
                       switchMap(() => {
-                        return this.userService.getOne(user.uid).pipe(
-                          map((customData) => {
-                            return this.userUpdateListener.next(customData);
-                          })
-                        );
+                        return this.initUser();
                       })
                     );
                   })
                 );
               })
             // tslint:disable-next-line: deprecation
-            ).subscribe(() => {
-              this.loadingController.dismiss();
+            ).subscribe((customData) => {
+              loadingEl.dismiss();
+              this.userUpdateListener.next(customData);
             });
           })
         // tslint:disable-next-line: deprecation
@@ -313,24 +318,32 @@ export class ProfilePage implements OnInit, OnDestroy {
           text: 'Save',
           handler: (data) => {
             this.subs.sink = from(this.authService.getCurrentUser()).pipe(
-              map((user) => {
-                return from(user.updateProfile({ displayName: data.userName })).pipe(
-                  switchMap(() => {
-                    return from(this.userService.update(user.uid, {displayName: data.userName})).pipe(
-                      map((customData) => {
-                        return this.userUpdateListener.next(customData);
-                      })
-                    );
-                  })
-                )
+              switchMap((user) => {
+                return from(user.updateProfile({ displayName: data.userName }));
               })
             // tslint:disable-next-line: deprecation
-            ).subscribe(() => {}, (error: any) => {
+            ).subscribe(() => {
+              from(this.authService.getCurrentUser()).pipe(
+                switchMap((currentUser) => {
+                  return from(this.userService.update(currentUser.uid, {displayName: data.userName})).pipe(
+                    switchMap(() => {
+                      return this.initUser();
+                    })
+                  );
+                })
+              // tslint:disable-next-line: deprecation
+              ).subscribe((customData) => {
+                this.userUpdateListener.next(customData);
+              }, (error: any) => {
+                this.presentAlert(error.code, error.message);
+              });
+            }, (error: any) => {
               this.presentAlert(error.code, error.message);
             });
           }
         }
-      ]
+      ],
+      backdropDismiss: false
     // tslint:disable-next-line: deprecation
     })).subscribe((promptEl) => {
       promptEl.present();

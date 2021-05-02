@@ -44,7 +44,7 @@
                     <ion-item lines="none" button (click)="onChangePhone()" detail>
                         <ion-icon name="call-outline" slot="start"></ion-icon>
                         <ion-label>
-                            {{(user.phoneNumber) ? user.phoneNumber : '--'}}
+                            {{user.phoneNumber ? user.phoneNumber : 'Update contact'}}
                         </ion-label>
                     </ion-item>
                 </ion-list>
@@ -52,31 +52,58 @@
         </ion-card>
         <ion-card>
             <ion-card-header>
-                <ion-card-title>{{ user.name.firstname }} {{ user.name.midlename }} {{ user.name.lastname }}</ion-card-title>
+                <ion-card-title>{{ user.name?.firstname }} {{ user.name?.midlename }} {{ user.name?.lastname }}</ion-card-title>
                 <!-- <ion-card-subtitle>Card Subtitle</ion-card-subtitle> -->
             </ion-card-header>
-            <ion-item lines="full">
-                <ion-label>
-                    <p>Gender</p>
-                </ion-label>
-                <ion-note slot="end">{{user.gender ? (user.gender | uppercase) : '--' }}</ion-note>
-            </ion-item>
-            <ion-item lines="full">
-                <ion-label>
-                    <p>Birthdate</p>
-                </ion-label>
-                <ion-note slot="end">{{user.birthdate ? (user.birthdate | date:'longDate') : '--'}}</ion-note>
-            </ion-item>
-            <ion-list-header color="secondary">
-                <ion-label>Address</ion-label>
-            </ion-list-header>
-            <ion-item lines="full">
-                <ion-label class="ion-text-wrap">
-                    <p>{{ user.address.address1 }} {{ user.address.address2 }}</p>
-                    <p>{{ user.address.city }} {{ user.address.state }}</p>
-                    <p>{{ user.address.postalCode }} {{ user.address.country }}</p>
-                </ion-label>
-            </ion-item>
+            <ion-card-content>
+
+                <ion-item lines="full">
+                    <ion-label>
+                        <p>Gender</p>
+                    </ion-label>
+                    <ion-note slot="end">{{user.gender ? (user.gender | uppercase) : '--' }}</ion-note>
+                </ion-item>
+                <ion-item lines="full">
+                    <ion-label>
+                        <p>Birthdate</p>
+                    </ion-label>
+                    <ion-note slot="end">{{user.birthdate ? (user.birthdate | date:'longDate') : '--'}}</ion-note>
+                </ion-item>
+                <ion-item lines="full">
+                    <ion-label>
+                        <p>Classification</p>
+                    </ion-label>
+                    <ion-note slot="end">{{user.classification}}</ion-note>
+                </ion-item>
+                <ion-list-header color="secondary">
+                    <ion-label>Address</ion-label>
+                </ion-list-header>
+                <ion-item lines="full">
+                    <ion-label class="ion-text-wrap">
+                        <p>{{ user.address?.address1 }} {{ user.address?.address2 }}</p>
+                        <p>{{ user.address?.city }} {{ user.address?.state }}</p>
+                        <p>{{ user.address?.postalCode }} {{ user.address?.country }}</p>
+                    </ion-label>
+                </ion-item>
+
+                <ion-list-header color="secondary">
+                    <ion-label>Availability</ion-label>
+                </ion-list-header>
+                <ion-item lines="none">
+                    <ion-label class="ion-text-wrap">
+                        <ng-container *ngIf="user.availability; else elseTemplate">
+                            <ion-chip *ngFor="let availability of user.availability">
+                                <ion-label>{{availability.title}}</ion-label>
+                            </ion-chip>
+                        </ng-container>
+                        <ng-template #elseTemplate>
+                            <p>Not available</p>
+                        </ng-template>
+
+
+                    </ion-label>
+                </ion-item>
+            </ion-card-content>
         </ion-card>
     </ng-container>
     <ng-template #elseLoadUser>

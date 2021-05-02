@@ -48,27 +48,63 @@ export class ChangePhoneNumberComponent implements OnInit, OnDestroy {
     });
   }
 
-  onVerify(verificationId: any, verificationCode: any) {
-    const phoneCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, verificationCode);
-    from(firebase.auth().currentUser.updatePhoneNumber(phoneCredential)).subscribe(() => {
-      this.loadingController.dismiss();
-      this.onDismiss(true, this.form.value.phoneNumber);
+  doUpdate() {
+    const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size: 'invisible'});
+    const provider = new firebase.auth.PhoneAuthProvider();
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = from(provider.verifyPhoneNumber(this.form.value.phoneNumber, appVerifier)).subscribe((verificationId) => {
+        this.loadingController.dismiss();
+        this.onUpdatePhone(verificationId);
     }, (error: any) => {
       this.loadingController.dismiss();
       this.presentAlert(error.code, error.message);
     });
   }
 
-  doUpdate() {
-    const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size: 'invisible'});
-    const provider = new firebase.auth.PhoneAuthProvider();
-    this.subs.sink = from(provider.verifyPhoneNumber(this.form.value.phoneNumber, appVerifier)).subscribe((verificationId) => {
-        const verificationCode = window.prompt('Please enter the verification ' +
-            'code that was sent to your mobile device.');
-        this.onVerify(verificationId, verificationCode);
-    }, (error: any) => {
-      this.loadingController.dismiss();
-      this.presentAlert(error.code, error.message);
+  onUpdatePhone(verificationId: any) {
+    // prompt for username
+    this.subs.sink = from(this.alertController.create({
+      cssClass: 'my-custom-class',
+      header: 'Verifications',
+      message: 'Please enter the verification ' +
+      'code that was sent to your mobile device.',
+      inputs: [
+        {
+          name: 'verificationCode',
+          type: 'text',
+          value: '',
+          placeholder: 'Enter Code'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            this.loadingController.dismiss();
+            this.onDismiss(false);
+          }
+        }, {
+          text: 'Submit',
+          handler: (data) => {
+            const verificationCode = data.verificationCode;
+            const phoneCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, verificationCode);
+            // tslint:disable-next-line: deprecation
+            from(firebase.auth().currentUser.updatePhoneNumber(phoneCredential)).subscribe(() => {
+              this.loadingController.dismiss();
+              this.onDismiss(true, this.form.value.phoneNumber);
+            }, (error: any) => {
+              this.loadingController.dismiss();
+              this.presentAlert(error.code, error.message);
+            });
+          }
+        }
+      ],
+      backdropDismiss: false
+    // tslint:disable-next-line: deprecation
+    })).subscribe((promptEl) => {
+      promptEl.present();
     });
   }
 
