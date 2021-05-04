@@ -31,7 +31,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public roomId: string;
   public form: FormGroup;
   public room$: Observable<any>;
-  public chatMessages$: Observable<any[]>;
+  public chatMessages$: Observable<Message[]>;
   public user: firebase.User;
   public uploadPercent: Observable<number>;
   private chatListener = new Subject<any[]>();
@@ -94,7 +94,6 @@ export class FormComponent implements OnInit, OnDestroy {
       }),
     // tslint:disable-next-line: deprecation
     ).subscribe((messages) => {
-      console.log(messages)
       const formatedMessage = [];
       messages.forEach(message => {
         formatedMessage.push({...message.chatSubCollection, ...message.userCollection});
@@ -116,9 +115,21 @@ export class FormComponent implements OnInit, OnDestroy {
       })
     );
 
-    from(this.chatMessages$).subscribe((r) => {
-      console.log(r)
-    })
+    // update all unread message from sender
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((currentUser) => {
+        return this.chatMessages$.pipe(
+          map(messages => messages.filter(messagesFilter => messagesFilter.from !== currentUser.uid)),
+          map(unreadMessage => unreadMessage.filter(filterUnread => filterUnread.unread))
+        );
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((unreadMessages) => {
+      unreadMessages.forEach(unreadMessage => {
+        return this.chatsService.updateSubCollection(this.roomId, unreadMessage.id, {unread: false});
+      });
+    });
+
     this.form = new FormGroup({
       message: new FormControl(null, {
         updateOn: 'blur',
@@ -145,6 +156,40 @@ export class FormComponent implements OnInit, OnDestroy {
     from(this.chatsService.deleteSubCollection(this.roomId, messageId)).subscribe(() => {});
   }
 
+  notificationData(userIds: any) {
+    userIds.forEach(userId => {
+      this.usersService.getOne(userId).pipe(
+        map(user => (user.displayName) ? user.displayName : user.name.firstname + ' ' + user.name.lastname),
+        switchMap((member) => {
+          const notificationData  = {
+            title: 'New Chat!',
+            content: 'New chat from ' + member,
+            status: 'unread',
+            timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+            type: 'chat'
+          };
+          const randId = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+          return this.usersService.setSubCollection(userId, 'notifications', randId, notificationData );
+        })
+      // tslint:disable-next-line: deprecation
+      ).subscribe();
+    });
+  }
+
+  // send notifications to all members
+  sendNotifications() {
+    from(this.authService.getCurrentUser()).pipe(
+      switchMap((currentUser) => {
+        return this.chatsService.getOne(this.roomId).pipe(
+          map(chatRooms => chatRooms.members.filter(filterChat => filterChat !== currentUser.uid))
+        );
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((members) => {
+      this.notificationData(members);
+    });
+  }
+
   onSent() {
     if (!this.form.valid) {
       return;
@@ -155,7 +200,8 @@ export class FormComponent implements OnInit, OnDestroy {
           createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
           from: user.uid,
           message: this.form.value.message,
-          type: 'text'
+          type: 'text',
+          unread: true
         };
         return from(this.chatsService.insertSubCollection(this.roomId, messageData)).pipe(
           switchMap(() => {
@@ -165,6 +211,7 @@ export class FormComponent implements OnInit, OnDestroy {
       })
     // tslint:disable-next-line: deprecation
     ).subscribe(() => {
+      this.sendNotifications();
       this.form.reset();
     });
   }
@@ -271,7 +318,8 @@ export class FormComponent implements OnInit, OnDestroy {
                     createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
                     from: user.uid,
                     message: downloadableUrl,
-                    type: 'image'
+                    type: 'image',
+                    unread: true
                   };
                   return this.chatsService.insertSubCollection(this.roomId, messageData);
                 })

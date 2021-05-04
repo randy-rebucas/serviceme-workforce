@@ -83,7 +83,11 @@ const routes: Routes = [
         loadChildren: () => import('./chats/chats.module').then( m => m.ChatsPageModule)
       }
     ]
+  },  {
+    path: 'lookup',
+    loadChildren: () => import('./lookup/lookup.module').then( m => m.LookupPageModule)
   },
+
 ];
 
 @NgModule({

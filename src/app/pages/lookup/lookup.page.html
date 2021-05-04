@@ -1,0 +1,76 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-searchbar (ionChange)="onChange($event)" #searchbar (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">Lookup</ion-title>
+        </ion-toolbar>
+    </ion-header>
+    <ng-container *ngIf="professionals$ | async; let professionals; else loadingUsers">
+        <ion-virtual-scroll [items]="professionals" approxItemHeight="320px" *ngIf="(professionals$ | async)?.length">
+            <ion-item-sliding *virtualItem="let item; let itemBounds = bounds;">
+                <ion-item lines="none" button (click)="onDeail(item)">
+                    <ion-thumbnail slot="start">
+                        <ng-container *ngIf="item.photoURL; else elseDummy">
+                            <img [src]="item.photoURL" />
+                        </ng-container>
+                        <ng-template #elseDummy>
+                            <ion-img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjYzVkYmZmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBkPSJNMjU2IDMwNGM2MS42IDAgMTEyLTUwLjQgMTEyLTExMlMzMTcuNiA4MCAyNTYgODBzLTExMiA1MC40LTExMiAxMTIgNTAuNCAxMTIgMTEyIDExMnptMCA0MGMtNzQuMiAwLTIyNCAzNy44LTIyNCAxMTJ2NTZoNDQ4di01NmMwLTc0LjItMTQ5LjgtMTEyLTIyNC0xMTJ6IiBmaWxsPSIjODJhZWZmIi8+PC9zdmc+"></ion-img>
+                        </ng-template>
+                    </ion-thumbnail>
+                    <ion-label>
+                        <h2>{{ (item.name.firstname + ' ' + item.name.lastname) | titlecase }} <small>- {{ item.classification }}</small></h2>
+                        <ion-chip outline>
+                            <ion-label>{{ item.id | counter:'single':'Service' | async}}</ion-label>
+                        </ion-chip>
+                        <ion-chip outline>
+                            <ion-label>{{ item.id | counter:'package':'Package' | async}}</ion-label>
+                        </ion-chip>
+                    </ion-label>
+                    <ion-note slot="end" [ngClass]="{'available': item.availability | weekDay}"></ion-note>
+                </ion-item>
+            </ion-item-sliding>
+        </ion-virtual-scroll>
+
+    </ng-container>
+    <ng-template #loadingUsers>
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7]">
+            <ion-thumbnail slot="start">
+                <ion-skeleton-text animated></ion-skeleton-text>
+            </ion-thumbnail>
+            <ion-label>
+                <h3>
+                    <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                </h3>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+                <ion-chip outline>
+                    <ion-label>
+                        <ion-skeleton-text animated></ion-skeleton-text>
+                    </ion-label>
+                </ion-chip>
+            </ion-label>
+        </ion-item>
+    </ng-template>
+
+    <ion-item lines="none" class="ion-text-center" *ngIf="!(professionals$ | async)?.length">
+        <ion-label class="ion-text-wrap">
+            <ng-container *ngIf="searchKey$ | async; else elseKey">
+                <h3>We cant find professional with key : <strong> {{ (searchKey$ | async).toUpperCase() }}</strong></h3>
+            </ng-container>
+            <ng-template #elseKey>
+                <h3>Start by typing name.</h3>
+            </ng-template>
+        </ion-label>
+    </ion-item>
+</ion-content>

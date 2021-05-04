@@ -48,7 +48,7 @@
         </ion-toolbar>
     </ion-header>
     <ng-container *ngIf="chatMessages$ | async; let chatMessages; else loadingMessgages">
-        <ion-grid>
+        <ion-grid *ngIf="(chatMessages$ | async)?.length">
             <ion-row *ngFor="let chatMessage of chatMessages">
                 <ion-col size="10" class="chatMessage" [offset]="chatMessage.from === user.uid ? 2 : 0" [ngClass]="{ 'my-message': chatMessage.from === user.uid, 'other-message': chatMessage.from !== user.uid }">
                     <b>{{ chatMessage.name.firstname }}</b><br>
@@ -67,10 +67,6 @@
                 </ion-col>
             </ion-row>
         </ion-grid>
-
-        <div class="ion-text-center ion-justify-content-center ion-align-items-center" *ngIf="chatMessages.length === 0">
-            <p>You may start the conversation.</p>
-        </div>
     </ng-container>
     <ng-template #loadingMessgages>
         <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8]">
@@ -88,7 +84,11 @@
         </ion-item>
     </ng-template>
 
-
+    <ion-item lines="none" color="secondary" class="ion-text-center" *ngIf="!(chatMessages$ | async)?.length">
+        <ion-label class="ion-text-wrap">
+            <p>You may start the conversation.</p>
+        </ion-label>
+    </ion-item>
 </ion-content>
 <ion-footer>
     <ion-toolbar color="light">

@@ -17,7 +17,7 @@
         <ion-label>Recent Receipts</ion-label>
     </ion-list-header>
     <ng-container *ngIf="transactions$ | async; let transactions; else loadingTransactions">
-        <ion-list>
+        <ion-list *ngIf="(transactions$ | async)?.length">
             <ion-item-sliding *ngFor="let transaction of transactions" #slidingItem>
                 <ion-item lines="full" button (click)="onDetail(transaction, slidingItem)" detail>
                     <ion-label>
@@ -28,10 +28,6 @@
                 </ion-item>
             </ion-item-sliding>
         </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="transactions.length === 0">
-            <ion-icon name="list-outline"></ion-icon>
-            <p>No receipts found</p>
-        </div>
     </ng-container>
     <ng-template #loadingTransactions>
         <ion-item lines="full" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]">
@@ -48,4 +44,10 @@
             </ion-note>
         </ion-item>
     </ng-template>
+
+    <ion-item lines="none" color="secondary" class="ion-text-center" *ngIf="!(transactions$ | async)?.length">
+        <ion-label class="ion-text-wrap">
+            <p>No receipts found</p>
+        </ion-label>
+    </ion-item>
 </ion-content>

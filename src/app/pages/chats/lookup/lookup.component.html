@@ -1,6 +1,6 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
         <ion-buttons slot="primary">
             <ion-button color="danger" (click)="onDismiss(false)">
                 <ion-icon name="close"></ion-icon>
@@ -16,7 +16,7 @@
         </ion-toolbar>
     </ion-header>
     <!-- Default Searchbar -->
-    <ion-searchbar (ionChange)="onChange($event)" (ionClear)="onClear()" placeholder="Search Name"></ion-searchbar>
+
     <ng-container *ngIf="userItems$ | async; let userItems;">
         <ion-chip outline *ngFor="let userItem of userItems" color="tertiary">
             <ion-label>{{userItem.name.firstname}}</ion-label>

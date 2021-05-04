@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { from, Observable, Subject } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { from, Observable, of, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Chats } from './chats';
 import { ChatsService } from './chats.service';
@@ -9,13 +9,17 @@ import { AlertController, IonItemSliding, LoadingController, ModalController } f
 import { FormComponent } from './form/form.component';
 import { SubSink } from 'subsink';
 import { LookupComponent } from './lookup/lookup.component';
+import { UsersService } from '../users/users.service';
 @Component({
   selector: 'app-chats',
   templateUrl: './chats.page.html',
   styleUrls: ['./chats.page.scss'],
 })
 export class ChatsPage implements OnInit, OnDestroy {
-  public chatRooms$: Observable<Chats[]>;
+  public chatRooms$: Observable<any[]>;
+  public unreadMessage$: Observable<number>;
+  public unreadMessages$ = new Subject<number>();
+  private messages: any[];
   public user: firebase.User;
   private chatListener = new Subject<any[]>();
   private subs = new SubSink();
@@ -24,8 +28,11 @@ export class ChatsPage implements OnInit, OnDestroy {
     private loadingController: LoadingController,
     private modalController: ModalController,
     private authService: AuthService,
-    private chatsService: ChatsService
-  ) { }
+    private chatsService: ChatsService,
+    private usersService: UsersService
+  ) {
+    this.messages = [];
+  }
 
   getchatListener() {
     return this.chatListener.asObservable();
@@ -33,14 +40,25 @@ export class ChatsPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.chatRooms$ = from(this.authService.getCurrentUser()).pipe(
-      map((currentUser) => {
-        this.user = currentUser;
-        return currentUser;
-      }),
       switchMap((currentUser) => {
-        return this.chatsService.getAll(currentUser.uid);
+        return this.chatsService.getAll(currentUser.uid).pipe(
+          map((messages) => {
+            return this.setOwnerShip(messages, currentUser.uid);
+          })
+        );
       })
     );
+  }
+
+  setOwnerShip(data: any[], userId: string) {
+    const newMessages = [];
+    data.forEach(message => {
+      const ownerShip = {
+        isOwner : message.createdBy === userId
+      };
+      newMessages.push({...message, ...ownerShip});
+    });
+    return newMessages;
   }
 
   onRename(roomId: string, ionItemSliding: IonItemSliding) {

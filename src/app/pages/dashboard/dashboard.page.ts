@@ -239,6 +239,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
+  onFocus() {
+    this.router.navigate(['pages/lookup']);
+  }
+
   ngAfterViewInit() {
     // refresh list
     this.onReload();

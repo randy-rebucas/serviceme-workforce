@@ -24,8 +24,8 @@ import { PreviewComponent } from './preview/preview.component';
 export class BookingsPage implements OnInit, OnDestroy {
   public defaultCurrency: string;
   public bookings$: Observable<any[]>;
+  public bookingStatus$: BehaviorSubject<string|null>;
   private bookingListener = new Subject<any[]>();
-  private bookingStatus$: BehaviorSubject<string|null>;
   public bookingStatus: string;
   private subs = new SubSink();
   constructor(

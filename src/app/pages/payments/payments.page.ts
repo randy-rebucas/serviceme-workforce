@@ -118,12 +118,12 @@ export class PaymentsPage implements OnInit, AfterViewInit, OnDestroy {
                 description: this.shortDescription,
                 entries: [
                   {
-                    account: 'Cash',
+                    account: 'Expense',
                     debit: Number(amount),
                     credit: 0
                   },
                   {
-                    account: 'Accounts receivable',
+                    account: 'Cash',
                     debit: 0,
                     credit: Number(amount)
                   }

@@ -13,19 +13,42 @@
             <ion-title size="large">Offers</ion-title>
         </ion-toolbar>
     </ion-header>
+    <!-- Scrollable Segment -->
+    <ion-segment scrollable value="" (ionChange)="statusChanged($event)">
+        <ion-segment-button value="">
+            <ion-label>All</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="declined">
+            <ion-label>Declined</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="canceled">
+            <ion-label>Canceled</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="accepted">
+            <ion-label>Accepted</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="completed">
+            <ion-label>Completed</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="pending">
+            <ion-label>Pending</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+
+    <ion-list-header>
+        <ion-label>
+            <ng-container *ngIf="bookingStatus$ | async; else elseTemplate">
+                {{bookingStatus$ | async}} Bookings
+            </ng-container>
+            <ng-template #elseTemplate>
+                All Bookings
+            </ng-template>
+        </ion-label>
+    </ion-list-header>
+
     <ng-container *ngIf="bookings$ | async; let bookings; else loadingBookings">
+
         <ion-list>
-            <ion-item (ionChange)="statusChanged($event)">
-                <ion-label>Filter status</ion-label>
-                <ion-select placeholder="Select One">
-                    <ion-select-option value="">All</ion-select-option>
-                    <ion-select-option value="declined">Declined</ion-select-option>
-                    <ion-select-option value="canceled">Canceled</ion-select-option>
-                    <ion-select-option value="accepted">Accepted</ion-select-option>
-                    <ion-select-option value="completed">Completed</ion-select-option>
-                    <ion-select-option value="pending">Pending</ion-select-option>
-                </ion-select>
-            </ion-item>
             <ion-item-sliding *ngFor="let booking of bookings" #slidingItem>
                 <ion-item lines="none" button>
                     <ion-avatar slot="start">
@@ -63,13 +86,10 @@
                 </ion-item-options>
             </ion-item-sliding>
         </ion-list>
-        <div id="container" class="ion-text-center" *ngIf="(bookings$ | async)?.length === 0">
-            <ion-icon name="list-outline"></ion-icon>
-            <p>No bookings found</p>
-        </div>
+
     </ng-container>
     <ng-template #loadingBookings>
-        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8]">
+        <ion-item lines="none" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10,11,12,13]">
             <ion-avatar slot="start">
                 <ion-skeleton-text animated></ion-skeleton-text>
             </ion-avatar>
@@ -83,4 +103,10 @@
             </ion-label>
         </ion-item>
     </ng-template>
+
+    <ion-item lines="none" class="ion-text-center" *ngIf="!(bookings$ | async)?.length">
+        <ion-label class="ion-text-wrap">
+            <p>No bookings found</p>
+        </ion-label>
+    </ion-item>
 </ion-content>

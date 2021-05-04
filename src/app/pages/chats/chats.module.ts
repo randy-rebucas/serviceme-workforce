@@ -12,6 +12,7 @@ import { Camera } from '@ionic-native/camera/ngx';
 import { Crop } from '@ionic-native/crop/ngx';
 import { Base64 } from '@ionic-native/base64/ngx';
 import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -19,7 +20,8 @@ import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    ChatsPageRoutingModule
+    ChatsPageRoutingModule,
+    SharedModule
   ],
   declarations: [ChatsPage, FormComponent, LookupComponent],
   providers: [

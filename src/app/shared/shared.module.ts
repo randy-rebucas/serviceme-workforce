@@ -12,6 +12,7 @@ import { WeekDayPipe } from './pipes/week-day.pipe';
 import { MaskPipe } from './pipes/mask.pipe';
 import { AvatarComponent } from './components/avatar/avatar.component';
 import { IntlPhoneValidationDirective } from './directives/intl-phone-validation.directive';
+import { ChatCounterPipe } from './pipes/chat-counter.pipe';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { IntlPhoneValidationDirective } from './directives/intl-phone-validation
     BookingCounterPipe,
     WeekDayPipe,
     MaskPipe,
+    ChatCounterPipe,
     IntlPhoneValidationDirective
   ],
   imports: [
@@ -36,7 +38,9 @@ import { IntlPhoneValidationDirective } from './directives/intl-phone-validation
     CounterPipe,
     BookingCounterPipe,
     WeekDayPipe,
-    MaskPipe
+    MaskPipe,
+    ChatCounterPipe,
+    IntlPhoneValidationDirective
   ],
   providers: [
     AndroidPermissions,

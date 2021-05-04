@@ -3,6 +3,7 @@ export interface Message {
     from: string;
     message: string;
     type?: string;
+    unread?: boolean;
     id?: string;
 }
 

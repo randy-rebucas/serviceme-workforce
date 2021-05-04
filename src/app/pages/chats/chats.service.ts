@@ -92,6 +92,10 @@ export class ChatsService {
     return this.angularFirestore.collection<useClass>('chats/' + documentId + '/messages').add(data);
   }
 
+  updateSubCollection(documentId: string, childId: string, data: any): Promise<void> {
+    return this.angularFirestore.collection<useClass>('chats/' + documentId + '/messages').doc(childId).update(data);
+  }
+
   getSubCollection(documentId: string) {
     return this.fetchData(this.angularFirestore.collection<useClass>('chats/' + documentId + '/messages', ref => ref.orderBy('createdAt', 'asc')));
   }
