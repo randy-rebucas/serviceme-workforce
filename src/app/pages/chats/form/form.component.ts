@@ -31,7 +31,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public roomId: string;
   public form: FormGroup;
   public room$: Observable<any>;
-  public chatMessages$: Observable<Message[]>;
+  public chatMessages$: Observable<any[]>;
   public user: firebase.User;
   public uploadPercent: Observable<number>;
   private chatListener = new Subject<any[]>();

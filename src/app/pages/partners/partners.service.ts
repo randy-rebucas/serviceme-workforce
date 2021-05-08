@@ -7,19 +7,19 @@ import {
   DocumentReference,
   QuerySnapshot
 } from '@angular/fire/firestore';
+import { Partners as useClass } from './partners';
+import firebase from 'firebase/app';
 
-import { Settings as useClass } from './settings';
-
-const collection = 'settings';
+const collection = 'merchants';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SettingsService {
+export class PartnersService {
 
   constructor(
     private angularFirestore: AngularFirestore
-  ) { }
+  ) {}
 
   private defaultCollection(): AngularFirestoreCollection<useClass> {
     return this.angularFirestore.collection<useClass>(collection);
@@ -49,21 +49,21 @@ export class SettingsService {
     return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),
       map(data => {
-        // data.id = id;
+        data.id = id;
         return data;
       })
     );
   }
 
-  insert(userId: string, data: any) {
-    return this.defaultCollection().doc(userId).set(data);
+  insert(data: any) {
+    return this.defaultCollection().add(data);
   }
 
-  update(colRef: string, id: string, data: any): Promise<void> {
+  update(id: string, data: any): Promise<void> {
     return this.defaultCollection().doc(id).update(data);
   }
 
-  delete(colRef: string, id: string): Promise<void> {
+  delete(id: string): Promise<void> {
     return this.defaultCollection().doc(id).delete();
   }
 }

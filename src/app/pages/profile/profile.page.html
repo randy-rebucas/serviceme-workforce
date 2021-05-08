@@ -69,16 +69,10 @@
                     </ion-label>
                     <ion-note slot="end">{{user.birthdate ? (user.birthdate | date:'longDate') : '--'}}</ion-note>
                 </ion-item>
-                <ion-item lines="full">
-                    <ion-label>
-                        <p>Classification</p>
-                    </ion-label>
-                    <ion-note slot="end">{{user.classification}}</ion-note>
-                </ion-item>
                 <ion-list-header color="secondary">
                     <ion-label>Address</ion-label>
                 </ion-list-header>
-                <ion-item lines="full">
+                <ion-item lines="none">
                     <ion-label class="ion-text-wrap">
                         <p>{{ user.address?.address1 }} {{ user.address?.address2 }}</p>
                         <p>{{ user.address?.city }} {{ user.address?.state }}</p>
@@ -86,23 +80,6 @@
                     </ion-label>
                 </ion-item>
 
-                <ion-list-header color="secondary">
-                    <ion-label>Availability</ion-label>
-                </ion-list-header>
-                <ion-item lines="none">
-                    <ion-label class="ion-text-wrap">
-                        <ng-container *ngIf="user.availability; else elseTemplate">
-                            <ion-chip *ngFor="let availability of user.availability">
-                                <ion-label>{{availability.title}}</ion-label>
-                            </ion-chip>
-                        </ng-container>
-                        <ng-template #elseTemplate>
-                            <p>Not available</p>
-                        </ng-template>
-
-
-                    </ion-label>
-                </ion-item>
             </ion-card-content>
         </ion-card>
     </ng-container>

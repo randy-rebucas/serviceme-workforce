@@ -14,12 +14,15 @@ dependencies {
     implementation "com.soundcloud.android:android-crop:1.0.0@aar"
     implementation "com.google.firebase:firebase-analytics:18.0.+"
     implementation "com.android.support:support-v4:26.+"
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    implementation "com.android.support:support-v4:27.+"
 }
 apply from: "../../node_modules/card.io.cordova.mobilesdk/src/android/build.gradle"
 apply from: "../../node_modules/com-sarriaroman-photoviewer/src/android/photoviewer.gradle"
 apply from: "../../node_modules/com.paypal.cordova.mobilesdk/src/android/build.gradle"
 apply from: "../../node_modules/cordova-plugin-badge/src/android/badge.gradle"
 apply from: "../../node_modules/cordova-plugin-local-notification/src/android/build/localnotification.gradle"
+apply from: "../../node_modules/phonegap-plugin-barcodescanner/src/android/barcodescanner.gradle"
 
 if (hasProperty('postBuildExtras')) {
   postBuildExtras()

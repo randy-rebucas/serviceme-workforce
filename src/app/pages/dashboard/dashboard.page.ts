@@ -23,6 +23,7 @@ import { ClassificationsService } from 'src/app/shared/services/classifications.
 import { DetailComponent } from '../bookings/detail/detail.component';
 import { Plugins, Capacitor } from '@capacitor/core';
 import { HttpClient } from '@angular/common/http';
+import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 const { App } = Plugins;
 @Component({
   selector: 'app-dashboard',
@@ -44,7 +45,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   private currentLocation$: BehaviorSubject<string|null>;
   private currentPoint$: BehaviorSubject<string>;
   private notificationListener = new Subject<any>();
-
+  private userId: string;
   private classification$: BehaviorSubject<string|null>;
   private searchKey$: BehaviorSubject<string|null>;
   private subs = new SubSink();
@@ -62,6 +63,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private settingsService: SettingsService,
     private classificationsService: ClassificationsService,
     private bookingsService: BookingsService,
+    private barcodeScanner: BarcodeScanner,
     private http: HttpClient
   ) {
     this.searchKey$ = new BehaviorSubject(null);
@@ -104,6 +106,123 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     from(this.bookingsService.getCurrentPosition()).subscribe((currenctLocation) => {
       this.currentLocation$.next(currenctLocation);
     });
+  }
+
+  onScan() {
+    // tslint:disable-next-line: deprecation
+    const scanSub = from(this.barcodeScanner.scan()).subscribe((barcodeData) => {
+      this.onCheckUid(barcodeData.text);
+      scanSub.unsubscribe(); // stop scanning
+    });
+  }
+
+  onCheckUid(barcodeData: string) {
+    const uid = barcodeData.split('?')[0].split(':')[1];
+    this.subs.sink = from(this.authService.getCurrentUser()).pipe(
+      map((user) => {
+        this.userId = user.uid;
+        return (user.uid === uid) ? true : false;
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe((uidResponse) => {
+      // true
+      if (uidResponse) {
+        this.alertController.create({
+          header: 'Alert',
+          message: 'You can\'t use your own qr code.',
+          buttons: ['OK']
+        }).then((elertEl) => {
+          elertEl.present();
+        });
+      } else {
+        this.onCheckReference(barcodeData);
+      }
+    });
+  }
+
+  onCheckReference(barcodeData: string) {
+    const infoData = barcodeData.split('?')[1];
+    const referenceNumber = infoData.split('&')[0].split('=')[1];
+    // tslint:disable-next-line: deprecation
+    this.subs.sink = this.transactionsService.checkExist(referenceNumber, this.userId).subscribe((refResponse) => {
+      if (refResponse.length === 0) {
+        this.onReceive(barcodeData);
+      }
+    });
+  }
+
+  onReceive(barcodeData: string) {
+    const infoData = barcodeData.split('?')[1];
+    const uid = barcodeData.split('?')[0].split(':')[1];
+    const referenceNumber = infoData.split('&')[0].split('=')[1];
+    const amount = Number(infoData.split('&')[1].split('=')[1]);
+    const message = infoData.split('&')[2].split('=')[1];
+
+    if ( Number(amount) > 0) {
+      const transactionData = {
+        userId: this.userId,
+        refference: referenceNumber,
+        transactionDate: firebase.firestore.Timestamp.fromDate(new Date()),
+        description: message,
+        entries: [
+          {
+            account: 'Expense',
+            debit: Number(amount),
+            credit: 0
+          },
+          {
+            account: 'Cash',
+            debit: 0,
+            credit: Number(amount)
+          }
+        ],
+      };
+  
+      this.subs.sink = from(this.transactionsService.insert(transactionData)).pipe(
+        switchMap((transaction) => {
+          return this.usersService.setSubCollection(this.userId, 'receipts', transaction.id, {amount: Number(amount)});
+        })
+      // tslint:disable-next-line: deprecation
+      ).subscribe(() => {
+        this.onPay(uid, referenceNumber, amount, message);
+      });
+    } else {
+      this.alertController.create({
+        header: 'Alert',
+        message: 'No amount added on this QR Code.',
+        buttons: ['OK']
+      }).then((elertEl) => {
+        elertEl.present();
+      });
+    }
+  }
+
+  onPay(uid: string, referenceNumber: string, amount: number, message: string) {
+    const transactionData = {
+      userId: uid,
+      refference: referenceNumber,
+      transactionDate: firebase.firestore.Timestamp.fromDate(new Date()),
+      description: message,
+      entries: [
+        {
+          account: 'Cash',
+          debit: Number(amount),
+          credit: 0
+        },
+        {
+          account: 'Expense',
+          debit: 0,
+          credit: Number(amount)
+        }
+      ],
+    };
+
+    this.subs.sink = from(this.transactionsService.insert(transactionData)).pipe(
+      switchMap((transaction) => {
+        return this.usersService.setSubCollection(uid, 'receipts', transaction.id, {amount: -Number(amount)});
+      })
+    // tslint:disable-next-line: deprecation
+    ).subscribe();
   }
 
   private getNotifications() {

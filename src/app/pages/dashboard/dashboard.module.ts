@@ -10,6 +10,7 @@ import { DashboardPage } from './dashboard.page';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { Camera } from '@ionic-native/camera/ngx';
 import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { BarcodeScanner } from '@ionic-native/barcode-scanner/ngx';
 
 @NgModule({
   imports: [
@@ -25,7 +26,8 @@ import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
   providers: [
     Camera,
     TitleCasePipe,
-    PhotoViewer
+    PhotoViewer,
+    BarcodeScanner
   ]
 })
 export class DashboardPageModule {}

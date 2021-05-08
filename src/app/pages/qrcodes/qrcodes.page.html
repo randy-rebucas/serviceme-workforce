@@ -1,0 +1,110 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/pages"></ion-back-button>
+        </ion-buttons>
+        <ion-title>My QR Codes</ion-title>
+    </ion-toolbar>
+    <ion-toolbar class="segment">
+        <!-- Default Segment -->
+        <ion-segment value="receive" (ionChange)="segmentChanged($event)">
+            <ion-segment-button value="receive">
+                <ion-label>Receive Money</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="pay">
+                <ion-label>Pay</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">My QR Codes</ion-title>
+        </ion-toolbar>
+    </ion-header>
+
+    <ng-container *ngIf="!(segment$ | async) || (segment$ | async) === 'receive'; else elseTemplate">
+        <ion-card>
+            <ion-card-header class="ion-text-center">
+                <ion-card-title>
+                    {{(currentUser$ | async)?.name.firstname}} {{(currentUser$ | async)?.name.lastname}}
+
+                </ion-card-title>
+                <ion-card-subtitle>{{(currentUser$ | async)?.phoneNumber}}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+                <ngx-qrcode [elementType]="elementType" [value]="(receiveScan$ | async)?.value" cssClass="qrClass" [width]="300" [errorCorrectionLevel]="correctionLevel">
+                </ngx-qrcode>
+            </ion-card-content>
+            <ion-item *ngIf="(detailListener$ | async)?.amount" lines="full">
+                <ion-label>
+                    Amount
+                </ion-label>
+                <ion-note slot="end">
+                    {{(detailListener$ | async)?.amount | currency:defaultCurrency:'symbol-narrow'}}
+                </ion-note>
+            </ion-item>
+            <ion-item *ngIf="(detailListener$ | async)?.message" lines="none">
+                <ion-label>
+                    {{(detailListener$ | async)?.message}}
+                </ion-label>
+            </ion-item>
+        </ion-card>
+
+        <ion-grid>
+            <ion-row>
+                <ion-col>
+                    <ion-item lines="none">
+                        <ion-label class="ion-text-left ion-text-wrap">
+                            <h2>Receive Money via QR Code </h2>
+                            <p>Generate QR Code to request money.</p>
+                        </ion-label>
+                        <ion-buttons slot="end">
+                            <ion-button (click)="onUpdate()">
+                                <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+                            </ion-button>
+                        </ion-buttons>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col>
+                    <ion-button expand="block" (click)="onDownload()">Download</ion-button>
+                </ion-col>
+                <ion-col>
+                    <ion-button expand="block" (click)="onShare()">Share</ion-button>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </ng-container>
+    <ng-template #elseTemplate>
+        <ion-card>
+            <ion-card-header class="ion-text-center">
+                <ion-card-title>Use this Code</ion-card-title>
+                <ion-card-subtitle>This code is randomly generated.</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+
+                <ngx-qrcode [elementType]="elementType" [value]="(randomCode$ | async)?.value" cssClass="qrClass" [width]="300" [errorCorrectionLevel]="correctionLevel">
+                </ngx-qrcode>
+
+            </ion-card-content>
+        </ion-card>
+        <ion-item lines="none">
+            <ion-label class="ion-text-center ion-text-wrap">
+                <h2>Pay using QR Code </h2>
+                <p>Show to any of your clients, co-professionals or the cashier of any participating merchant for services payment or cashin.</p>
+            </ion-label>
+        </ion-item>
+        <ion-row>
+            <ion-col>
+                <ion-button expand="block" (click)="onGenerate()">Generate code</ion-button>
+            </ion-col>
+            <ion-col>
+                <ion-button expand="block" (click)="onScan()">Scan Qr Code</ion-button>
+            </ion-col>
+        </ion-row>
+    </ng-template>
+</ion-content>

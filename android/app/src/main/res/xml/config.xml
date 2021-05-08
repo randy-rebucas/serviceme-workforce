@@ -22,6 +22,10 @@
     <param name="android-package" value="com.paypal.cordova.sdk.PayPalMobileCordovaPlugin"/>
   </feature>
 
+  <feature name="Base64ToGallery">
+    <param name="android-package" value="it.nexxa.base64ToGallery.Base64ToGallery"/>
+  </feature>
+
   <feature name="Clipboard">
     <param name="android-package" value="com.verso.cordova.clipboard.Clipboard"/>
   </feature>
@@ -66,6 +70,14 @@
 
   <feature name="NetworkStatus">
     <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager"/>
+  </feature>
+
+  <feature name="SocialSharing">
+    <param name="android-package" value="nl.xservices.plugins.SocialSharing"/>
+  </feature>
+
+  <feature name="BarcodeScanner">
+    <param name="android-package" value="com.phonegap.plugins.barcodescanner.BarcodeScanner"/>
   </feature>
 
   

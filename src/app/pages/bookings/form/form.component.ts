@@ -31,6 +31,7 @@ export class FormComponent implements OnInit, OnDestroy {
   public form: FormGroup;
   public title: string;
   public state: boolean;
+  public submited: boolean;
   public currentLocation: any;
   public option: string;
   private proId: string;
@@ -66,6 +67,7 @@ export class FormComponent implements OnInit, OnDestroy {
     this.proId = this.navParams.data.prof;
     this.currentDate = new Date();
     this.currentLocation = null;
+    this.submited = false;
     this.coord = null;
     this.maxDate = new Date(new Date().setDate(new Date().getDate() + 7));
 
@@ -216,6 +218,7 @@ export class FormComponent implements OnInit, OnDestroy {
    * Set to my booking collections
    */
   onSubmit(event: string, form: FormGroupDirective) {
+    this.submited = true;
     this.subs.sink = from(this.authService.getCurrentUser())
     // tslint:disable-next-line: deprecation
     .subscribe((user) => {

@@ -6,20 +6,3 @@ ion-header {
         color: var(--ion-color-primary-contrast);
     }
 }
-
-ion-content {
-    ion-list-header {
-        color: var(--ion-color-primary);
-        font-size: 18px;
-        letter-spacing: 0;
-        line-height: 22px;
-        text-transform: uppercase;
-    }
-    ion-list {
-        ion-item {
-            ion-note {
-                font-size: 14px;
-            }
-        }
-    }
-}

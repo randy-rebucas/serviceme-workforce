@@ -64,6 +64,17 @@ export class TransactionsService {
     return this.defaultCollection().get();
   }
 
+  checkExist(reference: string, userId: string) {
+    // tslint:disable-next-line: max-line-length
+    return this.angularFirestore.collection<useClass>(collection, ref => ref.where('refference', '==', reference).where('userId', '==', userId)).snapshotChanges().pipe(
+      map(actions => {
+        return actions.map(a => {
+          return a.payload.doc.exists;
+        });
+      })
+    );
+  }
+
   getOne(id: string): Observable<useClass> {
     return this.defaultCollection().doc<useClass>(id).valueChanges().pipe(
       take(1),

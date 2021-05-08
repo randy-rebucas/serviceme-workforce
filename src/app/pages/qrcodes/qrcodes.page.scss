@@ -4,22 +4,19 @@ ion-header {
         background: radial-gradient(circle, var(--ion-color-secondary) 0%, var(--ion-color-primary) 100%);
         padding: 0 10px;
         color: var(--ion-color-primary-contrast);
+        &.segment {
+            --background: var(--ion-color-secondary);
+        }
     }
 }
 
 ion-content {
-    ion-list-header {
-        color: var(--ion-color-primary);
-        font-size: 18px;
-        letter-spacing: 0;
-        line-height: 22px;
-        text-transform: uppercase;
-    }
-    ion-list {
-        ion-item {
-            ion-note {
-                font-size: 14px;
-            }
+    background: transparent !important;
+    ion-card {
+        ion-card-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     }
 }

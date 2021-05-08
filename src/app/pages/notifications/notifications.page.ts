@@ -31,44 +31,20 @@ export class NotificationsPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.notifications$ = this.getNotificationListener();
 
-    // update all unread notification status
-    // tslint:disable-next-line: deprecation
-    from(this.notificationListener).subscribe((notifications) => {
-      for (const notification of notifications) {
-        if (notification.notificationCollection.status === 'unread') {
-          this.notificationsService.update(notification.notificationSubCollection.id, { status: 'read'});
-        }
-      }
-    });
-
+    // from(this.authService.getCurrentUser()).pipe(
+    //   switchMap((currentUser) => {
+    //     return this.usersService.updateSubCollection(currentUser.uid, 'notifications', notification.id, { status: 'unread'});
+    //   })
+    // )
   }
 
   getNotifications() {
     this.subs.sink = from(this.authService.getCurrentUser()).pipe(
       // get all notifications
-      switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications').pipe(
-        // notifications response
-        mergeMap((notificationMap: any[]) => {
-          // merge collection
-          return from(notificationMap).pipe(
-            mergeMap((notificationSubCollection) => {
-              return this.notificationsService.getOne(notificationSubCollection.id).pipe(
-                // map to combine user notifications sub-collection to collection
-                map(notificationCollection => ({notificationSubCollection, notificationCollection})),
-              );
-            }),
-            reduce((a, i) => [...a, i], [])
-          );
-        }),
-      ))
+      switchMap((user) => this.usersService.getSubCollection(user.uid, 'notifications'))
     // tslint:disable-next-line: deprecation
     ).subscribe((notifications) => {
-      const formatedNotification = [];
-      notifications.forEach(notification => {
-        formatedNotification.push({...notification.notificationCollection, ...notification.notificationSubCollection});
-      });
-
-      this.notificationListener.next(formatedNotification);
+      this.notificationListener.next(notifications);
     });
   }
 

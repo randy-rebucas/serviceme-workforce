@@ -81,9 +81,26 @@ const routes: Routes = [
       {
         path: 'chats',
         loadChildren: () => import('./chats/chats.module').then( m => m.ChatsPageModule)
+      },
+      {
+        path: 'qrcodes',
+        loadChildren: () => import('./qrcodes/qrcodes.module').then( m => m.QrcodesPageModule)
+      },
+      {
+        path: 'partners',
+        loadChildren: () => import('./partners/partners.module').then( m => m.PartnersPageModule)
+      },
+      {
+        path: 'refer',
+        loadChildren: () => import('./refer/refer.module').then( m => m.ReferPageModule)
+      },
+      {
+        path: 'help',
+        loadChildren: () => import('./help/help.module').then( m => m.HelpPageModule)
       }
     ]
-  },  {
+  },
+  {
     path: 'lookup',
     loadChildren: () => import('./lookup/lookup.module').then( m => m.LookupPageModule)
   },

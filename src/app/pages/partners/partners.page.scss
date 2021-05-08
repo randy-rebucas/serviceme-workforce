@@ -15,11 +15,12 @@ ion-content {
         line-height: 22px;
         text-transform: uppercase;
     }
-    ion-list {
-        ion-item {
-            ion-note {
-                font-size: 14px;
-            }
+}
+
+ion-footer {
+    ion-toolbar {
+        ion-button {
+            margin: 0px 12px;
         }
     }
 }

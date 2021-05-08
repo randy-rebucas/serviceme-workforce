@@ -1,0 +1,46 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>{{title | titlecase}}</ion-title>
+        <ion-buttons slot="primary">
+            <ion-button color="danger" (click)="onDismiss(false)">
+                <ion-icon name="close"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+        <ion-toolbar>
+            <ion-title size="large">{{title | titlecase}}</ion-title>
+        </ion-toolbar>
+    </ion-header>
+
+    <ion-card>
+        <ion-card-header>
+            <ion-card-title>Current Balance: {{currentBalance | currency:defaultCurrency:'symbol-narrow'}}</ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+            <ion-list>
+                <ion-item lines="full">
+                    <ion-label position="fixed">Amount</ion-label>
+                    <ion-input class="ion-text-right" [value]="scannedData.amount | currency:defaultCurrency:'symbol-narrow'" readonly></ion-input>
+                </ion-item>
+                <ion-item lines="full">
+                    <ion-label position="fixed">Reference #</ion-label>
+                    <ion-input class="ion-text-right" [value]="scannedData.referenceNumber" readonly></ion-input>
+                </ion-item>
+                <ion-item lines="none">
+                    <ion-label position="floating">Message</ion-label>
+                    <ion-textarea [value]="scannedData.message" readonly></ion-textarea>
+                </ion-item>
+            </ion-list>
+        </ion-card-content>
+    </ion-card>
+</ion-content>
+<ion-footer>
+    <ion-toolbar>
+        <ion-button expand="block" type="button" (click)="onPay()" [disabled]="!enoughBalance">Pay now</ion-button>
+    </ion-toolbar>
+</ion-footer>
