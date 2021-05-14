@@ -23,6 +23,7 @@
         "@angular/router": "^11.2.13",
         "@capacitor/android": "^2.4.7",
         "@capacitor/core": "2.4.6",
+        "@capacitor/ios": "^2.4.6",
         "@firebase/firestore": "^2.3.0",
         "@ionic-native/android-permissions": "^5.32.1",
         "@ionic-native/app-version": "^5.32.1",
