@@ -71,6 +71,7 @@
         "firebase-functions": "^3.13.2",
         "google-libphonenumber": "^3.2.20",
         "intl-tel-input": "^17.0.12",
+        "nodemailer": "^6.6.1",
         "phonegap-plugin-barcodescanner": "^8.1.0",
         "rxjs": "^6.6.7",
         "subsink": "^1.0.2",
