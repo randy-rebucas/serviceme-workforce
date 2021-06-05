@@ -3,10 +3,12 @@ const express = require("express");
 
 // eslint-disable-next-line new-cap
 const router = express.Router();
+/**
+ * load controller
+ */
+const ctrlr = require("../controllers/index");
 
 /* GET home page. */
-router.get("/", async (req, res, next) => {
-  res.send("Hello from service-me on Firebase!");
-});
+router.get("/", ctrlr.get);
 
 module.exports = router;

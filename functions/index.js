@@ -3,12 +3,13 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const helmet = require("helmet");
 
-const express = require("express");
-const cors = require("cors");
 
 const app = express();
 
@@ -26,13 +27,17 @@ app.use(cors(corsOptions));
 // remove default powered by on header
 app.disable("x-powered-by");
 
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "pug");
+
 app.use(logger("dev"));
 app.use(helmet());
+
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false, limit: "4MB"}));
-
-// Add middleware to authenticate requests
-// app.use(myMiddleware);
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);
