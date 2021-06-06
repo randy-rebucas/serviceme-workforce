@@ -28,4 +28,6 @@ router.post("/deleteAll", ctrlr.deleteAll);
 
 router.get("/getAll", ctrlr.getAll);
 
+router.post("/setClaims", ctrlr.setClaims);
+
 module.exports = router;

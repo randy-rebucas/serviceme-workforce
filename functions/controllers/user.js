@@ -147,3 +147,21 @@ exports.getAll = async (req, res, next) => {
     });
   }
 };
+
+exports.setClaims = async (req, res, next) => {
+  try {
+    // eslint-disable-next-line max-len
+    const adminResponse = await admin.auth().getUserByEmail(req.query.email);
+
+    // eslint-disable-next-line max-len
+    await admin.auth().setCustomUserClaims(adminResponse.uid, req.body);
+
+    res.status(200).json({
+      message: "Custom claims set successfully!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
